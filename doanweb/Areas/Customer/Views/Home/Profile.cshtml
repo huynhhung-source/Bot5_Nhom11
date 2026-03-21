@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "H? s? cá nhân";
+    var userName = Context.Session.GetString("UserName");
+    var userEmail = Context.Session.GetString("UserEmail");
+}
+
+<div class="container mt-5">
+    <h1>H? s? cá nhân</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <div class="card-body text-center">
+                    <div style="width: 120px; height: 120px; background: #f36100; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa fa-user" style="font-size: 60px; color: white;"></i>
+                    </div>
+                    <h5 class="card-title">@userName</h5>
+                    <p class="card-text">@userEmail</p>
+                    <div class="mt-3">
+                        <span class="badge badge-success">Ho?t ??ng</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h6 style="margin: 0;">Thông tin tài kho?n</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>S? l?n ??ng nh?p:</strong> 5</p>
+                    <p><strong>Ngày tham gia:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Tr?ng thái:</strong> Ho?t ??ng</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Ch?nh s?a h? s?</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/customer/home/UpdateProfile">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">H? tên</label>
+                                    <input type="text" class="form-control" value="@userName" placeholder="Nh?p h? tên" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" value="@userEmail" placeholder="Nh?p email" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">S? ?i?n tho?i</label>
+                                    <input type="tel" class="form-control" placeholder="Nh?p s? ?i?n tho?i" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Gi?i tính</label>
+                                    <select class="form-control">
+                                        <option>Ch?n gi?i tính</option>
+                                        <option>Nam</option>
+                                        <option>N?</option>
+                                        <option>Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">??a ch?</label>
+                            <input type="text" class="form-control" placeholder="Nh?p ??a ch?" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Ti?u s?</label>
+                            <textarea class="form-control" rows="4" placeholder="Vi?t vài dòng v? b?n..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="background: #f36100; border: none;">
+                            <i class="fa fa-save"></i> L?u thay ??i
+                        </button>
+                        <a href="/customer/home/index" class="btn btn-secondary">
+                            <i class="fa fa-times"></i> H?y
+                        </a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">??i m?t kh?u</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/customer/home/ChangePassword">
+                        <div class="form-group mb-3">
+                            <label class="form-label">M?t kh?u hi?n t?i</label>
+                            <input type="password" class="form-control" placeholder="Nh?p m?t kh?u hi?n t?i" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">M?t kh?u m?i</label>
+                            <input type="password" class="form-control" placeholder="Nh?p m?t kh?u m?i" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Xác nh?n m?t kh?u m?i</label>
+                            <input type="password" class="form-control" placeholder="Xác nh?n m?t kh?u m?i" />
+                        </div>
+
+                        <button type="submit" class="btn btn-warning" style="background: #f36100; border: none; color: white;">
+                            <i class="fa fa-refresh"></i> ??i m?t kh?u
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .form-control:focus {
+        border-color: #f36100;
+        box-shadow: 0 0 0 0.2rem rgba(243, 97, 0, 0.25);
+    }
+    
+    .btn-primary:focus, .btn-primary:hover {
+        background-color: #e55a00 !important;
+    }
+</style>

@@ -1,0 +1,223 @@
+﻿@model doanweb.Models.User
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Người Dùng";
+    var roles = ViewData["Roles"] as List<doanweb.Models.Role>;
+    var currentRoleId = Model?.UserRoles?.FirstOrDefault()?.RoleId ?? 0;
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Thông tin Người Dùng: <strong>@Model?.FullName</strong></h5>
+                </div>
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="fa fa-exclamation-circle"></i> Lỗi:</strong>
+                            <ul style="margin-top: 10px; margin-bottom: 0;">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form method="post" action="/admin/user/edit/@Model?.UserId">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="UserId" value="@Model?.UserId" />
+
+                        <!-- Tên người dùng -->
+                        <div class="mb-3">
+                            <label class="form-label" for="FullName">Tên Người Dùng *</label>
+                            <input type="text" class="form-control" id="FullName" name="FullName" 
+                                   placeholder="Nhập tên người dùng" 
+                                   value="@Model?.FullName" required />
+                            @if (ViewData.ModelState.TryGetValue("FullName", out var errors))
+                            {
+                                @foreach (var error in errors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Email">Email *</label>
+                            <input type="email" class="form-control" id="Email" name="Email" 
+                                   placeholder="Nhập email" 
+                                   value="@Model?.Email" required />
+                            @if (ViewData.ModelState.TryGetValue("Email", out var emailErrors))
+                            {
+                                @foreach (var error in emailErrors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="PhoneNumber">Số Điện Thoại *</label>
+                                    <input type="tel" class="form-control" id="PhoneNumber" name="PhoneNumber" 
+                                           placeholder="Nhập số điện thoại" 
+                                           value="@Model?.PhoneNumber" required />
+                                    @if (ViewData.ModelState.TryGetValue("PhoneNumber", out var phoneErrors))
+                                    {
+                                        @foreach (var error in phoneErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="DateOfBirth">Ngày Sinh</label>
+                                    <input type="date" class="form-control" id="DateOfBirth" name="DateOfBirth" 
+                                           value="@(Model?.DateOfBirth != DateTime.MinValue ? Model?.DateOfBirth.ToString("yyyy-MM-dd") : "")" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Địa chỉ -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Address">Địa Chỉ</label>
+                            <input type="text" class="form-control" id="Address" name="Address" 
+                                   placeholder="Nhập địa chỉ" 
+                                   value="@Model?.Address" />
+                        </div>
+
+                        <!-- Giới tính -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="Gender">Giới Tính</label>
+                                    <select class="form-control" id="Gender" name="Gender">
+                                        <option value="">-- Chọn giới tính --</option>
+                                        <option value="Male">Nam</option>
+                                        <option value="Female">Nữ</option>
+                                        <option value="Other">Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="Status">Trạng Thái *</label>
+                                    <select class="form-control" id="Status" name="Status" required>
+                                        <option value="Active">Hoạt động</option>
+                                        <option value="Inactive">Không hoạt động</option>
+                                        <option value="Suspended">Bị khóa</option>
+                                    </select>
+                                    @if (ViewData.ModelState.TryGetValue("Status", out var statusErrors))
+                                    {
+                                        @foreach (var error in statusErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phân Quyền -->
+                        <div class="mb-3">
+                            <label class="form-label" for="roleId">Phân Quyền *</label>
+                            <select class="form-control" id="roleId" name="roleId" required>
+                                <option value="">-- Chọn quyền --</option>
+                                @if (roles != null && roles.Count > 0)
+                                {
+                                    @foreach (var role in roles)
+                                    {
+                                        <option value="@role.RoleId">@role.RoleName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Thông tin bổ sung -->
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Ngày tạo:</strong> @Model?.CreatedDate.ToString("dd/MM/yyyy HH:mm") <br />
+                                @if (Model?.UpdatedDate != null)
+                                {
+                                    <strong>Cập nhật lần cuối:</strong> @Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")
+                                }
+                            </small>
+                        </div>
+
+                        <!-- Nút hành động -->
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary" style="background: #f36100; border: none; padding: 10px 30px;">
+                                <i class="fa fa-save"></i> Cập Nhật
+                            </button>
+                            <a href="/admin/user/index" class="btn btn-secondary" style="padding: 10px 30px;">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: #f36100;
+        box-shadow: 0 0 0 0.2rem rgba(243, 97, 0, 0.25);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: #e55a00 !important;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set Gender
+            var gender = '@Model?.Gender';
+            if (gender) {
+                document.getElementById('Gender').value = gender;
+            }
+
+            // Set Status
+            var status = '@Model?.Status';
+            if (status) {
+                document.getElementById('Status').value = status;
+            }
+
+            // Set Role
+            var roleId = @currentRoleId;
+            if (roleId > 0) {
+                document.getElementById('roleId').value = roleId.toString();
+            }
+        });
+    </script>
+}

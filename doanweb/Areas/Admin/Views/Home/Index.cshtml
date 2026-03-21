@@ -1,0 +1,299 @@
+﻿@model doanweb.Areas.Admin.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 style="color: #111111; margin: 0; font-weight: 700;">
+                        <i class="fa fa-dashboard"></i> Bảng Điều Khiển Admin
+                    </h2>
+                    <small class="text-muted">Quản lý hệ thống gym trực tuyến</small>
+                </div>
+                <div>
+                    <span class="badge bg-success" style="font-size: 14px; padding: 8px 15px;">
+                        <i class="fa fa-clock"></i> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê chính -->
+    <div class="row mb-4">
+        <!-- Tổng Người Dùng -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Tổng Người Dùng</h6>
+                            <h3 style="color: #007bff; margin: 0; font-weight: 700;">@Model.TotalUsers</h3>
+                            <small class="text-success"><i class="fa fa-arrow-up"></i> @Model.ActiveUsers hoạt động</small>
+                        </div>
+                        <div style="font-size: 40px; color: #007bff; opacity: 0.3;">
+                            <i class="fa fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng Gói Tập -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Gói Tập Hiệu Động</h6>
+                            <h3 style="color: #28a745; margin: 0; font-weight: 700;">@Model.TotalPackages</h3>
+                            <small class="text-info"><i class="fa fa-check"></i> Sẵn sàng</small>
+                        </div>
+                        <div style="font-size: 40px; color: #28a745; opacity: 0.3;">
+                            <i class="fa fa-shopping-bag"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Đăng Ký Hoạt Động -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Đăng Ký Hiệu Động</h6>
+                            <h3 style="color: #ffc107; margin: 0; font-weight: 700;">@Model.ActiveSubscriptions</h3>
+                            <small class="text-info"><i class="fa fa-info-circle"></i> Trên tổng @Model.TotalSubscriptions</small>
+                        </div>
+                        <div style="font-size: 40px; color: #ffc107; opacity: 0.3;">
+                            <i class="fa fa-fire"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng Doanh Thu -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid #f36100;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Tổng Doanh Thu</h6>
+                            <h3 style="color: #f36100; margin: 0; font-weight: 700;">@Model.TotalRevenue.ToString("N0")₫</h3>
+                            <small class="text-success"><i class="fa fa-arrow-up"></i> Từ thanh toán thành công</small>
+                        </div>
+                        <div style="font-size: 40px; color: #f36100; opacity: 0.3;">
+                            <i class="fa fa-money"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê phụ -->
+    <div class="row mb-4">
+        <!-- Lớp Tập -->
+        <div class="col-md-6 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-light border-bottom">
+                    <h6 class="mb-0"><i class="fa fa-dumbbell"></i> Lớp Tập</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                                <h4 style="color: #007bff; margin: 0;">@Model.TotalClasses</h4>
+                                <small class="text-muted">Tổng lớp tập</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/admin/class/index" class="btn btn-primary btn-sm" style="background: #007bff; border: none; margin-top: 10px;">
+                                <i class="fa fa-list"></i> Quản Lý Lớp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh Toán -->
+        <div class="col-md-6 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-light border-bottom">
+                    <h6 class="mb-0"><i class="fa fa-credit-card"></i> Thanh Toán</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                                <h4 style="color: #28a745; margin: 0;">@Model.TotalPayments</h4>
+                                <small class="text-muted">Giao dịch</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/admin/payment/index" class="btn btn-success btn-sm" style="background: #28a745; border: none; margin-top: 10px;">
+                                <i class="fa fa-list"></i> Quản Lý Thanh Toán
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quản lý nhanh -->
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="mb-3"><i class="fa fa-cog"></i> Quản Lý Nhanh</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quản lý Gói Tập -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;">
+                <div class="card-body text-center">
+                    <div style="font-size: 48px; color: #28a745; margin-bottom: 15px;">
+                        <i class="fa fa-shopping-bag"></i>
+                    </div>
+                    <h5 class="card-title">Quản Lý Gói Tập</h5>
+                    <p class="card-text text-muted">Thêm, chỉnh sửa, xóa gói tập luyện</p>
+                    <p style="font-size: 24px; color: #28a745; margin: 10px 0; font-weight: 700;">@Model.TotalPackages</p>
+                    <a href="/admin/package/index" class="btn btn-success" style="background: #28a745; border: none; width: 100%;">
+                        <i class="fa fa-arrow-right"></i> Quản Lý
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quản lý Người Dùng -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;">
+                <div class="card-body text-center">
+                    <div style="font-size: 48px; color: #007bff; margin-bottom: 15px;">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <h5 class="card-title">Quản Lý Người Dùng</h5>
+                    <p class="card-text text-muted">Quản lý tài khoản người dùng</p>
+                    <p style="font-size: 24px; color: #007bff; margin: 10px 0; font-weight: 700;">@Model.TotalUsers</p>
+                    <a href="/admin/user/index" class="btn btn-primary" style="background: #007bff; border: none; width: 100%;">
+                        <i class="fa fa-arrow-right"></i> Quản Lý
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống kê Tổng Quát -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;">
+                <div class="card-body text-center">
+                    <div style="font-size: 48px; color: #f36100; margin-bottom: 15px;">
+                        <i class="fa fa-bar-chart"></i>
+                    </div>
+                    <h5 class="card-title">Thống Kê</h5>
+                    <p class="card-text text-muted">Xem thống kê tổng quát hệ thống</p>
+                    <p style="font-size: 18px; color: #f36100; margin: 10px 0; font-weight: 700;">
+                        @Model.TotalRevenue.ToString("N0")₫
+                    </p>
+                    <a href="#statistics" class="btn" style="background: #f36100; border: none; color: white; width: 100%;">
+                        <i class="fa fa-arrow-right"></i> Chi Tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê chi tiết -->
+    <div class="row mt-5" id="statistics">
+        <div class="col-md-12">
+            <h5 class="mb-3"><i class="fa fa-table"></i> Thống Kê Chi Tiết</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-light border-bottom">
+                    <h6 class="mb-0">Tổng Hợp Dữ Liệu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #e7f3ff; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #007bff; margin: 0;">@Model.TotalUsers</h3>
+                                <small class="text-muted">Người Dùng</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #e8f5e9; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #28a745; margin: 0;">@Model.TotalPackages</h3>
+                                <small class="text-muted">Gói Tập</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #fff3cd; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #ffc107; margin: 0;">@Model.TotalSubscriptions</h3>
+                                <small class="text-muted">Đăng Ký</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #f3e5f5; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #9c27b0; margin: 0;">@Model.ActiveSubscriptions</h3>
+                                <small class="text-muted">Hoạt Động</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #ffe0b2; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #f36100; margin: 0;">@Model.TotalPayments</h3>
+                                <small class="text-muted">Thanh Toán</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div style="padding: 20px; background: #fce4ec; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #e91e63; margin: 0;">@Model.TotalClasses</h3>
+                                <small class="text-muted">Lớp Tập</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn:hover {
+        transform: scale(1.02);
+    }
+
+    .badge {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    h6 {
+        color: #333;
+        font-weight: 600;
+    }
+
+    .text-muted {
+        color: #999 !important;
+    }
+</style>

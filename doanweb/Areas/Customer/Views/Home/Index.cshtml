@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<div class="container mt-5">
+    <h1>Trang khách hàng</h1>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5>Thông tin tài kho?n khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        var userName = Context.Session.GetString("UserName");
+                    }
+                    <p>Chào m?ng @userName ??n v?i không gian cá nhân!</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">H? s? cá nhân</h5>
+                                    <p class="card-text">C?p nh?t thông tin cá nhân c?a b?n</p>
+                                    <a href="/customer/home/profile" class="btn btn-primary mt-3">Xem h? s?</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Gói t?p c?a tôi</h5>
+                                    <p class="card-text">Xem các gói t?p b?n ?ã ??ng ký</p>
+                                    <a href="/customer/home/mypackages" class="btn btn-primary mt-3">Xem gói t?p</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

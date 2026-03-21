@@ -1,0 +1,238 @@
+/* Admin Layout Styles */
+
+body.admin-layout {
+    margin-left: 250px;
+    background-color: #f8f9fa;
+}
+
+.admin-topbar {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px 30px;
+    margin-left: -250px;
+    padding-left: calc(30px + 250px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.admin-topbar .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.admin-topbar-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-topbar-info .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-topbar-info .user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+main.main-content {
+    padding: 0 30px 50px 30px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    body.admin-layout {
+        margin-left: 0;
+    }
+
+    .admin-topbar {
+        margin-left: 0;
+        padding-left: 30px;
+    }
+
+    .admin-topbar .menu-toggle {
+        display: block;
+    }
+
+    main.main-content {
+        padding: 0 20px 50px 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-topbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+    }
+
+    .admin-topbar-info {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    main.main-content {
+        padding: 0 15px 50px 15px;
+    }
+}
+
+/* Dashboard Card Styles */
+.stat-card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.stat-card.primary {
+    border-left: 4px solid #007bff;
+}
+
+.stat-card.success {
+    border-left: 4px solid #28a745;
+}
+
+.stat-card.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.stat-card.danger {
+    border-left: 4px solid #dc3545;
+}
+
+.stat-card.info {
+    border-left: 4px solid #17a2b8;
+}
+
+.stat-card.orange {
+    border-left: 4px solid #f36100;
+}
+
+/* Table Styles */
+.admin-table {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.admin-table thead th {
+    font-weight: 600;
+    color: #333;
+    padding: 15px;
+    border: none;
+}
+
+.admin-table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* Form Styles */
+.admin-form-control {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px 12px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.admin-form-control:focus {
+    border-color: #f36100;
+    box-shadow: 0 0 0 0.2rem rgba(243, 97, 0, 0.25);
+}
+
+/* Button Styles */
+.admin-btn {
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Badge Styles */
+.admin-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-badge.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.admin-badge.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.admin-badge.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.admin-badge.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Alert Styles */
+.admin-alert {
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.admin-alert.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.admin-alert.danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.admin-alert.warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+}
+
+.admin-alert.info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}

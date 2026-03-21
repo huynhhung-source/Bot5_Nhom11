@@ -1,0 +1,244 @@
+﻿@model doanweb.Models.User
+
+@{
+    ViewData["Title"] = "Chi Tiết Người Dùng";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <a href="/admin/user/index" class="btn btn-secondary mb-3" style="padding: 8px 20px;">
+                <i class="fa fa-arrow-left"></i> Quay Lại
+            </a>
+
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Chi Tiết Người Dùng: <strong>@Model?.FullName</strong></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase mb-3">Thông Tin Cá Nhân</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td><strong>ID:</strong></td>
+                                    <td>@Model?.UserId</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tên:</strong></td>
+                                    <td>@Model?.FullName</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td><a href="mailto:@Model?.Email">@Model?.Email</a></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Số Điện Thoại:</strong></td>
+                                    <td><a href="tel:@Model?.PhoneNumber">@Model?.PhoneNumber</a></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Địa Chỉ:</strong></td>
+                                    <td>@(string.IsNullOrEmpty(Model?.Address) ? "Chưa cập nhật" : Model.Address)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ngày Sinh:</strong></td>
+                                    <td>@(Model?.DateOfBirth == DateTime.MinValue ? "Chưa cập nhật" : Model?.DateOfBirth.ToString("dd/MM/yyyy"))</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Giới Tính:</strong></td>
+                                    <td>
+                                        @if (Model?.Gender == "Male")
+                                        {
+                                            <span class="badge bg-primary"><i class="fa fa-mars"></i> Nam</span>
+                                        }
+                                        else if (Model?.Gender == "Female")
+                                        {
+                                            <span class="badge bg-danger"><i class="fa fa-venus"></i> Nữ</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Chưa cập nhật</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase mb-3">Trạng Thái & Lịch Sử</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td><strong>Trạng Thái:</strong></td>
+                                    <td>
+                                        @if (Model?.Status == "Active")
+                                        {
+                                            <span class="badge bg-success"><i class="fa fa-check-circle"></i> Hoạt động</span>
+                                        }
+                                        else if (Model?.Status == "Inactive")
+                                        {
+                                            <span class="badge bg-warning"><i class="fa fa-pause-circle"></i> Không hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger"><i class="fa fa-times-circle"></i> Bị khóa</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Vai Trò:</strong></td>
+                                    <td>
+                                        @if (Model?.UserRoles != null && Model.UserRoles.Any())
+                                        {
+                                            @foreach (var userRole in Model.UserRoles)
+                                            {
+                                                <span class="badge bg-info">@userRole.Role?.RoleName</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span>Chưa gán vai trò</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ngày Tạo:</strong></td>
+                                    <td>@Model?.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cập Nhật Lần Cuối:</strong></td>
+                                    <td>@(Model?.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Gói Tập -->
+                    <hr />
+                    <h6 class="text-muted text-uppercase mb-3">Gói Tập Đã Mua</h6>
+                    @if (Model?.Subscriptions != null && Model.Subscriptions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Tên Gói</th>
+                                        <th>Giá (₫)</th>
+                                        <th>Ngày Bắt Đầu</th>
+                                        <th>Ngày Kết Thúc</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Ngày Còn Lại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var subscription in Model.Subscriptions)
+                                    {
+                                        <tr>
+                                            <td><strong>@subscription.Package?.PackageName</strong></td>
+                                            <td>@subscription.Package?.Price.ToString("N0")</td>
+                                            <td>@subscription.StartDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@subscription.EndDate.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                @if (subscription.Status == "Active")
+                                                {
+                                                    <span class="badge bg-success">Hoạt động</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">@subscription.Status</span>
+                                                }
+                                            </td>
+                                            <td>@subscription.RemainingDays ngày</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="fa fa-info-circle"></i> Người dùng chưa mua gói tập nào
+                        </div>
+                    }
+
+                    <!-- Thanh Toán -->
+                    <hr />
+                    <h6 class="text-muted text-uppercase mb-3">Lịch Sử Thanh Toán</h6>
+                    @if (Model?.Payments != null && Model.Payments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Số Tiền (₫)</th>
+                                        <th>Ngày Thanh Toán</th>
+                                        <th>Phương Thức</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Mô Tả</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.Payments.OrderByDescending(p => p.PaymentDate))
+                                    {
+                                        <tr>
+                                            <td><strong style="color: #f36100;">@payment.Amount.ToString("N0")</strong></td>
+                                            <td>@payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@(payment.PaymentMethod ?? "---")</td>
+                                            <td>
+                                                @if (payment.Status == "Success")
+                                                {
+                                                    <span class="badge bg-success">Thành công</span>
+                                                }
+                                                else if (payment.Status == "Pending")
+                                                {
+                                                    <span class="badge bg-warning">Chờ xử lý</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">@payment.Status</span>
+                                                }
+                                            </td>
+                                            <td>@(payment.Description ?? "---")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i> Chưa có lịch sử thanh toán
+                        </div>
+                    }
+
+                    <!-- Nút Hành Động -->
+                    <div class="mt-4">
+                        <a href="/admin/user/edit/@Model?.UserId" class="btn btn-warning" style="padding: 10px 30px;">
+                            <i class="fa fa-edit"></i> Chỉnh Sửa
+                        </a>
+                        <a href="/admin/user/index" class="btn btn-secondary" style="padding: 10px 30px;">
+                            <i class="fa fa-list"></i> Danh Sách
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-sm td {
+        padding: 0.5rem;
+    }
+
+    .badge {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    hr {
+        margin: 2rem 0;
+        border-top: 2px solid #f36100;
+    }
+</style>

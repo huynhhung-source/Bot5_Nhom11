@@ -1,0 +1,143 @@
+﻿@model RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 60px; font-weight: 600; text-transform: uppercase;">Đăng ký tài khoản</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- Register Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h2 style="text-align: center; margin-bottom: 30px; color: #111111;">Tạo tài khoản mới</h2>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                            <strong>Lỗi:</strong>
+                            <ul style="margin-top: 10px;">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <form method="post" action="/customer/account/register">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Họ tên -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Họ tên *</label>
+                            <input type="text" name="FullName" class="form-control" placeholder="Nhập họ tên của bạn" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                                   value="@Model?.FullName" required />
+                            @if (ViewData.ModelState.TryGetValue("FullName", out var fullNameErrors))
+                            {
+                                @foreach (var error in fullNameErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Email *</label>
+                            <input type="email" name="Email" class="form-control" placeholder="Nhập email của bạn" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                                   value="@Model?.Email" required />
+                            @if (ViewData.ModelState.TryGetValue("Email", out var emailErrors))
+                            {
+                                @foreach (var error in emailErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Số điện thoại *</label>
+                            <input type="tel" name="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                                   value="@Model?.PhoneNumber" required />
+                            @if (ViewData.ModelState.TryGetValue("PhoneNumber", out var phoneErrors))
+                            {
+                                @foreach (var error in phoneErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Mật khẩu -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Mật khẩu *</label>
+                            <input type="password" name="Password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required />
+                            @if (ViewData.ModelState.TryGetValue("Password", out var passwordErrors))
+                            {
+                                @foreach (var error in passwordErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Xác nhận mật khẩu -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Xác nhận mật khẩu *</label>
+                            <input type="password" name="ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required />
+                            @if (ViewData.ModelState.TryGetValue("ConfirmPassword", out var confirmErrors))
+                            {
+                                @foreach (var error in confirmErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Điều khoản -->
+                        <div class="form-group" style="margin-bottom: 30px;">
+                            <label style="display: flex; align-items: center; color: #666;">
+                                <input type="checkbox" name="AgreeToTerms" style="margin-right: 10px; width: 18px; height: 18px;" />
+                                <span>Tôi đồng ý với <a href="#" style="color: #f36100; text-decoration: none;">điều khoản dịch vụ</a></span>
+                            </label>
+                        </div>
+
+                        <!-- Nút Đăng ký -->
+                        <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+                            Đăng ký
+                        </button>
+
+                        <!-- Link Đăng nhập -->
+                        <div style="text-align: center; margin-top: 20px;">
+                            <p style="color: #666;">
+                                Đã có tài khoản? <a href="/customer/account/login" style="color: #f36100; text-decoration: none; font-weight: 600;">Đăng nhập ngay</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Register Section End -->
