@@ -1,0 +1,142 @@
+﻿@model List<doanweb.Models.Package>
+
+@{
+    ViewData["Title"] = "Gói Tập Luyện Offline";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 500px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 60px; font-weight: 600; text-transform: uppercase;">Gói Tập Luyện Tại Phòng</h2>
+                    <div class="bt-option" style="margin-top: 20px;">
+                        <a href="/" style="color: white; font-size: 18px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang chủ</a>
+                        <span style="color: #f36100; font-size: 18px; font-weight: 700;">Gói Tập Offline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- Offline Packages Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title">
+                    <span style="color: #f36100; font-size: 16px; text-transform: uppercase; font-weight: 700;">Khám phá các gói tập luyện</span>
+                    <h2 style="color: white; font-size: 36px; font-weight: 600; text-transform: uppercase; margin-top: 8px;">Gói Tập Luyện Tại Phòng</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Packages Grid -->
+        <div class="row justify-content-center">
+            @if (Model != null && Model.Count > 0)
+            {
+                @foreach (var package in Model)
+                {
+                    <div class="col-lg-4 col-md-6 package-item" style="margin-bottom: 30px;">
+                        <div class="ps-item" style="position: relative; text-align: center; padding: 40px 30px 52px; border: 1px solid #464646; transform: skewY(-4deg); transition: all 0.5s; background: transparent;">
+                            <h3 style="font-size: 28px; color: white; font-weight: 600; margin-bottom: 16px; transform: skewY(4deg);">@package.PackageName</h3>
+                            <div class="pi-price" style="margin-bottom: 30px; transform: skewY(4deg);">
+                                <h2 style="font-size: 60px; color: #f36100; font-weight: 600;">@package.Price.ToString("N0")₫</h2>
+                                <span style="color: #c4c4c4; font-size: 16px; font-weight: 700; text-transform: uppercase;">@(package.DurationDays > 0 ? (package.DurationDays / 30) : 0) tháng</span>
+                            </div>
+                            <ul style="margin-bottom: 40px; transform: skewY(4deg); text-align: left;">
+                                @if (!string.IsNullOrEmpty(package.Features))
+                                {
+                                    @foreach (var feature in package.Features.Split(',').Take(6))
+                                    {
+                                        <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ @feature.Trim()</li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Truy cập tất cả trang thiết bị</li>
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Lớp tập luyện hàng ngày</li>
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Huấn luyện viên riêng</li>
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Tư vấn dinh dưỡng</li>
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Sử dụng Steam room & Sauna</li>
+                                    <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Thành viên cộng đồng</li>
+                                }
+                            </ul>
+                            <a href="/packages/detail/@package.PackageId" class="primary-btn pricing-btn" style="display: block; background: #f36100; color: white; padding: 14px 0 12px; border: none; font-size: 14px; text-transform: uppercase; font-weight: 700; transform: skewY(4deg); cursor: pointer; text-decoration: none;">Tham gia ngay</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-lg-12" style="text-align: center; padding: 40px;">
+                    <p style="color: #c4c4c4; font-size: 18px;">Chưa có gói tập nào. Vui lòng quay lại sau!</p>
+                </div>
+            }
+        </div>
+
+        <!-- Call to Action -->
+        <div class="row" style="margin-top: 60px;">
+            <div class="col-lg-12">
+                <div style="background: linear-gradient(135deg, #f36100, #dc143c); color: white; padding: 50px; border-radius: 10px; text-align: center;">
+                    <h2 style="margin-bottom: 15px; color: white;">Sẵn sàng bắt đầu hành trình của bạn?</h2>
+                    <p style="font-size: 16px; margin-bottom: 30px; color: rgba(255,255,255,0.95);">
+                        Tham gia ngay hôm nay và nhận tư vấn miễn phí từ huấn luyện viên của chúng tôi
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Offline Packages Section End -->
+
+<style>
+    .filter-btn:hover {
+        background: #f36100 !important;
+        color: white !important;
+        border-color: #f36100 !important;
+    }
+
+    .filter-btn.active {
+        background: #f36100 !important;
+        color: white !important;
+        border-color: #f36100 !important;
+    }
+
+    .package-item {
+        transition: all 0.3s ease;
+    }
+
+    .package-item:hover .ps-item {
+        transform: translateY(-10px) skewY(-4deg) !important;
+        box-shadow: 0 15px 30px rgba(243, 97, 0, 0.2) !important;
+        background: #151515 !important;
+        border-color: #151515 !important;
+    }
+
+    .package-item:hover .ps-item h3,
+    .package-item:hover .ps-item h2 {
+        color: #111111 !important;
+    }
+
+    .package-item:hover .ps-item ul li {
+        color: #111111 !important;
+        font-weight: 600 !important;
+    }
+
+    .ps-item {
+        transition: all 0.5s ease;
+    }
+
+    .package-item {
+        display: block;
+    }
+
+    .pricing-btn:hover {
+        background: #e55a00 !important;
+        transform: skewY(4deg) translateY(-3px);
+    }
+</style>
