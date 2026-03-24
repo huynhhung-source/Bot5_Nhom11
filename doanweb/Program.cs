@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
+using System.Text;
+
+// Ensure UTF-8 encoding
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+Console.OutputEncoding = Encoding.UTF8;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +15,13 @@ builder.Services.AddControllersWithViews()
 // Add Entity Framework Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<GymDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlServerOptionsAction: sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    }));
 
 // Add Session
 builder.Services.AddSession(options =>
@@ -18,6 +29,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(24);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 var app = builder.Build();

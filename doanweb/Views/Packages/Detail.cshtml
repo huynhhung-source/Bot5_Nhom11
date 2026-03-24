@@ -228,15 +228,25 @@
 
 <script>
     function redirectToPayment(packageId) {
-        // Kiểm tra xem user đã đăng nhập chưa
-        var userEmail = '@(Context.Session.GetString("UserEmail") ?? "")';
-        
-        if (!userEmail || userEmail === '') {
-            // Chưa đăng nhập, redirect đến login
-            window.location.href = '/Customer/Account/Login?returnUrl=/Packages/Detail/' + packageId;
-        } else {
-            // Đã đăng nhập, chuyển đến trang thanh toán
-            window.location.href = '/Payment/Checkout?packageId=' + packageId;
-        }
+        // Kiểm tra xem user đã đăng nhập chưa bằng cách gửi request tới server
+        fetch('/Payment/CheckLogin', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.isLoggedIn) {
+                // Đã đăng nhập, chuyển đến trang thanh toán
+                window.location.href = '/Payment/Checkout?packageId=' + packageId;
+            } else {
+                // Chưa đăng nhập, redirect đến login
+                window.location.href = '/Customer/Account/Login?returnUrl=/Packages/Detail?packageId=' + packageId;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Nếu có lỗi, redirect đến login
+            window.location.href = '/Customer/Account/Login?returnUrl=/Packages/Detail?packageId=' + packageId;
+        });
     }
 </script>

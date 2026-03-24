@@ -1,0 +1,188 @@
+﻿@model PaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh Toán";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">Thanh Toán</h2>
+                    <div class="bt-option" style="margin-top: 20px;">
+                        <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang chủ</a>
+                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">Thanh Toán</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- Payment Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h2 style="text-align: center; margin-bottom: 40px; color: #111111;">Thông Tin Thanh Toán</h2>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                            <strong><i class="fa fa-exclamation-circle"></i> Lỗi:</strong>
+                            <ul style="margin-top: 10px;">
+                                @foreach (var modelState in ViewData.ModelState.Values)
+                                {
+                                    @foreach (var error in modelState.Errors)
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    @if (Model == null)
+                    {
+                        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                            <strong><i class="fa fa-exclamation-circle"></i> Lỗi:</strong>
+                            <p>Không thể tải thông tin gói tập. Vui lòng quay lại và thử lại.</p>
+                            <a href="javascript:history.back()" class="btn btn-primary" style="margin-top: 10px;">← Quay Lại</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Thông tin gói tập -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #f36100;">
+                            <h4 style="color: #111111; margin-bottom: 15px;">📦 Thông Tin Gói Tập</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <span style="color: #666; font-weight: 600;">Tên gói:</span>
+                                    <p style="color: #f36100; font-weight: 700; margin-top: 5px;">@Model.PackageName</p>
+                                </div>
+                                <div>
+                                    <span style="color: #666; font-weight: 600;">Thời hạn:</span>
+                                    <p style="color: #f36100; font-weight: 700; margin-top: 5px;">@(Model.DurationDays / 30) tháng (@Model.DurationDays ngày)</p>
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <span style="color: #666; font-weight: 600;">Giá:</span>
+                                    <p style="color: #f36100; font-weight: 700; font-size: 24px; margin-top: 5px;">@Model.Price.ToString("N0")đ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post" action="/payment/checkout">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="PackageId" value="@Model.PackageId" />
+                            <input type="hidden" name="PackageName" value="@Model.PackageName" />
+                            <input type="hidden" name="Price" value="@Model.Price" />
+                            <input type="hidden" name="DurationDays" value="@Model.DurationDays" />
+
+                            <!-- Phương thức thanh toán -->
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">💳 Phương Thức Thanh Toán *</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <label style="border: 2px solid #ddd; padding: 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center;">
+                                        <input type="radio" name="PaymentMethod" value="CreditCard" style="margin-right: 10px;" required />
+                                        <span>
+                                            <i class="fa fa-credit-card" style="color: #f36100; margin-right: 8px;"></i>
+                                            <strong>Thẻ Tín Dụng</strong>
+                                        </span>
+                                    </label>
+                                    <label style="border: 2px solid #ddd; padding: 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center;">
+                                        <input type="radio" name="PaymentMethod" value="BankTransfer" style="margin-right: 10px;" required />
+                                        <span>
+                                            <i class="fa fa-university" style="color: #f36100; margin-right: 8px;"></i>
+                                            <strong>Chuyển Khoản Ngân Hàng</strong>
+                                        </span>
+                                    </label>
+                                    <label style="border: 2px solid #ddd; padding: 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center;">
+                                        <input type="radio" name="PaymentMethod" value="Cash" style="margin-right: 10px;" required />
+                                        <span>
+                                            <i class="fa fa-money" style="color: #f36100; margin-right: 8px;"></i>
+                                            <strong>Tiền Mặt</strong>
+                                        </span>
+                                    </label>
+                                    <label style="border: 2px solid #ddd; padding: 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center;">
+                                        <input type="radio" name="PaymentMethod" value="Wallet" style="margin-right: 10px;" required />
+                                        <span>
+                                            <i class="fa fa-wallet" style="color: #f36100; margin-right: 8px;"></i>
+                                            <strong>Ví Điện Tử</strong>
+                                        </span>
+                                    </label>
+                                </div>
+                                @if (ViewData.ModelState.TryGetValue("PaymentMethod", out var methodErrors))
+                                {
+                                    @foreach (var error in methodErrors.Errors)
+                                    {
+                                        <span style="color: #dc3545; font-size: 12px; display: block; margin-top: 5px;">@error.ErrorMessage</span>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Mã giao dịch (optional) -->
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Mã Giao Dịch (Tùy Chọn)</label>
+                                <input type="text" name="TransactionId" class="form-control" placeholder="Nhập mã giao dịch nếu có" 
+                                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                                       value="@Model.TransactionId" />
+                                <small style="color: #666;">Chỉ cần nhập nếu thanh toán qua ngân hàng hoặc ví điện tử</small>
+                            </div>
+
+                            <!-- Ghi chú -->
+                            <div class="form-group" style="margin-bottom: 30px;">
+                                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Ghi Chú (Tùy Chọn)</label>
+                                <textarea name="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú nếu có" 
+                                          style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">@Model.Notes</textarea>
+                            </div>
+
+                            <!-- Thông báo -->
+                            <div style="background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #17a2b8;">
+                                <i class="fa fa-info-circle"></i> <strong>Lưu ý:</strong> Sau khi thanh toán thành công, gói tập sẽ được kích hoạt ngay lập tức.
+                            </div>
+
+                            <!-- Nút thanh toán -->
+                            <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-bottom: 15px;">
+                                <i class="fa fa-credit-card"></i> Thanh Toán Ngay
+                            </button>
+
+                            <!-- Nút hủy -->
+                            <a href="javascript:history.back()" class="primary-btn" style="width: 100%; background: transparent; color: #f36100; border: 2px solid #f36100; padding: 13px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                ← Hủy
+                            </a>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Payment Section End -->
+
+<style>
+    .form-control:focus {
+        border-color: #f36100;
+        box-shadow: 0 0 0 0.2rem rgba(243, 97, 0, 0.25);
+    }
+
+    input[type="radio"]:checked + span {
+        color: #f36100;
+    }
+
+    label input[type="radio"]:checked + span {
+        color: #f36100;
+    }
+
+    input[type="radio"]:checked:parent {
+        border-color: #f36100;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -176,6 +176,98 @@ namespace doanweb.Areas.Customer.Controllers
             return RedirectToAction("Index", "Home", new { area = "" });
         }
 
+        // Trang Hồ sơ cá nhân
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _dbContext.Users.FindAsync(userId.Value);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new ProfileViewModel
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                DateOfBirth = user.DateOfBirth,
+                Address = user.Address,
+                Gender = user.Gender
+            };
+
+            return View(model);
+        }
+
+        // Xử lý cập nhật hồ sơ cá nhân
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                var user = await _dbContext.Users.FindAsync(userId.Value);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                // Kiểm tra email trùng (ngoài user hiện tại)
+                var emailCheck = await _dbContext.Users
+                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.UserId != userId.Value);
+                
+                if (emailCheck != null)
+                {
+                    ModelState.AddModelError("Email", "Email này đã được sử dụng");
+                    return View(model);
+                }
+
+                // Cập nhật thông tin
+                user.FullName = model.FullName;
+                user.Email = model.Email;
+                user.PhoneNumber = model.PhoneNumber;
+                user.DateOfBirth = model.DateOfBirth ?? DateTime.MinValue;
+                user.Address = model.Address;
+                user.Gender = model.Gender;
+                user.UpdatedDate = DateTime.Now;
+
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync();
+
+                // Cập nhật session
+                HttpContext.Session.SetString("UserName", user.FullName);
+                HttpContext.Session.SetString("UserEmail", user.Email);
+
+                TempData["SuccessMessage"] = "Cập nhật hồ sơ thành công!";
+                _logger.LogInformation($"User profile updated: {user.Email}");
+
+                return RedirectToAction("Profile");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating profile: {ex.Message}");
+                ModelState.AddModelError("", "Đã xảy ra lỗi. Vui lòng thử lại.");
+                return View(model);
+            }
+        }
+
         // Hàm hash mật khẩu
         private string HashPassword(string password)
         {

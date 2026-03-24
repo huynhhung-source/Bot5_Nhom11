@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Testing Tool - Công C? Test Thanh Toán</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .success {
+            border-left-color: #28a745;
+            background: #f0fdf4;
+        }
+
+        .error {
+            border-left-color: #dc3545;
+            background: #fdf4f4;
+            color: #dc3545;
+        }
+
+        .warning {
+            border-left-color: #ffc107;
+            background: #fffef2;
+            color: #ff9800;
+        }
+
+        .info {
+            border-left-color: #17a2b8;
+            background: #f0f8ff;
+            color: #0c5460;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .stat-box strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>?? Payment Testing Tool - Công C? Test Thanh Toán</h1>
+
+        <!-- Diagnostics Card -->
+        <div class="card">
+            <h2>?? Diagnostics - Ch?n ?oán H? Th?ng</h2>
+            <div class="buttons">
+                <button onclick="runFullDiagnostics()">?? Full Diagnostics</button>
+                <button onclick="testComponent('database')">??? Database</button>
+                <button onclick="testComponent('session')">?? Session</button>
+                <button onclick="testComponent('encoding')">?? Encoding</button>
+                <button onclick="testComponent('packages')">?? Packages</button>
+                <button onclick="testComponent('payments')">?? Payments</button>
+            </div>
+            <div id="diagnosticsLoading" class="loading">
+                <div class="spinner"></div> Loading diagnostics...
+            </div>
+            <div id="diagnosticsResult" class="result info" style="display: none;"></div>
+        </div>
+
+        <!-- Payment Flow Test Card -->
+        <div class="card">
+            <h2>?? Payment Flow Test - Test Quy Trình Thanh Toán</h2>
+            <div style="margin-bottom: 15px;">
+                <label for="packageId">Select Package / Ch?n Gói T?p:</label>
+                <select id="packageId" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="">Loading packages...</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="paymentMethod">Payment Method / Ph??ng Th?c Thanh Toán:</label>
+                <select id="paymentMethod" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="CreditCard">Th? Tín D?ng (Credit Card)</option>
+                    <option value="BankTransfer">Chuy?n Kho?n Ngân Hàng (Bank Transfer)</option>
+                    <option value="Cash">Ti?n M?t (Cash)</option>
+                    <option value="Wallet">Ví ?i?n T? (E-Wallet)</option>
+                </select>
+            </div>
+            <button onclick="testPaymentFlow()" style="width: 100%; padding: 15px; font-size: 16px;">
+                ? Test Payment Flow - Test Quy Trình Thanh Toán
+            </button>
+            <div id="paymentLoading" class="loading">
+                <div class="spinner"></div> Testing payment flow...
+            </div>
+            <div id="paymentResult" class="result info" style="display: none;"></div>
+        </div>
+
+        <!-- Quick Links Card -->
+        <div class="card">
+            <h2>?? Quick Links - Liên K?t Nhanh</h2>
+            <div class="buttons">
+                <button onclick="window.location.href='/Packages/Online'">?? View Packages</button>
+                <button onclick="window.location.href='/Customer/Account/Login'">?? Login</button>
+                <button onclick="window.location.href='/Customer/Account/Profile'">?? Profile</button>
+                <button onclick="window.location.href='/Payment/Checkout?packageId=1'">?? Checkout</button>
+                <button onclick="window.location.href='/admin/payment/index'">?? Admin Panel</button>
+            </div>
+        </div>
+
+        <!-- Status Card -->
+        <div class="card">
+            <h2>?? Status - Tr?ng Thái</h2>
+            <div class="grid" id="statusGrid">
+                <div class="stat-box">
+                    <strong>User Status</strong>
+                    <div class="stat-value" id="userStatus">Checking...</div>
+                </div>
+                <div class="stat-box">
+                    <strong>Database</strong>
+                    <div class="stat-value" id="dbStatus">Checking...</div>
+                </div>
+                <div class="stat-box">
+                    <strong>Encoding</strong>
+                    <div class="stat-value" id="encodingStatus">Checking...</div>
+                </div>
+                <div class="stat-box">
+                    <strong>Session</strong>
+                    <div class="stat-value" id="sessionStatus">Checking...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPackages();
+            checkStatus();
+        });
+
+        // Load packages
+        async function loadPackages() {
+            try {
+                const response = await fetch('/PaymentDiagnostics/ComponentTest?component=packages');
+                const data = await response.json();
+                
+                const select = document.getElementById('packageId');
+                if (data.Packages && data.Packages.length > 0) {
+                    select.innerHTML = data.Packages.map(p => 
+                        `<option value="${p.packageId}">${p.packageName} - ${p.price.toLocaleString()}?</option>`
+                    ).join('');
+                } else {
+                    select.innerHTML = '<option value="">No packages available</option>';
+                }
+            } catch (error) {
+                console.error('Error loading packages:', error);
+            }
+        }
+
+        // Run full diagnostics
+        async function runFullDiagnostics() {
+            const loading = document.getElementById('diagnosticsLoading');
+            const result = document.getElementById('diagnosticsResult');
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('/PaymentDiagnostics/FullDiagnostics');
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = 'result info';
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = `Error: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // Test individual component
+        async function testComponent(component) {
+            const loading = document.getElementById('diagnosticsLoading');
+            const result = document.getElementById('diagnosticsResult');
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch(`/PaymentDiagnostics/ComponentTest?component=${component}`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = 'result info';
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = `Error: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // Test payment flow
+        async function testPaymentFlow() {
+            const packageId = document.getElementById('packageId').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            if (!packageId) {
+                alert('Please select a package');
+                return;
+            }
+
+            const loading = document.getElementById('paymentLoading');
+            const result = document.getElementById('paymentResult');
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('/PaymentDiagnostics/TestPaymentFlow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        packageId: parseInt(packageId),
+                        paymentMethod: paymentMethod
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.OverallStatus && data.OverallStatus.includes('?')) {
+                    result.className = 'result success';
+                } else if (data.Error) {
+                    result.className = 'result error';
+                } else {
+                    result.className = 'result warning';
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.textContent = `Error: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // Check status
+        async function checkStatus() {
+            try {
+                const response = await fetch('/PaymentDiagnostics/FullDiagnostics');
+                const data = await response.json();
+
+                // Update user status
+                const userStatus = data.CurrentUser?.IsLoggedIn ? '? Logged In' : '? Not Logged In';
+                document.getElementById('userStatus').textContent = userStatus;
+
+                // Update database status
+                const dbStatus = data.Database?.Status?.includes('Pass') ? '? Connected' : '? Failed';
+                document.getElementById('dbStatus').textContent = dbStatus;
+
+                // Update encoding status
+                document.getElementById('encodingStatus').textContent = '? UTF-8';
+
+                // Update session status
+                const sessionStatus = data.CurrentUser?.IsLoggedIn ? '? Active' : '? Inactive';
+                document.getElementById('sessionStatus').textContent = sessionStatus;
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+    </script>
+</body>
+</html>

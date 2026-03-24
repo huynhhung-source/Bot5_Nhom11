@@ -1,12 +1,13 @@
 ﻿<!DOCTYPE html>
-<html lang="zxx">
+<html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="description" content="Gym Template">
     <meta name="keywords" content="Gym, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Gym | Template</title>
 
     <!-- Google Font -->
@@ -144,7 +145,7 @@
                                 else
                                 {
                                     <span style="color: #555;">|</span>
-                                    <a href="/customer/home/index" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                                    <a href="/customer/account/profile" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
                                         <i class="fa fa-user" style="margin-right: 5px;"></i> Tài khoản
                                     </a>
                                 }
@@ -207,7 +208,7 @@
                         <ul>
                             <li><a href="#">Liên hệ</a></li>
                             <li><a href="#">Câu hỏi thường gặp</a></li>
-                            <li><a href="#">Điều khoản & Điều kiện</a></li>
+                            <li><a href="#">Điều khoản &amp; Điều kiện</a></li>
                             <li><a href="#">Chính sách bảo mật</a></li>
                         </ul>
                     </div>
@@ -254,8 +255,285 @@
     <script src="~/js/main.js"></script>
 
     @RenderSection("Scripts", required: false)
+
+    <script>
+        // Hiển thị alert thông báo từ TempData
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            window.addEventListener('load', function() {
+                alert('@TempData["SuccessMessage"]');
+            });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            window.addEventListener('load', function() {
+                alert('@TempData["ErrorMessage"]');
+            });
+            </text>
+        }
+    </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
