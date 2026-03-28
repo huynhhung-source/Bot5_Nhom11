@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace doanweb.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class GYM : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -88,6 +88,7 @@ namespace doanweb.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PackageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DurationDays = table.Column<int>(type: "int", nullable: false),
                     PackageType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -127,7 +128,7 @@ namespace doanweb.Migrations
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
@@ -311,14 +312,14 @@ namespace doanweb.Migrations
 
             migrationBuilder.InsertData(
                 table: "Packages",
-                columns: new[] { "PackageId", "Category", "CreatedDate", "Description", "DurationDays", "Features", "MaxSessions", "PackageName", "PackageType", "Price", "Status" },
+                columns: new[] { "PackageId", "Category", "CreatedDate", "Description", "DurationDays", "Features", "ImageUrl", "MaxSessions", "PackageName", "PackageType", "Price", "Status" },
                 values: new object[,]
                 {
-                    { 1, "Muscle", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9380), "Ch??ng trình t?p luy?n cá nhân v?i h??ng d?n dinh d??ng chi ti?t", 84, "Cá nhân hóa, Video HD 1080p, Email support 24/7", 12, "Body Recomposition", "Online", 1990000m, "Active" },
-                    { 2, "FatLoss", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9383), "Ch??ng trình cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng", 84, "Cardio, T?p t?, ?n u?ng, Support hàng tu?n", 12, "Fat Loss Program", "Online", 2490000m, "Active" },
-                    { 3, "Gym", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9386), "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n viên riêng", 30, "T?t c? thi?t b?, Hu?n luy?n viên 2x/tu?n, Steam room", 24, "Premium Gym", "Offline", 990000m, "Active" },
-                    { 4, "Gym", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9388), "Hu?n luy?n viên riêng 4x/tu?n v?i ch??ng trình cá nhân hóa", 30, "Hu?n luy?n viên riêng, Cá nhân hóa, Theo dõi chi ti?t", 16, "Personal Training", "Offline", 2990000m, "Active" },
-                    { 5, "Yoga", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9390), "Các l?p Yoga, Pilates, Zumba v?i hu?n luy?n viên chuyên nghi?p", 30, "Yoga hàng ngày, Pilates, Zumba, C?ng ??ng", 20, "Group Classes", "Offline", 790000m, "Active" }
+                    { 1, "Muscle", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6092), "Ch??ng trình t?p luy?n cá nhân v?i h??ng d?n dinh d??ng chi ti?t", 84, "Cá nhân hóa, Video HD 1080p, Email support 24/7", null, 12, "Body Recomposition", "Online", 1990000m, "Active" },
+                    { 2, "FatLoss", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6095), "Ch??ng trình cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng", 84, "Cardio, T?p t?, ?n u?ng, Support hàng tu?n", null, 12, "Fat Loss Program", "Online", 2490000m, "Active" },
+                    { 3, "Gym", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6098), "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n viên riêng", 30, "T?t c? thi?t b?, Hu?n luy?n viên 2x/tu?n, Steam room", null, 24, "Premium Gym", "Offline", 990000m, "Active" },
+                    { 4, "Gym", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6100), "Hu?n luy?n viên riêng 4x/tu?n v?i ch??ng trình cá nhân hóa", 30, "Hu?n luy?n viên riêng, Cá nhân hóa, Theo dõi chi ti?t", null, 16, "Personal Training", "Offline", 2990000m, "Active" },
+                    { 5, "Yoga", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6102), "Các l?p Yoga, Pilates, Zumba v?i hu?n luy?n viên chuyên nghi?p", 30, "Yoga hàng ngày, Pilates, Zumba, C?ng ??ng", null, 20, "Group Classes", "Offline", 790000m, "Active" }
                 });
 
             migrationBuilder.InsertData(
@@ -326,19 +327,19 @@ namespace doanweb.Migrations
                 columns: new[] { "RoleId", "CreatedDate", "Description", "RoleName", "Status" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(2960), "Qu?n tr? viên h? th?ng", "Admin", "Active" },
-                    { 2, new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(2965), "Khách hàng", "Customer", "Active" }
+                    { 1, new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(5188), "Qu?n tr? viên h? th?ng", "Admin", "Active" },
+                    { 2, new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(5190), "Khách hàng", "Customer", "Active" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserId", "Address", "CreatedDate", "DateOfBirth", "Email", "FullName", "Gender", "PasswordHash", "PhoneNumber", "Status", "UpdatedDate" },
-                values: new object[] { 1, "123 Admin Street", new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9298), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Admin", "Male", "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=", "0123456789", "Active", null });
+                values: new object[] { 1, "123 Admin Street", new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6048), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "Admin", "Male", "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=", "0123456789", "Active", null });
 
             migrationBuilder.InsertData(
                 table: "UserRoles",
                 columns: new[] { "UserRoleId", "AssignedDate", "RoleId", "UserId" },
-                values: new object[] { 1, new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9351), 1, 1 });
+                values: new object[] { 1, new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6070), 1, 1 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendances_ClassId",

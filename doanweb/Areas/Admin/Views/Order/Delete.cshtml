@@ -1,0 +1,244 @@
+﻿@model doanweb.Models.Order
+
+@{
+    ViewData["Title"] = "Xóa Hóa Đơn";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <h1>Xóa Hóa Đơn</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/Admin/Home/Index">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/Admin/Order/Index">Hóa Đơn</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Xóa</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation -->
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="delete-card">
+                <div class="delete-icon">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </div>
+                <h3>Xác Nhận Xóa Hóa Đơn</h3>
+                <p class="warning-text">Bạn có chắc chắn muốn xóa hóa đơn này không?</p>
+
+                <div class="order-info-delete">
+                    <div class="info-row">
+                        <span class="label">Hóa Đơn:</span>
+                        <strong>#@Model.OrderId</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Khách Hàng:</span>
+                        <strong>@Model.User?.FullName</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ngày Đặt:</span>
+                        <strong>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Tổng Tiền:</span>
+                        <strong class="price">@Model.TotalAmount.ToString("N0") đ</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Số Lượng Sản Phẩm:</span>
+                        <strong>@Model.OrderItems.Count</strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger">
+                    <i class="fa fa-warning"></i> <strong>Lưu ý:</strong> Hành động này không thể hoàn tác! Tất cả thông tin của đơn hàng sẽ bị xóa vĩnh viễn.
+                </div>
+
+                <form asp-action="Delete" method="post" class="delete-form">
+                    <input type="hidden" asp-for="OrderId" />
+                    <button type="submit" class="btn btn-danger btn-delete-confirm">
+                        <i class="fa fa-trash"></i> Xác Nhận Xóa
+                    </button>
+                    <a href="/Admin/Order/Details/@Model.OrderId" class="btn btn-secondary btn-cancel-delete">
+                        <i class="fa fa-times"></i> Hủy
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        background-color: #1a1a1a;
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-bottom: 3px solid #f36100;
+    }
+
+    .page-header h1 {
+        font-size: 44px;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .page-header .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-header .breadcrumb-item a {
+        color: #f36100;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .page-header .breadcrumb-item a:hover {
+        color: #d94d00;
+    }
+
+    .page-header .breadcrumb-item.active {
+        color: #999;
+        font-size: 13px;
+    }
+
+    .delete-card {
+        background: white;
+        border: 2px solid #dc3545;
+        border-radius: 8px;
+        padding: 40px 30px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        text-align: center;
+    }
+
+    .delete-icon {
+        width: 80px;
+        height: 80px;
+        background: #f8d7da;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 40px;
+        color: #dc3545;
+    }
+
+    .delete-card h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .warning-text {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+
+    .order-info-delete {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 25px;
+        text-align: left;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-row .label {
+        color: #666;
+        font-weight: 600;
+    }
+
+    .info-row strong {
+        color: #222;
+        font-weight: 700;
+    }
+
+    .info-row .price {
+        color: #f36100;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 25px;
+        border-left: 4px solid #dc3545;
+    }
+
+    .alert.alert-danger {
+        background: #fff5f5;
+        color: #721c24;
+    }
+
+    .alert i {
+        margin-right: 10px;
+    }
+
+    .delete-form {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        flex: 1;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background-color: #d0d0d0;
+    }
+</style>

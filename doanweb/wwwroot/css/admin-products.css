@@ -1,0 +1,160 @@
+/* ================================================
+   ADMIN PRODUCTS - RESPONSIVE STYLES
+   ================================================ */
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 20px 0;
+    }
+
+    .page-header h1 {
+        font-size: 24px;
+    }
+
+    .page-header .text-right {
+        text-align: left;
+        margin-top: 15px;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .table th,
+    .table td {
+        padding: 10px;
+    }
+
+    .product-thumbnail {
+        width: 40px;
+        height: 40px;
+    }
+
+    .product-name {
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn-action {
+        width: 100%;
+    }
+
+    /* Create/Edit Form */
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Delete Card */
+    .delete-card {
+        padding: 30px 20px;
+    }
+
+    .product-info-delete {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .product-details-delete {
+        text-align: center;
+    }
+
+    .delete-form {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 20px;
+    }
+
+    .btn-add-new {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+
+    .table {
+        font-size: 11px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 5px;
+    }
+
+    .product-info {
+        gap: 8px;
+    }
+
+    .product-thumbnail {
+        width: 35px;
+        height: 35px;
+    }
+
+    .product-name {
+        font-size: 12px;
+    }
+
+    .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .btn-action {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .form-section h4 {
+        font-size: 14px;
+    }
+
+    .form-label {
+        font-size: 13px;
+    }
+
+    .form-control {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .info-card {
+        padding: 15px;
+    }
+
+    .delete-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+    }
+
+    .delete-card h3 {
+        font-size: 20px;
+    }
+
+    .product-image-delete {
+        width: 80px;
+        height: 80px;
+    }
+
+    .product-details-delete h4 {
+        font-size: 16px;
+    }
+}

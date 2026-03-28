@@ -25,6 +25,9 @@ namespace doanweb.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -85,6 +88,27 @@ namespace doanweb.Data
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: User -> Orders (One-to-Many)
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: Order -> OrderItems (One-to-Many)
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: Product -> OrderItems (One-to-Many)
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Index for performance
             modelBuilder.Entity<User>()
@@ -168,12 +192,12 @@ namespace doanweb.Data
                 {
                     PackageId = 1,
                     PackageName = "Body Recomposition",
-                    Description = "Ch??ng trình t?p luy?n cá nhân v?i h??ng d?n dinh d??ng chi ti?t",
+                    Description = "Ch??ng tr?nh t?p luy?n c? nhân v?i h??ng d?n dinh d??ng chi ti?t",
                     Price = 1990000,
                     DurationDays = 84,
                     PackageType = "Online",
                     Category = "Muscle",
-                    Features = "Cá nhân hóa, Video HD 1080p, Email support 24/7",
+                    Features = "C? nh?n h?a, Video HD 1080p, Email support 24/7",
                     MaxSessions = 12,
                     CreatedDate = DateTime.Now,
                     Status = "Active"
@@ -182,12 +206,12 @@ namespace doanweb.Data
                 {
                     PackageId = 2,
                     PackageName = "Fat Loss Program",
-                    Description = "Ch??ng trình cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
+                    Description = "Ch??ng tr?nh cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
                     Price = 2490000,
                     DurationDays = 84,
                     PackageType = "Online",
                     Category = "FatLoss",
-                    Features = "Cardio, T?p t?, ?n u?ng, Support hàng tu?n",
+                    Features = "Cardio, T?p t?, ?n u?ng, Support h?ng tu?n",
                     MaxSessions = 12,
                     CreatedDate = DateTime.Now,
                     Status = "Active"
@@ -196,12 +220,12 @@ namespace doanweb.Data
                 {
                     PackageId = 3,
                     PackageName = "Premium Gym",
-                    Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n viên riêng",
+                    Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n vi?n ri?ng",
                     Price = 990000,
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Gym",
-                    Features = "T?t c? thi?t b?, Hu?n luy?n viên 2x/tu?n, Steam room",
+                    Features = "T?t c? thi?t b?, Hu?n luy?n vi?n 2x/tu?n, Steam room",
                     MaxSessions = 24,
                     CreatedDate = DateTime.Now,
                     Status = "Active"
@@ -210,12 +234,12 @@ namespace doanweb.Data
                 {
                     PackageId = 4,
                     PackageName = "Personal Training",
-                    Description = "Hu?n luy?n viên riêng 4x/tu?n v?i ch??ng trình cá nhân hóa",
+                    Description = "Hu?n luy?n vi?n ri?ng 4x/tu?n v?i ch??ng tr?nh c? nh?n h?a",
                     Price = 2990000,
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Gym",
-                    Features = "Hu?n luy?n viên riêng, Cá nhân hóa, Theo dõi chi ti?t",
+                    Features = "Hu?n luy?n vi?n ri?ng, C? nh?n h?a, Theo d?i chi ti?t",
                     MaxSessions = 16,
                     CreatedDate = DateTime.Now,
                     Status = "Active"
@@ -224,13 +248,95 @@ namespace doanweb.Data
                 {
                     PackageId = 5,
                     PackageName = "Group Classes",
-                    Description = "Các l?p Yoga, Pilates, Zumba v?i hu?n luy?n viên chuyên nghi?p",
+                    Description = "C?c l?p Yoga, Pilates, Zumba v?i hu?n luy?n vi?n chuy?n nghi?p",
                     Price = 790000,
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Yoga",
-                    Features = "Yoga hàng ngày, Pilates, Zumba, C?ng ??ng",
+                    Features = "Yoga h?ng ng?y, Pilates, Zumba, C?ng ??ng",
                     MaxSessions = 20,
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                }
+            );
+
+            // Seed Products
+            modelBuilder.Entity<Product>().HasData(
+                new Product
+                {
+                    ProductId = 1,
+                    ProductName = "Whey Protein Isolate",
+                    Description = "B?t Whey Protein ch?t l??ng cao, ???c cô l?p t? 90% ngu?n s?a t? nhiên. Giàu amino axit, h? tr? ph?c h?i c? b?p sau t?p luy?n.",
+                    Price = 890000,
+                    Category = "Whey",
+                    Brand = "Optimum Nutrition",
+                    StockQuantity = 50,
+                    Unit = "kg",
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                },
+                new Product
+                {
+                    ProductId = 2,
+                    ProductName = "Creatine Monohydrate",
+                    Description = "Creatine Monohydrate tinh khi?t 100%, t?ng c??ng s?c m?nh và kh? n?ng ph?c h?i c? b?p. H? tr? t?ng kh?i l??ng c? hi?u qu?.",
+                    Price = 450000,
+                    Category = "Creatine",
+                    Brand = "Muscletech",
+                    StockQuantity = 40,
+                    Unit = "kg",
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                },
+                new Product
+                {
+                    ProductId = 3,
+                    ProductName = "Protein Bar Chocolate",
+                    Description = "Bánh Protein Bar v? socola ngon mi?ng, ch?a 20g protein, ít ???ng, lý t??ng cho b?a ?n nh? tr??c/sau t?p luy?n.",
+                    Price = 65000,
+                    Category = "Protein Bar",
+                    Brand = "Quest Nutrition",
+                    StockQuantity = 100,
+                    Unit = "box",
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                },
+                new Product
+                {
+                    ProductId = 4,
+                    ProductName = "Whey Protein Concentrate",
+                    Description = "B?t Whey Protein n?ng ?? cao, h? tr? xây d?ng kh?i c?, giàu BCAA t? nhiên. V? ngon, d? hòa tan.",
+                    Price = 650000,
+                    Category = "Whey",
+                    Brand = "Gold Standard",
+                    StockQuantity = 60,
+                    Unit = "kg",
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                },
+                new Product
+                {
+                    ProductId = 5,
+                    ProductName = "Creatine + Beta-Alanine Mix",
+                    Description = "H?n h?p Creatine và Beta-Alanine, t?ng c??ng hi?u su?t t?p luy?n, gi?m m?t m?i c?, c?i thi?n s?c b?n.",
+                    Price = 520000,
+                    Category = "Creatine",
+                    Brand = "MuscleTech",
+                    StockQuantity = 35,
+                    Unit = "kg",
+                    CreatedDate = DateTime.Now,
+                    Status = "Active"
+                },
+                new Product
+                {
+                    ProductId = 6,
+                    ProductName = "Protein Bar Peanut Butter",
+                    Description = "Bánh Protein Bar v? b? ??u phong v?, 25g protein, không ch?a ???ng, b? sung n?ng l??ng cho ngày dài.",
+                    Price = 70000,
+                    Category = "Protein Bar",
+                    Brand = "Quest Nutrition",
+                    StockQuantity = 80,
+                    Unit = "box",
                     CreatedDate = DateTime.Now,
                     Status = "Active"
                 }

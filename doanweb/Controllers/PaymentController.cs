@@ -241,6 +241,102 @@ namespace doanweb.Controllers
             }
         }
 
+        // Thanh to?n s?n ph?m (t? gi? h?ng)
+        [HttpPost]
+        public async Task<IActionResult> CheckoutProducts([FromBody] CheckoutRequest request)
+        {
+            try
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (!userId.HasValue)
+        {
+            return Unauthorized(new { message = "Vui lòng ??ng nh?p" });
+        }
+
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId.Value);
+        if (user == null)
+        {
+            return NotFound(new { message = "Ng??i dùng không tìm th?y" });
+        }
+
+        if (request.CartItems == null || !request.CartItems.Any())
+        {
+            return BadRequest(new { message = "Gi? hàng tr?ng" });
+        }
+
+        // Tính t?ng ti?n
+        decimal totalAmount = request.CartItems.Sum(item => item.price * item.quantity);
+
+        // T?o ??n hàng
+        var order = new Order
+        {
+            UserId = userId.Value,
+            OrderDate = DateTime.Now,
+            TotalAmount = totalAmount,
+            DeliveryAddress = request.deliveryAddress,
+            Status = "Pending", // Ch? x? lý
+            Notes = request.notes
+        };
+
+        _dbContext.Orders.Add(order);
+        await _dbContext.SaveChangesAsync();
+
+        // T?o chi ti?t ??n hàng
+        foreach (var item in request.CartItems)
+        {
+            var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == item.productId);
+            if (product != null)
+            {
+                var orderItem = new OrderItem
+                {
+                    OrderId = order.OrderId,
+                    ProductId = item.productId,
+                    Quantity = item.quantity,
+                    UnitPrice = item.price,
+                    TotalPrice = item.price * item.quantity
+                };
+
+                _dbContext.OrderItems.Add(orderItem);
+
+                // C?p nh?t t?n kho
+                product.StockQuantity -= item.quantity;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        // T?o thanh toán
+        var payment = new Payment
+        {
+            UserId = userId.Value,
+            Amount = totalAmount,
+            PaymentDate = DateTime.Now,
+            PaymentMethod = request.paymentMethod,
+            TransactionId = GenerateTransactionId(),
+            Status = "Success",
+            Description = $"Thanh toán mua hàng {request.CartItems.Count} s?n ph?m",
+            Notes = request.notes
+        };
+
+        _dbContext.Payments.Add(payment);
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation($"[CheckoutProducts] Order created: OrderId={order.OrderId}, UserId={userId.Value}, Amount={totalAmount}");
+
+        return Ok(new 
+        { 
+            success = true, 
+            orderId = order.OrderId,
+            message = "??n hàng ???c t?o thành công"
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"[CheckoutProducts] Error: {ex.Message}", ex);
+        return StatusCode(500, new { message = "L?i khi x? lý thanh toán" });
+    }
+}
+
         // Hàm t?o mã giao d?ch
         private string GenerateTransactionId()
         {

@@ -1,0 +1,352 @@
+﻿@model IEnumerable<doanweb.Models.Order>
+
+@{
+    ViewData["Title"] = "Thống Kê Doanh Thu";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <h1>Thống Kê Doanh Thu</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/Admin/Home/Index">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Doanh Thu</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Statistics -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Stat Cards -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon revenue">
+                    <i class="fa fa-money"></i>
+                </div>
+                <div class="stat-content">
+                    <h5>Tổng Doanh Thu</h5>
+                    <p class="stat-value">@ViewBag.TotalRevenue.ToString("N0") đ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon orders">
+                    <i class="fa fa-shopping-bag"></i>
+                </div>
+                <div class="stat-content">
+                    <h5>Tổng Đơn Hàng</h5>
+                    <p class="stat-value">@ViewBag.TotalOrders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon average">
+                    <i class="fa fa-bar-chart"></i>
+                </div>
+                <div class="stat-content">
+                    <h5>Giá Trị Trung Bình</h5>
+                    <p class="stat-value">@ViewBag.AverageOrderValue.ToString("N0") đ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon back">
+                    <i class="fa fa-arrow-left"></i>
+                </div>
+                <div class="stat-content">
+                    <a href="/Admin/Order/Index" class="back-link">
+                        Quay Lại Quản Lý<br>
+                        <small>Hóa Đơn</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Orders Table -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Đơn Hàng Hoàn Thành</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Hóa Đơn</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Ngày Đặt</th>
+                                        <th>Số Lượng Sản Phẩm</th>
+                                        <th>Doanh Thu</th>
+                                        <th>Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td><strong>#@order.OrderId</strong></td>
+                                            <td>@order.User?.FullName</td>
+                                            <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@order.OrderItems.Count</td>
+                                            <td class="price">@order.TotalAmount.ToString("N0") đ</td>
+                                            <td>
+                                                <a href="/Admin/Order/Details/@order.OrderId" class="btn-action">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fa fa-inbox"></i>
+                            <p>Không có đơn hàng hoàn thành</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        background-color: #1a1a1a;
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-bottom: 3px solid #f36100;
+    }
+
+    .page-header h1 {
+        font-size: 44px;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .page-header .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-header .breadcrumb-item a {
+        color: #f36100;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .page-header .breadcrumb-item a:hover {
+        color: #d94d00;
+    }
+
+    .page-header .breadcrumb-item.active {
+        color: #999;
+        font-size: 13px;
+    }
+
+    .stat-card {
+        background: white;
+        border: none;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.revenue {
+        background: linear-gradient(135deg, #f36100 0%, #d94d00 100%);
+    }
+
+    .stat-icon.orders {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+
+    .stat-icon.average {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+
+    .stat-icon.back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-content h5 {
+        font-size: 12px;
+        font-weight: 700;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        margin: 0 0 8px 0;
+    }
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #222;
+        margin: 0;
+    }
+
+    .back-link {
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        display: block;
+        line-height: 1.4;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .back-link small {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-top: 30px;
+    }
+
+    .card-header {
+        background-color: #f5f5f5;
+        border-bottom: 2px solid #e0e0e0;
+        padding: 15px 20px;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #222;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: #f9f9f9;
+        font-weight: 700;
+        color: #222;
+        border-bottom: 2px solid #e0e0e0;
+        padding: 12px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+    }
+
+    .price {
+        color: #f36100;
+        font-weight: 700;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        width: 35px;
+        height: 35px;
+        align-items: center;
+        justify-content: center;
+        background-color: #17a2b8;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-action:hover {
+        background-color: #117a8b;
+        box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 60px;
+        color: #ddd;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+</style>

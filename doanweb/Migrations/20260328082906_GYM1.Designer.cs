@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using doanweb.Data;
 
@@ -11,9 +12,11 @@ using doanweb.Data;
 namespace doanweb.Migrations
 {
     [DbContext(typeof(GymDbContext))]
-    partial class GymDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328082906_GYM1")]
+    partial class GYM1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,7 +382,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 1,
                             Category = "Muscle",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(775),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8061),
                             Description = "Ch??ng tr?nh t?p luy?n c? nhân v?i h??ng d?n dinh d??ng chi ti?t",
                             DurationDays = 84,
                             Features = "C? nh?n h?a, Video HD 1080p, Email support 24/7",
@@ -393,7 +396,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 2,
                             Category = "FatLoss",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(779),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8064),
                             Description = "Ch??ng tr?nh cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
                             DurationDays = 84,
                             Features = "Cardio, T?p t?, ?n u?ng, Support h?ng tu?n",
@@ -407,7 +410,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 3,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(847),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8067),
                             Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n vi?n ri?ng",
                             DurationDays = 30,
                             Features = "T?t c? thi?t b?, Hu?n luy?n vi?n 2x/tu?n, Steam room",
@@ -421,7 +424,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 4,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(850),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8069),
                             Description = "Hu?n luy?n vi?n ri?ng 4x/tu?n v?i ch??ng tr?nh c? nh?n h?a",
                             DurationDays = 30,
                             Features = "Hu?n luy?n vi?n ri?ng, C? nh?n h?a, Theo d?i chi ti?t",
@@ -435,7 +438,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 5,
                             Category = "Yoga",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(853),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8071),
                             Description = "C?c l?p Yoga, Pilates, Zumba v?i hu?n luy?n vi?n chuy?n nghi?p",
                             DurationDays = 30,
                             Features = "Yoga h?ng ng?y, Pilates, Zumba, C?ng ??ng",
@@ -556,7 +559,7 @@ namespace doanweb.Migrations
                             ProductId = 1,
                             Brand = "Optimum Nutrition",
                             Category = "Whey",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(887),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8132),
                             Description = "B?t Whey Protein ch?t l??ng cao, ???c cô l?p t? 90% ngu?n s?a t? nhiên. Giàu amino axit, h? tr? ph?c h?i c? b?p sau t?p luy?n.",
                             Price = 890000m,
                             ProductName = "Whey Protein Isolate",
@@ -569,7 +572,7 @@ namespace doanweb.Migrations
                             ProductId = 2,
                             Brand = "Muscletech",
                             Category = "Creatine",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(890),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8135),
                             Description = "Creatine Monohydrate tinh khi?t 100%, t?ng c??ng s?c m?nh và kh? n?ng ph?c h?i c? b?p. H? tr? t?ng kh?i l??ng c? hi?u qu?.",
                             Price = 450000m,
                             ProductName = "Creatine Monohydrate",
@@ -582,7 +585,7 @@ namespace doanweb.Migrations
                             ProductId = 3,
                             Brand = "Quest Nutrition",
                             Category = "Protein Bar",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(893),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8137),
                             Description = "Bánh Protein Bar v? socola ngon mi?ng, ch?a 20g protein, ít ???ng, lý t??ng cho b?a ?n nh? tr??c/sau t?p luy?n.",
                             Price = 65000m,
                             ProductName = "Protein Bar Chocolate",
@@ -595,7 +598,7 @@ namespace doanweb.Migrations
                             ProductId = 4,
                             Brand = "Gold Standard",
                             Category = "Whey",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(896),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8139),
                             Description = "B?t Whey Protein n?ng ?? cao, h? tr? xây d?ng kh?i c?, giàu BCAA t? nhiên. V? ngon, d? hòa tan.",
                             Price = 650000m,
                             ProductName = "Whey Protein Concentrate",
@@ -608,7 +611,7 @@ namespace doanweb.Migrations
                             ProductId = 5,
                             Brand = "MuscleTech",
                             Category = "Creatine",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(898),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8141),
                             Description = "H?n h?p Creatine và Beta-Alanine, t?ng c??ng hi?u su?t t?p luy?n, gi?m m?t m?i c?, c?i thi?n s?c b?n.",
                             Price = 520000m,
                             ProductName = "Creatine + Beta-Alanine Mix",
@@ -621,7 +624,7 @@ namespace doanweb.Migrations
                             ProductId = 6,
                             Brand = "Quest Nutrition",
                             Category = "Protein Bar",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(901),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8143),
                             Description = "Bánh Protein Bar v? b? ??u phong v?, 25g protein, không ch?a ???ng, b? sung n?ng l??ng cho ngày dài.",
                             Price = 70000m,
                             ProductName = "Protein Bar Peanut Butter",
@@ -707,7 +710,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 611, DateTimeKind.Local).AddTicks(9664),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(7135),
                             Description = "Qu?n tr? viên h? th?ng",
                             RoleName = "Admin",
                             Status = "Active"
@@ -715,7 +718,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 2,
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 611, DateTimeKind.Local).AddTicks(9667),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(7137),
                             Description = "Khách hàng",
                             RoleName = "Customer",
                             Status = "Active"
@@ -837,7 +840,7 @@ namespace doanweb.Migrations
                         {
                             UserId = 1,
                             Address = "123 Admin Street",
-                            CreatedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(718),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8017),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Admin",
@@ -877,7 +880,7 @@ namespace doanweb.Migrations
                         new
                         {
                             UserRoleId = 1,
-                            AssignedDate = new DateTime(2026, 3, 28, 16, 34, 6, 612, DateTimeKind.Local).AddTicks(750),
+                            AssignedDate = new DateTime(2026, 3, 28, 15, 29, 6, 190, DateTimeKind.Local).AddTicks(8039),
                             RoleId = 1,
                             UserId = 1
                         });

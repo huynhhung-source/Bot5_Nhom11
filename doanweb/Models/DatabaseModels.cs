@@ -418,4 +418,119 @@ namespace doanweb.Models
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
     }
+
+    /// <summary>
+    /// Model đại diện cho sản phẩm (Whey, Creatine, Protein Bar, etc.)
+    /// </summary>
+    [Table("Products")]
+    public class Product
+    {
+        [Key]
+        public int ProductId { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string ProductName { get; set; }
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+
+        [StringLength(255)]
+        public string? ImageUrl { get; set; }
+
+        [Required]
+        public decimal Price { get; set; }
+
+        [StringLength(50)]
+        public string? Category { get; set; } // "Whey", "Creatine", "Protein Bar", "Vitamins", etc.
+
+        [StringLength(50)]
+        public string? Brand { get; set; } // Thương hiệu sản phẩm
+
+        public int StockQuantity { get; set; } = 0; // Số lượng tồn kho
+
+        [StringLength(100)]
+        public string? Unit { get; set; } // "kg", "box", "bottle", etc.
+
+        [DataType(DataType.Date)]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [DataType(DataType.Date)]
+        public DateTime? UpdatedDate { get; set; }
+
+        [StringLength(20)]
+        public string Status { get; set; } = "Active"; // Active, Inactive
+
+        // Navigation properties
+        public virtual ICollection<OrderItem>? OrderItems { get; set; }
+    }
+
+    /// <summary>
+    /// Model đại diện cho order sản phẩm
+    /// </summary>
+    [Table("Orders")]
+    public class Order
+    {
+        [Key]
+        public int OrderId { get; set; }
+
+        [Required]
+        [ForeignKey("User")]
+        public int UserId { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime OrderDate { get; set; } = DateTime.Now;
+
+        [Required]
+        public decimal TotalAmount { get; set; }
+
+        [StringLength(50)]
+        public string Status { get; set; } = "Pending"; // Pending, Confirmed, Shipped, Delivered, Cancelled
+
+        [StringLength(500)]
+        public string? DeliveryAddress { get; set; }
+
+        [StringLength(255)]
+        public string? Notes { get; set; }
+
+        // Navigation properties
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
+
+        public virtual ICollection<OrderItem>? OrderItems { get; set; }
+    }
+
+    /// <summary>
+    /// Model đại diện cho các item trong một order
+    /// </summary>
+    [Table("OrderItems")]
+    public class OrderItem
+    {
+        [Key]
+        public int OrderItemId { get; set; }
+
+        [Required]
+        [ForeignKey("Order")]
+        public int OrderId { get; set; }
+
+        [Required]
+        [ForeignKey("Product")]
+        public int ProductId { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
+
+        [Required]
+        public decimal UnitPrice { get; set; }
+
+        [Required]
+        public decimal TotalPrice { get; set; }
+
+        // Navigation properties
+        [ForeignKey("OrderId")]
+        public virtual Order Order { get; set; }
+
+        [ForeignKey("ProductId")]
+        public virtual Product Product { get; set; }
+    }
 }

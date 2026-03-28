@@ -12,8 +12,8 @@ using doanweb.Data;
 namespace doanweb.Migrations
 {
     [DbContext(typeof(GymDbContext))]
-    [Migration("20260320172621_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260328081202_GYM")]
+    partial class GYM
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,6 +280,10 @@ namespace doanweb.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<int>("MaxSessions")
                         .HasColumnType("int");
 
@@ -309,7 +313,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 1,
                             Category = "Muscle",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9380),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6092),
                             Description = "Ch??ng trình t?p luy?n cá nhân v?i h??ng d?n dinh d??ng chi ti?t",
                             DurationDays = 84,
                             Features = "Cá nhân hóa, Video HD 1080p, Email support 24/7",
@@ -323,7 +327,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 2,
                             Category = "FatLoss",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9383),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6095),
                             Description = "Ch??ng trình cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
                             DurationDays = 84,
                             Features = "Cardio, T?p t?, ?n u?ng, Support hàng tu?n",
@@ -337,7 +341,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 3,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9386),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6098),
                             Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n viên riêng",
                             DurationDays = 30,
                             Features = "T?t c? thi?t b?, Hu?n luy?n viên 2x/tu?n, Steam room",
@@ -351,7 +355,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 4,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9388),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6100),
                             Description = "Hu?n luy?n viên riêng 4x/tu?n v?i ch??ng trình cá nhân hóa",
                             DurationDays = 30,
                             Features = "Hu?n luy?n viên riêng, Cá nhân hóa, Theo dõi chi ti?t",
@@ -365,7 +369,7 @@ namespace doanweb.Migrations
                         {
                             PackageId = 5,
                             Category = "Yoga",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9390),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6102),
                             Description = "Các l?p Yoga, Pilates, Zumba v?i hu?n luy?n viên chuyên nghi?p",
                             DurationDays = 30,
                             Features = "Yoga hàng ngày, Pilates, Zumba, C?ng ??ng",
@@ -502,7 +506,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(2960),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(5188),
                             Description = "Qu?n tr? viên h? th?ng",
                             RoleName = "Admin",
                             Status = "Active"
@@ -510,7 +514,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 2,
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(2965),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(5190),
                             Description = "Khách hàng",
                             RoleName = "Customer",
                             Status = "Active"
@@ -602,7 +606,6 @@ namespace doanweb.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -633,7 +636,7 @@ namespace doanweb.Migrations
                         {
                             UserId = 1,
                             Address = "123 Admin Street",
-                            CreatedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9298),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6048),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Admin",
@@ -673,7 +676,7 @@ namespace doanweb.Migrations
                         new
                         {
                             UserRoleId = 1,
-                            AssignedDate = new DateTime(2026, 3, 21, 0, 26, 21, 216, DateTimeKind.Local).AddTicks(9351),
+                            AssignedDate = new DateTime(2026, 3, 28, 15, 12, 2, 187, DateTimeKind.Local).AddTicks(6070),
                             RoleId = 1,
                             UserId = 1
                         });

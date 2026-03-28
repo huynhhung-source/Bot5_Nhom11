@@ -12,8 +12,8 @@ using doanweb.Data;
 namespace doanweb.Migrations
 {
     [DbContext(typeof(GymDbContext))]
-    [Migration("20260321085715_AddImageUrlToPackage")]
-    partial class AddImageUrlToPackage
+    [Migration("20260328083607_GYM12")]
+    partial class GYM12
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -254,6 +254,75 @@ namespace doanweb.Migrations
                     b.ToTable("Contacts");
                 });
 
+            modelBuilder.Entity("doanweb.Models.Order", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+
+                    b.Property<string>("DeliveryAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("doanweb.Models.OrderItem", b =>
+                {
+                    b.Property<int>("OrderItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderItemId"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("OrderItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("doanweb.Models.Package", b =>
                 {
                     b.Property<int>("PackageId")
@@ -313,10 +382,10 @@ namespace doanweb.Migrations
                         {
                             PackageId = 1,
                             Category = "Muscle",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5221),
-                            Description = "Ch??ng trình t?p luy?n cá nhân v?i h??ng d?n dinh d??ng chi ti?t",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1570),
+                            Description = "Ch??ng tr?nh t?p luy?n c? nhân v?i h??ng d?n dinh d??ng chi ti?t",
                             DurationDays = 84,
-                            Features = "Cá nhân hóa, Video HD 1080p, Email support 24/7",
+                            Features = "C? nh?n h?a, Video HD 1080p, Email support 24/7",
                             MaxSessions = 12,
                             PackageName = "Body Recomposition",
                             PackageType = "Online",
@@ -327,10 +396,10 @@ namespace doanweb.Migrations
                         {
                             PackageId = 2,
                             Category = "FatLoss",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5224),
-                            Description = "Ch??ng trình cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1574),
+                            Description = "Ch??ng tr?nh cardio + t?p t? v?i k? ho?ch ?n u?ng th?c d?ng",
                             DurationDays = 84,
-                            Features = "Cardio, T?p t?, ?n u?ng, Support hàng tu?n",
+                            Features = "Cardio, T?p t?, ?n u?ng, Support h?ng tu?n",
                             MaxSessions = 12,
                             PackageName = "Fat Loss Program",
                             PackageType = "Online",
@@ -341,10 +410,10 @@ namespace doanweb.Migrations
                         {
                             PackageId = 3,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5227),
-                            Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n viên riêng",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1577),
+                            Description = "Truy c?p t?t c? trang thi?t b? v?i hu?n luy?n vi?n ri?ng",
                             DurationDays = 30,
-                            Features = "T?t c? thi?t b?, Hu?n luy?n viên 2x/tu?n, Steam room",
+                            Features = "T?t c? thi?t b?, Hu?n luy?n vi?n 2x/tu?n, Steam room",
                             MaxSessions = 24,
                             PackageName = "Premium Gym",
                             PackageType = "Offline",
@@ -355,10 +424,10 @@ namespace doanweb.Migrations
                         {
                             PackageId = 4,
                             Category = "Gym",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5230),
-                            Description = "Hu?n luy?n viên riêng 4x/tu?n v?i ch??ng trình cá nhân hóa",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1579),
+                            Description = "Hu?n luy?n vi?n ri?ng 4x/tu?n v?i ch??ng tr?nh c? nh?n h?a",
                             DurationDays = 30,
-                            Features = "Hu?n luy?n viên riêng, Cá nhân hóa, Theo dõi chi ti?t",
+                            Features = "Hu?n luy?n vi?n ri?ng, C? nh?n h?a, Theo d?i chi ti?t",
                             MaxSessions = 16,
                             PackageName = "Personal Training",
                             PackageType = "Offline",
@@ -369,10 +438,10 @@ namespace doanweb.Migrations
                         {
                             PackageId = 5,
                             Category = "Yoga",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5233),
-                            Description = "Các l?p Yoga, Pilates, Zumba v?i hu?n luy?n viên chuyên nghi?p",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1582),
+                            Description = "C?c l?p Yoga, Pilates, Zumba v?i hu?n luy?n vi?n chuy?n nghi?p",
                             DurationDays = 30,
-                            Features = "Yoga hàng ngày, Pilates, Zumba, C?ng ??ng",
+                            Features = "Yoga h?ng ng?y, Pilates, Zumba, C?ng ??ng",
                             MaxSessions = 20,
                             PackageName = "Group Classes",
                             PackageType = "Offline",
@@ -428,6 +497,141 @@ namespace doanweb.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("doanweb.Models.Product", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("StockQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ProductId");
+
+                    b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            ProductId = 1,
+                            Brand = "Optimum Nutrition",
+                            Category = "Whey",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1605),
+                            Description = "B?t Whey Protein ch?t l??ng cao, ???c cô l?p t? 90% ngu?n s?a t? nhiên. Giàu amino axit, h? tr? ph?c h?i c? b?p sau t?p luy?n.",
+                            Price = 890000m,
+                            ProductName = "Whey Protein Isolate",
+                            Status = "Active",
+                            StockQuantity = 50,
+                            Unit = "kg"
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            Brand = "Muscletech",
+                            Category = "Creatine",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1608),
+                            Description = "Creatine Monohydrate tinh khi?t 100%, t?ng c??ng s?c m?nh và kh? n?ng ph?c h?i c? b?p. H? tr? t?ng kh?i l??ng c? hi?u qu?.",
+                            Price = 450000m,
+                            ProductName = "Creatine Monohydrate",
+                            Status = "Active",
+                            StockQuantity = 40,
+                            Unit = "kg"
+                        },
+                        new
+                        {
+                            ProductId = 3,
+                            Brand = "Quest Nutrition",
+                            Category = "Protein Bar",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1611),
+                            Description = "Bánh Protein Bar v? socola ngon mi?ng, ch?a 20g protein, ít ???ng, lý t??ng cho b?a ?n nh? tr??c/sau t?p luy?n.",
+                            Price = 65000m,
+                            ProductName = "Protein Bar Chocolate",
+                            Status = "Active",
+                            StockQuantity = 100,
+                            Unit = "box"
+                        },
+                        new
+                        {
+                            ProductId = 4,
+                            Brand = "Gold Standard",
+                            Category = "Whey",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1613),
+                            Description = "B?t Whey Protein n?ng ?? cao, h? tr? xây d?ng kh?i c?, giàu BCAA t? nhiên. V? ngon, d? hòa tan.",
+                            Price = 650000m,
+                            ProductName = "Whey Protein Concentrate",
+                            Status = "Active",
+                            StockQuantity = 60,
+                            Unit = "kg"
+                        },
+                        new
+                        {
+                            ProductId = 5,
+                            Brand = "MuscleTech",
+                            Category = "Creatine",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1615),
+                            Description = "H?n h?p Creatine và Beta-Alanine, t?ng c??ng hi?u su?t t?p luy?n, gi?m m?t m?i c?, c?i thi?n s?c b?n.",
+                            Price = 520000m,
+                            ProductName = "Creatine + Beta-Alanine Mix",
+                            Status = "Active",
+                            StockQuantity = 35,
+                            Unit = "kg"
+                        },
+                        new
+                        {
+                            ProductId = 6,
+                            Brand = "Quest Nutrition",
+                            Category = "Protein Bar",
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1618),
+                            Description = "Bánh Protein Bar v? b? ??u phong v?, 25g protein, không ch?a ???ng, b? sung n?ng l??ng cho ngày dài.",
+                            Price = 70000m,
+                            ProductName = "Protein Bar Peanut Butter",
+                            Status = "Active",
+                            StockQuantity = 80,
+                            Unit = "box"
+                        });
                 });
 
             modelBuilder.Entity("doanweb.Models.Review", b =>
@@ -506,7 +710,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(1001),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(606),
                             Description = "Qu?n tr? viên h? th?ng",
                             RoleName = "Admin",
                             Status = "Active"
@@ -514,7 +718,7 @@ namespace doanweb.Migrations
                         new
                         {
                             RoleId = 2,
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(1003),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(609),
                             Description = "Khách hàng",
                             RoleName = "Customer",
                             Status = "Active"
@@ -636,7 +840,7 @@ namespace doanweb.Migrations
                         {
                             UserId = 1,
                             Address = "123 Admin Street",
-                            CreatedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5073),
+                            CreatedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1516),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Admin",
@@ -676,7 +880,7 @@ namespace doanweb.Migrations
                         new
                         {
                             UserRoleId = 1,
-                            AssignedDate = new DateTime(2026, 3, 21, 15, 57, 14, 652, DateTimeKind.Local).AddTicks(5166),
+                            AssignedDate = new DateTime(2026, 3, 28, 15, 36, 7, 60, DateTimeKind.Local).AddTicks(1546),
                             RoleId = 1,
                             UserId = 1
                         });
@@ -718,6 +922,36 @@ namespace doanweb.Migrations
                     b.Navigation("Class");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("doanweb.Models.Order", b =>
+                {
+                    b.HasOne("doanweb.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("doanweb.Models.OrderItem", b =>
+                {
+                    b.HasOne("doanweb.Models.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("doanweb.Models.Product", "Product")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("doanweb.Models.Payment", b =>
@@ -787,9 +1021,19 @@ namespace doanweb.Migrations
                     b.Navigation("Enrollments");
                 });
 
+            modelBuilder.Entity("doanweb.Models.Order", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
             modelBuilder.Entity("doanweb.Models.Package", b =>
                 {
                     b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("doanweb.Models.Product", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("doanweb.Models.Role", b =>
