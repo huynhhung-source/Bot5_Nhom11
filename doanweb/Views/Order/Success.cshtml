@@ -5,7 +5,7 @@
 }
 
 <!-- Success Page -->
-<section class="success-section">
+<section class="success-section" style="margin-top: 100px">
     <div class="container">
         <div class="success-container">
             <!-- Success Icon -->
@@ -80,7 +80,7 @@
                                     <p class="brand">@item.Product?.Brand</p>
                                 </div>
                                 <div class="product-qty">
-                                    <span>x@item.Quantity</span>
+                                    <span>x@(item.Quantity)</span>
                                 </div>
                                 <div class="product-price">
                                     <p class="unit-price">@item.UnitPrice.ToString("N0") đ</p>

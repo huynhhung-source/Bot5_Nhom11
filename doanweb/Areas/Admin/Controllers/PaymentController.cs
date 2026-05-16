@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+Ôªøusing Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
 using doanweb.Models;
@@ -24,7 +24,7 @@ namespace doanweb.Areas.Admin.Controllers
             return !string.IsNullOrEmpty(userRole) && userRole == "Admin";
         }
 
-        // Danh s·ch thanh to·n
+        // Danh s√°ch thanh to√°n
         [HttpGet]
         public async Task<IActionResult> Index(string status = "", DateTime? startDate = null, DateTime? endDate = null)
         {
@@ -37,13 +37,13 @@ namespace doanweb.Areas.Admin.Controllers
                 .Include(p => p.User)
                 .AsQueryable();
 
-            // L?c theo tr?ng th·i
+            // L?c theo tr?ng th√°i
             if (!string.IsNullOrEmpty(status))
             {
                 query = query.Where(p => p.Status == status);
             }
 
-            // L?c theo ng‡y
+            // L?c theo ng√†y
             if (startDate.HasValue)
             {
                 query = query.Where(p => p.PaymentDate >= startDate.Value);
@@ -56,7 +56,7 @@ namespace doanweb.Areas.Admin.Controllers
 
             var payments = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
 
-            // TÌnh t?ng doanh thu
+            // T√≠nh t?ng doanh thu
             var totalRevenue = payments.Sum(p => p.Amount);
             var successPayments = payments.Count(p => p.Status == "Success");
             var failedPayments = payments.Count(p => p.Status == "Failed");
@@ -72,7 +72,7 @@ namespace doanweb.Areas.Admin.Controllers
             return View(payments);
         }
 
-        // Chi ti?t thanh to·n
+        // Chi ti?t thanh to√°n
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -90,7 +90,7 @@ namespace doanweb.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // L?y thÙng tin subscription liÍn quan
+            // L?y th√¥ng tin subscription li√™n quan
             var subscription = await _dbContext.Subscriptions
                 .Include(s => s.Package)
                 .FirstOrDefaultAsync(s => s.UserId == payment.UserId && s.AmountPaid == payment.Amount);
@@ -100,13 +100,13 @@ namespace doanweb.Areas.Admin.Controllers
             return View(payment);
         }
 
-        // C?p nh?t tr?ng th·i thanh to·n
+        // C?p nh?t tr?ng th√°i thanh to√°n
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
             if (!IsAdmin())
             {
-                return Json(new { success = false, message = "KhÙng cÛ quy?n" });
+                return Json(new { success = false, message = "Kh√¥ng c√≥ quy·ªÅn" });
             }
 
             try
@@ -114,7 +114,7 @@ namespace doanweb.Areas.Admin.Controllers
                 var payment = await _dbContext.Payments.FindAsync(id);
                 if (payment == null)
                 {
-                    return Json(new { success = false, message = "Thanh to·n khÙng t?n t?i" });
+                    return Json(new { success = false, message = "Thanh to√°n kh√¥ng t·ªìn t·∫°i" });
                 }
 
                 payment.Status = status;
@@ -123,7 +123,7 @@ namespace doanweb.Areas.Admin.Controllers
 
                 _logger.LogInformation($"Payment status updated: ID {id}, Status {status}");
 
-                return Json(new { success = true, message = "C?p nh?t tr?ng th·i th‡nh cÙng" });
+                return Json(new { success = true, message = "C·∫≠p nh·∫≠t tr·∫°ng th√°i th√†nh c√¥ng" });
             }
             catch (Exception ex)
             {
@@ -132,7 +132,7 @@ namespace doanweb.Areas.Admin.Controllers
             }
         }
 
-        // Xu?t b·o c·o
+        // Xu?t b√°o c√°o
         [HttpGet]
         public async Task<IActionResult> Report(DateTime? startDate = null, DateTime? endDate = null)
         {

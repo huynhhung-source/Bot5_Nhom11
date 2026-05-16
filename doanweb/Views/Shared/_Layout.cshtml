@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -27,6 +29,8 @@
     <link rel="stylesheet" href="~/css/cart-responsive.css" type="text/css">
     <link rel="stylesheet" href="~/css/admin-products.css" type="text/css">
     <link rel="stylesheet" href="~/css/order-responsive.css" type="text/css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <!-- Page Preloder -->
@@ -58,25 +62,25 @@
                     </ul>
                 </li>
                 <li><a href="#">Lớp tập</a></li>
-                <li><a href="/Products">Sản phẩm</a></li>
+                <li><a href="/Products">Sân phẩm</a></li>
                 <li><a href="#">Đội ngũ</a></li>
                 <li><a href="#">Liên hệ</a></li>
             </ul>
         </nav>
         <div id="mobile-menu-wrap"></div>
         <div class="canvas-social">
-            <a href="#"><i class="fa fa-facebook"></i></a>
-            <a href="#"><i class="fa fa-twitter"></i></a>
-            <a href="#"><i class="fa fa-youtube-play"></i></a>
-            <a href="#"><i class="fa fa-instagram"></i></a>
+            <a href="@Configuration["SocialLinks:Facebook"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-facebook"></i></a>
+            <a href="@Configuration["SocialLinks:Twitter"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
+            <a href="@Configuration["SocialLinks:YouTube"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i></a>
+            <a href="@Configuration["SocialLinks:Instagram"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-instagram"></i></a>
         </div>
     </div>
     <!-- Offcanvas Menu Section End -->
 
     <!-- Header Section Begin -->
-    <header class="header-section">
+    <header class="header-section" style="background-color: #151515; padding-top: 35px; padding-bottom: 35px">
         <div class="container-fluid">
-            <div class="row">
+            <div class="row" style="flex-wrap: nowrap; align-items: center;">
                 <div class="col-lg-3">
                     <div class="logo">
                         <a href="/">
@@ -84,9 +88,9 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-6" >
                     <nav class="nav-menu">
-                        <ul>
+                        <ul style="margin-left: -200px">
                             <li><a href="/">Trang chủ</a></li>
                             <li class="dropdown">
                                 <a href="#">Gói Tập</a>
@@ -102,7 +106,8 @@
                         </ul>
                     </nav>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 20px; align-items: center;">
+                <div class="col-lg-3" style="display: flex; justify-content: flex-end; gap: 10px; align-items: center; flex-wrap: nowrap; white-space: nowrap;">
+">
                     <!-- Shopping Cart Icon -->
                     <div style="position: relative;">
                         <a href="/Cart" style="color: #ffffff; font-size: 18px; text-decoration: none; display: flex; align-items: center; position: relative;">
@@ -132,7 +137,17 @@
                     }
                     else
                     {
-                        <div style="display: flex; align-items: center; gap: 15px;">
+                        <!-- My Order Link -->
+                        <a href="/Order/MyOrders" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s; display: flex; align-items: center;">
+                            <i class="fa fa-list-ul" style="margin-right: 5px;"></i> Đơn Hàng
+                        </a>
+
+                        <!-- My Packages Link -->
+                        <a href="/Order/MyPackages" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s; display: flex; align-items: center; margin-left: 15px;">
+                            <i class="fa fa-briefcase" style="margin-right: 5px;"></i> Gói Tập Của Tôi
+                        </a>
+
+                        <div style="display: flex; align-items: center; gap: 15px; margin-left: 15px;">
                             @{
                                 string userName = "User";
                                 if (Context.Session.TryGetValue("UserName", out byte[] userNameBytes))
@@ -198,10 +213,10 @@
                             Chúng tôi cung cấp chương trình tập luyện chất lượng cao với sự hỗ trợ của các huấn luyện viên chuyên nghiệp.
                         </p>
                         <div class="fa-social">
-                            <a href="#"><i class="fa fa-facebook"></i></a>
-                            <a href="#"><i class="fa fa-twitter"></i></a>
-                            <a href="#"><i class="fa fa-youtube-play"></i></a>
-                            <a href="#"><i class="fa fa-instagram"></i></a>
+                            <a href="@Configuration["SocialLinks:Facebook"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-facebook"></i></a>
+                            <a href="@Configuration["SocialLinks:Instagram"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-instagram"></i></a>
+                            <a href="@Configuration["SocialLinks:Twitter"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
+                            <a href="@Configuration["SocialLinks:YouTube"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i></a>
                         </div>
                     </div>
                 </div>
@@ -257,6 +272,8 @@
             </form>
         </div>
     </div>
+
+    style
     <!-- Search Model End -->
 
     <script src="~/js/jquery-3.3.1.min.js"></script>
@@ -268,6 +285,8 @@
     <script src="~/js/owl.carousel.min.js"></script>
     <script src="~/js/cart.js"></script>
     <script src="~/js/main.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     @RenderSection("Scripts", required: false)
 
@@ -277,7 +296,12 @@
         {
             <text>
             window.addEventListener('load', function() {
-                alert('@TempData["SuccessMessage"]');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    html: '@Html.Raw(TempData["SuccessMessage"])',
+                    confirmButtonColor: '#28a745'
+                });
             });
             </text>
         }
@@ -286,7 +310,13 @@
         {
             <text>
             window.addEventListener('load', function() {
-                alert('@TempData["ErrorMessage"]');
+                var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    html: errorMsg,
+                    confirmButtonColor: '#f36100'
+                });
             });
             </text>
         }

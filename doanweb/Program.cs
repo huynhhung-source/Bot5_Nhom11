@@ -1,44 +1,58 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using doanweb.Data;
+using doanweb.Services;
 using System.Text;
 
-// Ensure UTF-8 encoding
+// UTF-8
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 Console.OutputEncoding = Encoding.UTF8;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// MVC
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
-// Add Entity Framework Core
+// EF Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<GymDbContext>(options =>
-    options.UseSqlServer(connectionString, sqlServerOptionsAction: sqlOptions =>
-    {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null);
-    }));
+    options.UseSqlServer(connectionString));
 
-// Add Session
+// Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(24);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
+
+// ================== AUTH FACEBOOK ==================
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/customer/account/login";
+    options.LogoutPath = "/customer/account/logout";
+    options.AccessDeniedPath = "/customer/account/login";
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+});
+// ===================================================
+
+// Service
+builder.Services.AddScoped<IOAuthService, OAuthService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -47,23 +61,25 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Add Session middleware
 app.UseSession();
 
+// 🔥 BẮT BUỘC
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Map Area Routes (tr??c default routes)
+// Route Admin
 app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{controller=Home}/{action=Index}/{id?}",
     defaults: new { area = "Admin" });
 
+// Route Customer
 app.MapControllerRoute(
     name: "customer",
     pattern: "customer/{controller=Home}/{action=Index}/{id?}",
     defaults: new { area = "Customer" });
 
-// Default route
+// Default
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

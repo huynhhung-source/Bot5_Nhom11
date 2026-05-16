@@ -23,110 +23,132 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <!-- Success Card -->
-                <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
-                    <div style="font-size: 60px; color: #28a745; margin-bottom: 20px;">
-                        <i class="fa fa-check-circle"></i>
-                    </div>
-
-                    <h1 style="color: #111111; margin-bottom: 10px; font-size: 32px;">Thanh Toán Thành Công!</h1>
-
-                    <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
-                        Cảm ơn bạn đã thanh toán. Gói tập của bạn đã được kích hoạt.
-                    </p>
-
-                    <!-- Thông tin thanh toán -->
-                    <div style="background: #f8f9fa; padding: 30px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #28a745; text-align: left;">
-                        <h3 style="color: #111111; margin-bottom: 20px;">📋 Thông Tin Thanh Toán</h3>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Mã Thanh Toán:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentId</span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Mã Giao Dịch:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.TransactionId</span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Số Tiền:</span>
-                                <span style="color: #28a745; font-weight: 700; font-size: 16px;">@payment?.Amount.ToString("N0")₫</span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Phương Thức:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentMethod</span>
-                            </div>
-
-                            <div style="grid-column: 1 / -1;">
-                                <span style="color: #666; font-weight: 600; display: block;">Ngày Thanh Toán:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
-                            </div>
+                @if (payment == null || subscription == null)
+                {
+                    <!-- Error Message -->
+                    <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                        <div style="font-size: 60px; color: #dc3545; margin-bottom: 20px;">
+                            <i class="fa fa-exclamation-circle"></i>
                         </div>
-                    </div>
-
-                    <!-- Thông tin gói tập -->
-                    <div style="background: #f8f9fa; padding: 30px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #0066cc; text-align: left;">
-                        <h3 style="color: #111111; margin-bottom: 20px;">📦 Thông Tin Gói Tập</h3>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Tên Gói:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">@subscription?.Package?.PackageName</span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Thời Hạn:</span>
-                                <span style="color: #f36100; font-weight: 700; font-size: 16px;">
-                                    @(subscription?.Package?.DurationDays / 30) tháng 
-                                    (@subscription?.Package?.DurationDays ngày)
-                                </span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Ngày Bắt Đầu:</span>
-                                <span style="color: #28a745; font-weight: 700; font-size: 16px;">@subscription?.StartDate.ToString("dd/MM/yyyy")</span>
-                            </div>
-
-                            <div>
-                                <span style="color: #666; font-weight: 600; display: block;">Ngày Kết Thúc:</span>
-                                <span style="color: #dc3545; font-weight: 700; font-size: 16px;">@subscription?.EndDate.ToString("dd/MM/yyyy")</span>
-                            </div>
-
-                            <div style="grid-column: 1 / -1;">
-                                <span style="color: #666; font-weight: 600; display: block;">Trạng Thái:</span>
-                                <span style="background: #d4edda; color: #155724; padding: 8px 12px; border-radius: 5px; display: inline-block; font-weight: 700;">
-                                    <i class="fa fa-check-circle"></i> @subscription?.Status
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Thông báo -->
-                    <div style="background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #17a2b8;">
-                        <i class="fa fa-info-circle"></i> <strong>Thông Báo:</strong> Bạn có thể kiểm tra chi tiết gói tập trong phần "Hồ Sơ Cá Nhân".
-                    </div>
-
-                    <!-- Nút hành động -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <a href="/" class="primary-btn" style="background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                        <h1 style="color: #111111; margin-bottom: 10px; font-size: 32px;">Lỗi Xử Lý Thanh Toán</h1>
+                        <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+                            Không thể tải thông tin thanh toán. Vui lòng liên hệ hỗ trợ.
+                        </p>
+                        <a href="/" class="primary-btn" style="background: #f36100; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: inline-block; text-decoration: none;">
                             <i class="fa fa-home"></i> Trang Chủ
                         </a>
-
-                        <a href="/customer/account/profile" class="primary-btn" style="background: transparent; color: #f36100; border: 2px solid #f36100; padding: 13px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
-                            <i class="fa fa-user"></i> Hồ Sơ Cá Nhân
-                        </a>
                     </div>
+                }
+                else
+                {
+                    <!-- Success Card -->
+                    <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                        <div style="font-size: 60px; color: #28a745; margin-bottom: 20px;">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
 
-                    <!-- In hoá đơn -->
-                    <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #ddd;">
-                        <button onclick="window.print()" class="primary-btn" style="background: #333; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer;">
-                            <i class="fa fa-print"></i> In Hoá Đơn
-                        </button>
+                        <h1 style="color: #111111; margin-bottom: 10px; font-size: 32px;">Thanh Toán Thành Công!</h1>
+
+                        <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+                            Cảm ơn bạn đã thanh toán. Gói tập của bạn đã được kích hoạt.
+                        </p>
+
+                        <!-- Thông tin thanh toán -->
+                        <div style="background: #f8f9fa; padding: 30px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #28a745; text-align: left;">
+                            <h3 style="color: #111111; margin-bottom: 20px;">📋 Thông Tin Thanh Toán</h3>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <span style="color: #666; font-weight: 600; display: block;">Mã Thanh Toán:</span>
+                                    <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentId</span>
+                                </div>
+
+                                <div>
+                                    <span style="color: #666; font-weight: 600; display: block;">Mã Giao Dịch:</span>
+                                    <span style="color: #f36100; font-weight: 700; font-size: 16px;">@(string.IsNullOrEmpty(payment?.TransactionId) ? "N/A" : payment.TransactionId)</span>
+                                </div>
+
+                                <div>
+                                    <span style="color: #666; font-weight: 600; display: block;">Số Tiền:</span>
+                                    <span style="color: #28a745; font-weight: 700; font-size: 16px;">@payment?.Amount.ToString("N0")₫</span>
+                                </div>
+
+                                <div>
+                                    <span style="color: #666; font-weight: 600; display: block;">Phương Thức:</span>
+                                    <span style="color: #f36100; font-weight: 700; font-size: 16px;">@(string.IsNullOrEmpty(payment?.PaymentMethod) ? "N/A" : payment.PaymentMethod)</span>
+                                </div>
+
+                                <div style="grid-column: 1 / -1;">
+                                    <span style="color: #666; font-weight: 600; display: block;">Ngày Thanh Toán:</span>
+                                    <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin gói tập -->
+                        @if (subscription?.Package != null)
+                        {
+                            <div style="background: #f8f9fa; padding: 30px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #0066cc; text-align: left;">
+                                <h3 style="color: #111111; margin-bottom: 20px;">📦 Thông Tin Gói Tập</h3>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <span style="color: #666; font-weight: 600; display: block;">Tên Gói:</span>
+                                        <span style="color: #f36100; font-weight: 700; font-size: 16px;">@subscription.Package.PackageName</span>
+                                    </div>
+
+                                    <div>
+                                        <span style="color: #666; font-weight: 600; display: block;">Thời Hạn:</span>
+                                        <span style="color: #f36100; font-weight: 700; font-size: 16px;">
+                                            @(subscription.Package.DurationDays > 0 ? (subscription.Package.DurationDays / 30) : 0) tháng 
+                                            (@subscription.Package.DurationDays ngày)
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <span style="color: #666; font-weight: 600; display: block;">Ngày Bắt Đầu:</span>
+                                        <span style="color: #28a745; font-weight: 700; font-size: 16px;">@subscription.StartDate.ToString("dd/MM/yyyy")</span>
+                                    </div>
+
+                                    <div>
+                                        <span style="color: #666; font-weight: 600; display: block;">Ngày Kết Thúc:</span>
+                                        <span style="color: #dc3545; font-weight: 700; font-size: 16px;">@subscription.EndDate.ToString("dd/MM/yyyy")</span>
+                                    </div>
+
+                                    <div style="grid-column: 1 / -1;">
+                                        <span style="color: #666; font-weight: 600; display: block;">Trạng Thái:</span>
+                                        <span style="background: #d4edda; color: #155724; padding: 8px 12px; border-radius: 5px; display: inline-block; font-weight: 700;">
+                                            <i class="fa fa-check-circle"></i> @subscription.Status
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Thông báo -->
+                        <div style="background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #17a2b8;">
+                            <i class="fa fa-info-circle"></i> <strong>Thông Báo:</strong> Bạn có thể kiểm tra chi tiết gói tập trong phần "Hồ Sơ Cá Nhân".
+                        </div>
+
+                        <!-- Nút hành động -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <a href="/" class="primary-btn" style="background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                <i class="fa fa-home"></i> Trang Chủ
+                            </a>
+
+                            <a href="/customer/account/profile" class="primary-btn" style="background: transparent; color: #f36100; border: 2px solid #f36100; padding: 13px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                <i class="fa fa-user"></i> Hồ Sơ Cá Nhân
+                            </a>
+                        </div>
+
+                        <!-- In hoá đơn -->
+                        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #ddd;">
+                            <button onclick="window.print()" class="primary-btn" style="background: #333; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+                                <i class="fa fa-print"></i> In Hoá Đơn
+                            </button>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
 using doanweb.Models;
@@ -16,7 +16,7 @@ namespace doanweb.Controllers
             _logger = logger;
         }
 
-        // Ki?m tra xem user ?� ??ng nh?p hay ch?a
+        // Ki?m tra xem user ?ã ??ng nh?p hay ch?a
         [HttpGet]
         public IActionResult CheckLogin()
         {
@@ -34,7 +34,7 @@ namespace doanweb.Controllers
             }
         }
 
-        // Trang thanh to�n
+        // Trang thanh toán
         [HttpGet]
         public async Task<IActionResult> Checkout(int packageId)
         {
@@ -55,7 +55,7 @@ namespace doanweb.Controllers
                 if (package == null)
                 {
                     _logger.LogWarning($"[Checkout GET] Package not found or inactive: packageId={packageId}");
-                    TempData["ErrorMessage"] = "? G�i t?p kh�ng t?n t?i ho?c ?� b? v� hi?u h�a";
+                    TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc bị vô hiệu hóa";
                     return RedirectToAction("Online", "Packages", new { area = "" });
                 }
 
@@ -74,12 +74,12 @@ namespace doanweb.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"[Checkout GET] Error: {ex.Message}\n{ex.StackTrace}", ex);
-                TempData["ErrorMessage"] = "? ?� x?y ra l?i khi t?i trang thanh to�n";
+                TempData["ErrorMessage"] = "đã xảy ra lỗi khi tải trang thanh toán";
                 return RedirectToAction("Online", "Packages", new { area = "" });
             }
         }
 
-        // X? l� thanh to�n
+        // X? lý thanh toán
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(PaymentViewModel model)
@@ -87,20 +87,28 @@ namespace doanweb.Controllers
             try
             {
                 _logger.LogInformation($"[Checkout POST] Starting payment process");
+                _logger.LogInformation($"[Checkout POST] ModelState valid: {ModelState.IsValid}");
 
                 var userId = HttpContext.Session.GetInt32("UserId");
                 if (!userId.HasValue)
                 {
                     _logger.LogWarning($"[Checkout POST] User not logged in");
+                    TempData["ErrorMessage"] = "Vui lòng nhập trước khi thanh toán";
                     return RedirectToAction("Login", "Account", new { area = "Customer" });
                 }
 
                 _logger.LogInformation($"[Checkout POST] userId={userId.Value}");
+                _logger.LogInformation($"[Checkout POST] Received model: PackageId={model?.PackageId}, Price={model?.Price}, PaymentMethod={model?.PaymentMethod}");
 
                 if (!ModelState.IsValid)
                 {
                     var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                     _logger.LogWarning($"[Checkout POST] Invalid model state: {errors}");
+                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        _logger.LogWarning($"  - {error.ErrorMessage}");
+                    }
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. " + errors;
                     return View(model);
                 }
 
@@ -108,14 +116,14 @@ namespace doanweb.Controllers
                 if (model == null || model.PackageId <= 0 || model.Price <= 0 || model.DurationDays <= 0)
                 {
                     _logger.LogWarning($"[Checkout POST] Invalid payment model data: PackageId={model?.PackageId}, Price={model?.Price}, DurationDays={model?.DurationDays}");
-                    ModelState.AddModelError("", "Th�ng tin thanh to�n kh�ng h?p l?");
+                    TempData["ErrorMessage"] = "Thông tin thanh toán không hợp lệ";
                     return View(model);
                 }
 
                 if (string.IsNullOrEmpty(model.PaymentMethod))
                 {
                     _logger.LogWarning($"[Checkout POST] Payment method not selected");
-                    ModelState.AddModelError("PaymentMethod", "Vui l�ng ch?n ph??ng th?c thanh to�n");
+                    TempData["ErrorMessage"] = "Vui lòng chọn phương thức thanh toán";
                     return View(model);
                 }
 
@@ -123,21 +131,21 @@ namespace doanweb.Controllers
                 if (package == null)
                 {
                     _logger.LogWarning($"[Checkout POST] Package not found: {model.PackageId}");
-                    ModelState.AddModelError("", "G�i t?p kh�ng t?n t?i ho?c ?� b? v� hi?u h�a");
-                    return View(model);
+                    TempData["ErrorMessage"] = "Gói tập thông tin bị vô hiệu hóa";
+                    return RedirectToAction("Online", "Packages", new { area = "" });
                 }
 
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId.Value && u.Status == "Active");
                 if (user == null)
                 {
                     _logger.LogWarning($"[Checkout POST] User not found or inactive: {userId.Value}");
-                    ModelState.AddModelError("", "Ng??i d�ng kh�ng t?n t?i ho?c ?� b? v� hi?u h�a");
-                    return View(model);
+                    TempData["ErrorMessage"] = "Tài khoản của bạn hoặc thông tin bị vô hiệu hóa";
+                    return RedirectToAction("Login", "Account", new { area = "Customer" });
                 }
 
-                _logger.LogInformation($"[Checkout POST] Creating payment for user {user.Email}, package {package.PackageName}");
+                _logger.LogInformation($"[Checkout POST] Creating payment for user {user.Email}, package {package.PackageName}, method {model.PaymentMethod}");
 
-                // T?o thanh to�n
+                // T?o thanh toán
                 var payment = new Payment
                 {
                     UserId = userId.Value,
@@ -146,7 +154,7 @@ namespace doanweb.Controllers
                     PaymentMethod = model.PaymentMethod,
                     TransactionId = string.IsNullOrEmpty(model.TransactionId) ? GenerateTransactionId() : model.TransactionId,
                     Status = "Success",
-                    Description = $"Thanh to�n g�i t?p: {package.PackageName}",
+                    Description = $"Thanh toán gói tập: {package.PackageName}",
                     Notes = model.Notes
                 };
 
@@ -155,7 +163,7 @@ namespace doanweb.Controllers
 
                 _logger.LogInformation($"[Checkout POST] Payment created: PaymentId={payment.PaymentId}");
 
-                // T?o subscription (??ng k� g�i)
+                // T?o subscription (??ng ký gói)
                 var subscription = new Subscription
                 {
                     UserId = userId.Value,
@@ -167,7 +175,7 @@ namespace doanweb.Controllers
                     RemainingDays = package.DurationDays,
                     SessionsUsed = 0,
                     AmountPaid = model.Price,
-                    Notes = $"Thanh to�n qua {model.PaymentMethod}"
+                    Notes = $"Thanh toán qua {model.PaymentMethod}"
                 };
 
                 _dbContext.Subscriptions.Add(subscription);
@@ -176,24 +184,26 @@ namespace doanweb.Controllers
                 _logger.LogInformation($"[Checkout POST] Subscription created: SubscriptionId={subscription.SubscriptionId}");
                 _logger.LogInformation($"[Checkout POST] Payment successful: User {user.Email}, Amount {model.Price}, Package {package.PackageName}");
 
-                TempData["SuccessMessage"] = "? Thanh to�n th�nh c�ng! G�i t?p c?a b?n ?� ???c k�ch ho?t.";
+                TempData["SuccessMessage"] = "Thanh toán thành công! Gói tập cảu bạn đã được kịch hoạt.";
+                
+                _logger.LogInformation($"[Checkout POST] Redirecting to PaymentSuccess with paymentId={payment.PaymentId}, subscriptionId={subscription.SubscriptionId}");
                 return RedirectToAction("PaymentSuccess", "Payment", new { area = "", paymentId = payment.PaymentId, subscriptionId = subscription.SubscriptionId });
             }
             catch (DbUpdateException dbEx)
             {
                 _logger.LogError($"[Checkout POST] Database error: {dbEx.InnerException?.Message ?? dbEx.Message}\n{dbEx.StackTrace}", dbEx);
-                ModelState.AddModelError("", "L?i c? s? d? li?u. Vui l�ng th? l?i sau ho?c li�n h? h? tr?.");
+                TempData["ErrorMessage"] = "Lỗi cơ sở dữ liệu. Vui lòng thử lại hoặc liên hệ trước.";
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[Checkout POST] Unexpected error: {ex.Message}\n{ex.StackTrace}", ex);
-                ModelState.AddModelError("", "?� x?y ra l?i khi x? l� thanh to�n. Vui l�ng th? l?i ho?c li�n h? h? tr?.");
+                TempData["ErrorMessage"] = "đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại hoặc liên hệ trước";
                 return View(model);
             }
         }
 
-        // Trang th�nh c�ng
+        // Trang thành công
         [HttpGet]
         public async Task<IActionResult> PaymentSuccess(int paymentId, int subscriptionId)
         {
@@ -215,19 +225,30 @@ namespace doanweb.Controllers
                 if (payment == null)
                 {
                     _logger.LogWarning($"[PaymentSuccess] Payment not found: paymentId={paymentId}, userId={userId.Value}");
-                    return NotFound();
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin thanh toán";
+                    return RedirectToAction("Online", "Packages", new { area = "" });
                 }
 
                 var subscription = await _dbContext.Subscriptions
                     .Include(s => s.Package)
+                    .Include(s => s.User)
                     .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId && s.UserId == userId.Value);
 
                 if (subscription == null)
                 {
                     _logger.LogWarning($"[PaymentSuccess] Subscription not found: subscriptionId={subscriptionId}, userId={userId.Value}");
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin gói tập";
+                    return RedirectToAction("Online", "Packages", new { area = "" });
                 }
 
-                _logger.LogInformation($"[PaymentSuccess] Success page loaded for user {payment.User?.Email}");
+                // Double check: Ensure Package is loaded
+                if (subscription.Package == null)
+                {
+                    subscription.Package = await _dbContext.Packages
+                        .FirstOrDefaultAsync(p => p.PackageId == subscription.PackageId);
+                }
+
+                _logger.LogInformation($"[PaymentSuccess] Success page loaded for user {payment.User?.Email}, subscription package: {subscription.Package?.PackageName}");
 
                 ViewBag.Payment = payment;
                 ViewBag.Subscription = subscription;
@@ -237,7 +258,8 @@ namespace doanweb.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"[PaymentSuccess] Error: {ex.Message}\n{ex.StackTrace}", ex);
-                return NotFound();
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi gửi yêu cầu";
+                return RedirectToAction("Online", "Packages", new { area = "" });
             }
         }
 
@@ -250,38 +272,38 @@ namespace doanweb.Controllers
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue)
         {
-            return Unauthorized(new { message = "Vui l�ng ??ng nh?p" });
+            return Unauthorized(new { message = "Vui lòng lòng nhập" });
         }
 
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId.Value);
         if (user == null)
         {
-            return NotFound(new { message = "Ng??i d�ng kh�ng t�m th?y" });
+            return NotFound(new { message = "Người dùng không tìm thấy" });
         }
 
         if (request.CartItems == null || !request.CartItems.Any())
         {
-            return BadRequest(new { message = "Gi? h�ng tr?ng" });
+            return BadRequest(new { message = "Giỏ hàng trống" });
         }
 
-        // T�nh t?ng ti?n
+        // Tính t?ng ti?n
         decimal totalAmount = request.CartItems.Sum(item => item.price * item.quantity);
 
-        // T?o ??n h�ng
+        // T?o ??n hàng
         var order = new Order
         {
             UserId = userId.Value,
             OrderDate = DateTime.Now,
             TotalAmount = totalAmount,
             DeliveryAddress = request.deliveryAddress,
-            Status = "Pending", // Ch? x? l�
+            Status = "Pending", // Ch? x? lý
             Notes = request.notes
         };
 
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync();
 
-        // T?o chi ti?t ??n h�ng
+        // T?o chi ti?t ??n hàng
         foreach (var item in request.CartItems)
         {
             var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == item.productId);
@@ -305,7 +327,7 @@ namespace doanweb.Controllers
 
         await _dbContext.SaveChangesAsync();
 
-        // T?o thanh to�n
+        // T?o thanh toán
         var payment = new Payment
         {
             UserId = userId.Value,
@@ -314,7 +336,7 @@ namespace doanweb.Controllers
             PaymentMethod = request.paymentMethod,
             TransactionId = GenerateTransactionId(),
             Status = "Success",
-            Description = $"Thanh to�n mua h�ng {request.CartItems.Count} s?n ph?m",
+            Description = $"Thanh toán mua hàng {request.CartItems.Count} sản phẩm",
             Notes = request.notes
         };
 
@@ -327,17 +349,17 @@ namespace doanweb.Controllers
         { 
             success = true, 
             orderId = order.OrderId,
-            message = "??n h�ng ???c t?o th�nh c�ng"
+            message = "đơn hàng đã được tạothành công"
         });
     }
     catch (Exception ex)
     {
         _logger.LogError($"[CheckoutProducts] Error: {ex.Message}", ex);
-        return StatusCode(500, new { message = "L?i khi x? l� thanh to�n" });
+        return StatusCode(500, new { message = "Lỗi khi xử lý thanh toán" });
     }
 }
 
-        // H�m t?o m� giao d?ch
+        // Hàm t?o mã giao d?ch
         private string GenerateTransactionId()
         {
             return $"TXN{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(1000, 9999)}";

@@ -44,7 +44,7 @@
                         </div>
                         <div class="info-item">
                             <span class="label">Trạng Thái Hiện Tại:</span>
-                            <span class="value">
+                            <span class="value" >
                                 @if (Model.Status == "Pending")
                                 {
                                     <span class="badge badge-warning">Chờ Xử Lý</span>
@@ -68,13 +68,15 @@
                     <form method="post" class="update-form">
                         <div class="form-group">
                             <label class="form-label">Cập Nhật Trạng Thái</label>
-                            <select name="status" class="form-control" required>
-                                <option value="">-- Chọn Trạng Thái --</option>
-                                <option value="Pending">Chờ Xử Lý</option>
-                                <option value="Processing">Đang Xử Lý</option>
-                                <option value="Completed">Hoàn Thành</option>
-                                <option value="Cancelled">Hủy</option>
-                            </select>
+                            <div class="select-wrapper">
+                                <select name="status" style="height: 50px" class="form-control form-select" required>
+                                    <option value="">-- Chọn Trạng Thái --</option>
+                                    <option value="Pending">Chờ Xử Lý</option>
+                                    <option value="Processing">Đang Xử Lý</option>
+                                    <option value="Completed">Hoàn Thành</option>
+                                    <option value="Cancelled">Hủy</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-actions">
@@ -101,7 +103,9 @@
                         document.addEventListener('DOMContentLoaded', function() {
                             const currentStatus = '@Model.Status';
                             const select = document.querySelector('select[name="status"]');
-                            select.value = currentStatus;
+                            if (select) {
+                                select.value = currentStatus;
+                            }
                         });
                     </script>
                 </div>
@@ -248,18 +252,57 @@
         letter-spacing: 0.5px;
     }
 
-    .form-control {
+    .select-wrapper {
+        position: relative;
         width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
-        transition: border-color 0.3s ease;
     }
 
-    .form-control:focus {
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #333;
+        background-color: #fff;
+        box-sizing: border-box;
+        line-height: 1.6;
+        transition: all 0.3s ease;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+        padding-right: 40px;
+    }
+
+    .form-select option {
+        padding: 10px 16px;
+        color: #333;
+        background-color: #fff;
+        line-height: 1.6;
+        font-size: 14px;
+        border: none;
+        margin: 5px 0;
+    }
+
+    .form-select option:hover {
+        background: linear-gradient(#f36100, #f36100);
+    }
+
+    .form-select option:checked {
+        background: linear-gradient(#f36100, #f36100);
+        color: white;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
         border-color: #f36100;
-        box-shadow: 0 0 0 3px rgba(243, 97, 0, 0.1);
+        box-shadow: 0 0 0 3px rgba(243, 97, 0, 0.15);
         outline: none;
     }
 

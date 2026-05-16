@@ -10,11 +10,13 @@ namespace doanweb.Areas.Admin.Controllers
     {
         private readonly GymDbContext _dbContext;
         private readonly ILogger<PackageController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public PackageController(GymDbContext dbContext, ILogger<PackageController> logger)
+        public PackageController(GymDbContext dbContext, ILogger<PackageController> logger, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // Kiểm tra quyền Admin
@@ -50,7 +52,7 @@ namespace doanweb.Areas.Admin.Controllers
         // Xử lý thêm gói tập
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Package model)
+        public async Task<IActionResult> Create(Package model, IFormFile? ImageFile)
         {
             if (!IsAdmin())
             {
@@ -64,6 +66,12 @@ namespace doanweb.Areas.Admin.Controllers
 
             try
             {
+                // Handle file upload
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    model.ImageUrl = await SaveUploadedFile(ImageFile);
+                }
+
                 model.CreatedDate = DateTime.Now;
                 model.Status = model.Status ?? "Active";
 
@@ -104,7 +112,7 @@ namespace doanweb.Areas.Admin.Controllers
         // Xử lý chỉnh sửa gói tập
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Package model)
+        public async Task<IActionResult> Edit(int id, Package model, IFormFile? ImageFile)
         {
             if (!IsAdmin())
             {
@@ -128,6 +136,24 @@ namespace doanweb.Areas.Admin.Controllers
                 {
                     return NotFound();
                 }
+
+                // Handle file upload
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    // Delete old image if it exists and is a local file
+                    if (!string.IsNullOrEmpty(existingPackage.ImageUrl) && existingPackage.ImageUrl.StartsWith("/images/"))
+                    {
+                        DeleteOldFile(existingPackage.ImageUrl);
+                    }
+                    
+                    existingPackage.ImageUrl = await SaveUploadedFile(ImageFile);
+                }
+                else if (!string.IsNullOrEmpty(model.ImageUrl))
+                {
+                    // Keep the new URL if provided
+                    existingPackage.ImageUrl = model.ImageUrl;
+                }
+                // else keep the old image if no new file or URL is provided
 
                 existingPackage.PackageName = model.PackageName;
                 existingPackage.Price = model.Price;
@@ -185,6 +211,12 @@ namespace doanweb.Areas.Admin.Controllers
 
                 _logger.LogInformation($"Found package: {package.PackageName}");
 
+                // Delete old image if it's a local file
+                if (!string.IsNullOrEmpty(package.ImageUrl) && package.ImageUrl.StartsWith("/images/"))
+                {
+                    DeleteOldFile(package.ImageUrl);
+                }
+
                 // Delete related subscriptions first (if any)
                 if (package.Subscriptions != null && package.Subscriptions.Any())
                 {
@@ -231,6 +263,76 @@ namespace doanweb.Areas.Admin.Controllers
             }
 
             return Json(new { success = true, data = package });
+        }
+
+        // Helper method to save uploaded file
+        private async Task<string> SaveUploadedFile(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return null;
+
+                // Validate file type
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                {
+                    throw new Exception("Loại file không được phép. Vui lòng chọn JPG, PNG, GIF, hoặc WebP");
+                }
+
+                // Validate file size (5MB max)
+                if (file.Length > 5 * 1024 * 1024)
+                {
+                    throw new Exception("Kích thước file không được vượt quá 5MB");
+                }
+
+                // Create images directory if it doesn't exist
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "packages");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // Generate unique filename
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // Save file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+
+                // Return relative path for web access
+                return $"/images/packages/{uniqueFileName}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error saving file: {ex.Message}");
+                throw;
+            }
+        }
+
+        // Helper method to delete old file
+        private void DeleteOldFile(string imagePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(imagePath) || !imagePath.StartsWith("/images/"))
+                    return;
+
+                var fullPath = Path.Combine(_webHostEnvironment.WebRootPath, imagePath.TrimStart('/'));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                    _logger.LogInformation($"Deleted old image: {imagePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting old file: {ex.Message}");
+                // Don't throw - this is not critical
+            }
         }
     }
 }

@@ -26,7 +26,7 @@
                         </div>
                     }
 
-                    <form method="post" action="/admin/package/create">
+                    <form method="post" action="/admin/package/create" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
                         <!-- Tên gói tập -->
@@ -96,18 +96,37 @@
 
                         <!-- Hình ảnh gói tập -->
                         <div class="mb-3">
-                            <label class="form-label" for="ImageUrl">Hình Ảnh Gói Tập</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="ImageUrl" name="ImageUrl" 
-                                       placeholder="Nhập URL hình ảnh hoặc chọn từ thư mục" 
-                                       value="@Model?.ImageUrl" />
-                                <button class="btn btn-outline-secondary" type="button" id="uploadImageBtn">
-                                    <i class="fa fa-upload"></i> Chọn Hình
-                                </button>
+                            <label class="form-label">Hình Ảnh Gói Tập</label>
+                            
+                            <!-- File Upload Area with Drag & Drop -->
+                            <div id="dropZone" class="drop-zone" style="border: 2px dashed #ddd; border-radius: 8px; padding: 30px; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px;">
+                                <div style="display: none;" id="dropZoneText">
+                                    <i class="fa fa-cloud-upload" style="font-size: 32px; color: #f36100; margin-bottom: 10px; display: block;"></i>
+                                    <p style="margin: 0 0 10px 0; color: #333; font-weight: 600;">Kéo thả hình ảnh vào đây hoặc nhấp để chọn</p>
+                                    <p style="margin: 0; color: #666; font-size: 14px;">Hỗ trợ: JPG, PNG, GIF (Tối đa 5MB)</p>
+                                </div>
+                                <input type="file" id="ImageUpload" name="ImageFile" accept="image/*" class="form-control" style="display: none;" />
                             </div>
+                            
+                            <!-- Display selected file name -->
+                            <div id="fileInfo" style="display: none; background: #e8f5e9; padding: 12px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                                <i class="fa fa-check-circle" style="color: #4caf50; margin-right: 8px;"></i>
+                                <span id="fileName" style="color: #333; font-weight: 600;"></span>
+                                <button type="button" id="clearFile" class="btn btn-sm btn-link" style="color: #f36100; float: right; margin-top: -3px;">Xóa</button>
+                            </div>
+
+                            <!-- Or enter URL -->
+                            <label class="form-label" style="margin-top: 15px; margin-bottom: 8px;">
+                                <small style="color: #666;">Hoặc nhập URL hình ảnh</small>
+                            </label>
+                            <input type="text" class="form-control" id="ImageUrl" name="ImageUrl" 
+                                   placeholder="Ví dụ: /images/packages/fatlose.jpg hoặc https://example.com/image.jpg" 
+                                   value="@Model?.ImageUrl" />
+                            
                             <small class="text-muted d-block mt-2">
-                                Ví dụ: /images/packages/fatlose.jpg hoặc https://example.com/image.jpg
+                                <i class="fa fa-info-circle"></i> Nếu bạn chọn file, URL sẽ được ghi đè bằng đường dẫn file mới
                             </small>
+                            
                             @if (ViewData.ModelState.TryGetValue("ImageUrl", out var imageErrors))
                             {
                                 @foreach (var error in imageErrors.Errors)
@@ -115,11 +134,12 @@
                                     <span class="text-danger small">@error.ErrorMessage</span>
                                 }
                             }
+                            
                             <!-- Image Preview -->
                             <div id="imagePreview" style="margin-top: 15px; text-align: center;">
                                 @if (!string.IsNullOrEmpty(Model?.ImageUrl))
                                 {
-                                    <img src="@Model.ImageUrl" alt="Package Image" style="max-width: 200px; max-height: 150px; border-radius: 5px;" />
+                                    <img src="@Model.ImageUrl" alt="Package Image" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" />
                                 }
                             </div>
                         </div>
@@ -210,35 +230,135 @@
     .text-muted {
         font-size: 0.875rem;
     }
+
+    .drop-zone:hover {
+        border-color: #f36100;
+        background: #fff8f0;
+    }
+
+    .drop-zone.dragover {
+        border-color: #f36100;
+        background: #fff3e0;
+        box-shadow: 0 0 0 3px rgba(243, 97, 0, 0.1);
+    }
 </style>
 
 @section Scripts {
     <script>
-        // Image URL Change Handler
-        document.getElementById('ImageUrl').addEventListener('change', function() {
+        let hasFileSelected = false;
+
+        // Initialize drop zone display
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZoneText = document.getElementById('dropZoneText');
+            if (dropZoneText) {
+                dropZoneText.style.display = 'block';
+            }
             updateImagePreview();
         });
+
+        // Drop zone handling
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('ImageUpload');
+
+        if (dropZone && imageInput) {
+            dropZone.addEventListener('click', (e) => {
+                e.preventDefault();
+                imageInput.click();
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    imageInput.files = files;
+                    handleFileSelect();
+                }
+            });
+
+            // File input change handler
+            imageInput.addEventListener('change', handleFileSelect);
+
+            function handleFileSelect() {
+                const files = imageInput.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Vui lòng chọn file ảnh!');
+                        imageInput.value = '';
+                        return;
+                    }
+                    
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Kích thước file không được vượt quá 5MB!');
+                        imageInput.value = '';
+                        return;
+                    }
+                    
+                    // Display file info
+                    const fileInfo = document.getElementById('fileInfo');
+                    const fileName = document.getElementById('fileName');
+                    fileName.textContent = file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)';
+                    fileInfo.style.display = 'block';
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewDiv = document.getElementById('imagePreview');
+                        previewDiv.innerHTML = `<img src="${e.target.result}" alt="Package Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" />`;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    hasFileSelected = true;
+                }
+            }
+
+            // Clear file handler
+            const clearFileBtn = document.getElementById('clearFile');
+            if (clearFileBtn) {
+                clearFileBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    imageInput.value = '';
+                    hasFileSelected = false;
+                    document.getElementById('fileInfo').style.display = 'none';
+                    updateImagePreview();
+                });
+            }
+        }
+
+        // Image URL Change Handler
+        const imageUrlInput = document.getElementById('ImageUrl');
+        if (imageUrlInput) {
+            imageUrlInput.addEventListener('change', function() {
+                if (!hasFileSelected) {
+                    updateImagePreview();
+                }
+            });
+        }
 
         // Image Preview Update
         function updateImagePreview() {
             const imageUrl = document.getElementById('ImageUrl').value;
             const previewDiv = document.getElementById('imagePreview');
             
-            if (imageUrl) {
+            if (imageUrl && !hasFileSelected) {
                 previewDiv.innerHTML = `<img src="${imageUrl}" alt="Package Image" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" onerror="this.src='/images/placeholder.png'" />`;
-            } else {
+            } else if (!hasFileSelected) {
                 previewDiv.innerHTML = '';
             }
         }
-
-        // Upload Button Handler
-        document.getElementById('uploadImageBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = prompt('Nhập đường dẫn hình ảnh hoặc URL:');
-            if (url) {
-                document.getElementById('ImageUrl').value = url;
-                updateImagePreview();
-            }
-        });
     </script>
 }

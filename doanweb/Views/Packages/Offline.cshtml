@@ -41,13 +41,13 @@
                 @foreach (var package in Model)
                 {
                     <div class="col-lg-4 col-md-6 package-item" style="margin-bottom: 30px;">
-                        <div class="ps-item" style="position: relative; text-align: center; padding: 40px 30px 52px; border: 1px solid #464646; transform: skewY(-4deg); transition: all 0.5s; background: transparent;">
-                            <h3 style="font-size: 28px; color: white; font-weight: 600; margin-bottom: 16px; transform: skewY(4deg);">@package.PackageName</h3>
-                            <div class="pi-price" style="margin-bottom: 30px; transform: skewY(4deg);">
+                        <div class="ps-item" style="position: relative; text-align: center; padding: 40px 30px 52px; border: 1px solid #464646; transition: all 0.5s; background: transparent; box-shadow: 0 8px 20px rgba(0,0,0,0.3); transform: perspective(1000px) rotateY(-5deg);">
+                            <h3 style="font-size: 28px; color: white; font-weight: 600; margin-bottom: 16px;">@package.PackageName</h3>
+                            <div class="pi-price" style="margin-bottom: 30px;">
                                 <h2 style="font-size: 60px; color: #f36100; font-weight: 600;">@package.Price.ToString("N0")₫</h2>
                                 <span style="color: #c4c4c4; font-size: 16px; font-weight: 700; text-transform: uppercase;">@(package.DurationDays > 0 ? (package.DurationDays / 30) : 0) tháng</span>
                             </div>
-                            <ul style="margin-bottom: 40px; transform: skewY(4deg); text-align: left;">
+                            <ul style="margin-bottom: 40px; text-align: left;">
                                 @if (!string.IsNullOrEmpty(package.Features))
                                 {
                                     @foreach (var feature in package.Features.Split(',').Take(6))
@@ -65,7 +65,7 @@
                                     <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Thành viên cộng đồng</li>
                                 }
                             </ul>
-                            <a href="/packages/detail/@package.PackageId" class="primary-btn pricing-btn" style="display: block; background: #f36100; color: white; padding: 14px 0 12px; border: none; font-size: 14px; text-transform: uppercase; font-weight: 700; transform: skewY(4deg); cursor: pointer; text-decoration: none;">Tham gia ngay</a>
+                            <a href="/packages/detail/@package.PackageId" class="primary-btn pricing-btn" style="display: block; background: #f36100; color: white; padding: 14px 0 12px; border: none; font-size: 14px; text-transform: uppercase; font-weight: 700; cursor: pointer; text-decoration: none;">Tham gia ngay</a>
                         </div>
                     </div>
                 }
@@ -111,20 +111,19 @@
     }
 
     .package-item:hover .ps-item {
-        transform: translateY(-10px) skewY(-4deg) !important;
-        box-shadow: 0 15px 30px rgba(243, 97, 0, 0.2) !important;
+        transform: translateY(-15px) !important;
+        box-shadow: 0 20px 40px rgba(243, 97, 0, 0.3) !important;
         background: #151515 !important;
-        border-color: #151515 !important;
+        border-color: #f36100 !important;
     }
 
     .package-item:hover .ps-item h3,
     .package-item:hover .ps-item h2 {
-        color: #111111 !important;
+        color: #f36100 !important;
     }
 
     .package-item:hover .ps-item ul li {
-        color: #111111 !important;
-        font-weight: 600 !important;
+        color: #fff !important;
     }
 
     .ps-item {
@@ -137,6 +136,6 @@
 
     .pricing-btn:hover {
         background: #e55a00 !important;
-        transform: skewY(4deg) translateY(-3px);
+        transform: translateY(-3px);
     }
 </style>

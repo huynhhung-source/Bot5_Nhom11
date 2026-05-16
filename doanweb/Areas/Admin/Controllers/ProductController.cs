@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+Ôªøusing Microsoft.AspNetCore.Mvc;
 using doanweb.Data;
 using doanweb.Models;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +56,7 @@ namespace doanweb.Areas.Admin.Controllers
                 product.Status = "Active";
                 _context.Add(product);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "ThÍm s?n ph?m th‡nh cÙng!";
+                TempData["SuccessMessage"] = "Th√™m s·∫£n ph·∫©m th√†nh c√¥ng!";
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -95,7 +95,7 @@ namespace doanweb.Areas.Admin.Controllers
                     product.UpdatedDate = DateTime.Now;
                     _context.Update(product);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "C?p nh?t s?n ph?m th‡nh cÙng!";
+                    TempData["SuccessMessage"] = "C·∫≠p nh·∫≠t s·∫£n ph·∫©m th√†nh c√¥ng!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -140,7 +140,7 @@ namespace doanweb.Areas.Admin.Controllers
             {
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "XÛa s?n ph?m th‡nh cÙng!";
+                TempData["SuccessMessage"] = "X√≥a s?n ph?m th√†nh c√¥ng!";
             }
 
             return RedirectToAction(nameof(Index));

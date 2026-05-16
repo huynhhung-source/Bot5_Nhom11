@@ -1,7 +1,7 @@
-@model ProfileViewModel
+﻿@model ProfileViewModel
 
 @{
-    ViewData["Title"] = "H? S? C� Nh�n";
+    ViewData["Title"] = "Hồ Sơ Cá Nhân";
 }
 
 <!-- Breadcrumb Begin -->
@@ -10,10 +10,10 @@
         <div class="row">
             <div class="col-lg-12 text-center">
                 <div class="breadcrumb-text">
-                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">H? S? C� Nh�n</h2>
+                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">Hồ Sơ Cá Nhân</h2>
                     <div class="bt-option" style="margin-top: 20px;">
-                        <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang ch?</a>
-                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">H? S? C� Nh�n</span>
+                        <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang chủ</a>
+                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">Hồ Sơ Cá Nhân</span>
                     </div>
                 </div>
             </div>
@@ -28,7 +28,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                    <h2 style="text-align: center; margin-bottom: 30px; color: #111111;">C?p Nh?t Th�ng Tin C� Nh�n</h2>
+                    <h2 style="text-align: center; margin-bottom: 30px; color: #111111;">Cập Nhật Thông Tin Cá Nhân</h2>
 
                     @if (TempData["SuccessMessage"] != null)
                     {
@@ -40,7 +40,7 @@
                     @if (!ViewData.ModelState.IsValid)
                     {
                         <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
-                            <strong><i class="fa fa-exclamation-circle"></i> L?i:</strong>
+                            <strong><i class="fa fa-exclamation-circle"></i> Lỗi:</strong>
                             <ul style="margin-top: 10px;">
                                 @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                                 {
@@ -53,10 +53,10 @@
                     <form method="post" action="/customer/account/profile">
                         @Html.AntiForgeryToken()
 
-                        <!-- H? t�n -->
+                        <!-- H? tên -->
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">H? t�n *</label>
-                            <input type="text" name="FullName" class="form-control" placeholder="Nh?p h? t�n c?a b?n" 
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Họ Tên</label>
+                            <input type="text" name="FullName" class="form-control" placeholder="Nhập Họ Tên Của Bạn" 
                                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
                                    value="@Model?.FullName" required />
                             @if (ViewData.ModelState.TryGetValue("FullName", out var fullNameErrors))
@@ -71,7 +71,7 @@
                         <!-- Email -->
                         <div class="form-group" style="margin-bottom: 20px;">
                             <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Email *</label>
-                            <input type="email" name="Email" class="form-control" placeholder="Nh?p email c?a b?n" 
+                            <input type="email" name="Email" class="form-control" placeholder="Nhập email Của Bạn" 
                                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
                                    value="@Model?.Email" required />
                             @if (ViewData.ModelState.TryGetValue("Email", out var emailErrors))
@@ -85,8 +85,8 @@
 
                         <!-- S? ?i?n tho?i -->
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">S? ?i?n tho?i *</label>
-                            <input type="tel" name="PhoneNumber" class="form-control" placeholder="Nh?p s? ?i?n tho?i" 
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Số Điện Thoại</label>
+                            <input type="tel" name="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại" 
                                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
                                    value="@Model?.PhoneNumber" required />
                             @if (ViewData.ModelState.TryGetValue("PhoneNumber", out var phoneErrors))
@@ -98,27 +98,27 @@
                             }
                         </div>
 
-                        <!-- Ng�y sinh -->
+                        <!-- Ngày sinh -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group" style="margin-bottom: 20px;">
-                                    <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Ng�y sinh</label>
+                                    <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Ngày Sinh</label>
                                     <input type="date" name="DateOfBirth" class="form-control" 
                                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
                                            value="@(Model?.DateOfBirth != null ? Model.DateOfBirth.Value.ToString("yyyy-MM-dd") : "")" />
                                 </div>
                             </div>
 
-                            <!-- Gi?i t�nh -->
+                            <!-- Gi?i tính -->
                             <div class="col-md-6">
                                 <div class="form-group" style="margin-bottom: 20px;">
-                                    <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Gi?i t�nh</label>
+                                    <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Giới Tính</label>
                                     <select name="Gender" class="form-control" id="genderSelect"
-                                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                                        <option value="">-- Ch?n gi?i t�nh --</option>
+                                            style="height: 50px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                                        <option value="">-- Chọn Giới Tính --</option>
                                         <option value="Male">Nam</option>
-                                        <option value="Female">N?</option>
-                                        <option value="Other">Kh�c</option>
+                                        <option value="Female">Nữ</option>
+                                        <option value="Other">Khác</option>
                                     </select>
                                 </div>
                             </div>
@@ -126,19 +126,19 @@
 
                         <!-- ??a ch? -->
                         <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">??a ch?</label>
-                            <textarea name="Address" class="form-control" rows="3" placeholder="Nh?p ??a ch? c?a b?n" 
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Địa Chỉ</label>
+                            <textarea name="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ các bạn" 
                                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">@Model?.Address</textarea>
                         </div>
 
-                        <!-- N�t C?p nh?t -->
+                        <!-- Nút C?p nh?t -->
                         <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-bottom: 15px;">
-                            <i class="fa fa-save"></i> C?p Nh?t Th�ng Tin
+                            <i class="fa fa-save"></i> Cập Nhật Thông Tin
                         </button>
 
-                        <!-- N�t Quay l?i -->
+                        <!-- Nút Quay l?i -->
                         <a href="/" class="primary-btn" style="width: 100%; background: transparent; color: #f36100; border: 2px solid #f36100; padding: 13px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
-                            ? Quay L?i Trang Ch?
+                            Quay Lại Trang Chủ
                         </a>
                     </form>
                 </div>

@@ -87,7 +87,7 @@
                         </div>
 
                         <!-- Nút Đăng nhập -->
-                        <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+                        <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: background 0.3s;">
                             Đăng nhập
                         </button>
 
@@ -103,15 +103,11 @@
                             <span style="background: white; padding: 0 15px; color: #999;">Hoặc</span>
                         </div>
 
-                        <!-- Đăng nhập với mạng xã hội -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <button type="button" style="background: #3b5998; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                <i class="fa fa-facebook"></i> Facebook
-                            </button>
-                            <button type="button" style="background: #db4437; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                <i class="fa fa-google"></i> Google
-                            </button>
-                        </div>
+                        <!-- Đăng nhập với Facebook -->
+                        <a href="/customer/account/login-with-facebook" 
+                           style="display: flex; width: 100%; background: #3b5998; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; align-items: center; justify-content: center; gap: 8px; transition: background 0.3s ease;">
+                            <i class="fa fa-facebook" style="font-size: 16px;"></i> Đăng nhập với Facebook
+                        </a>
                     </form>
                 </div>
             </div>
@@ -119,3 +115,20 @@
     </div>
 </section>
 <!-- Login Section End -->
+@section Scripts {
+    <script>
+        // Hiển thị SweetAlert cho lỗi từ TempData
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi Đăng Nhập",
+                text: "@TempData["ErrorMessage"]",
+                confirmButtonColor: "#f36100",
+                confirmButtonText: "Thử lại"
+            });
+            </text>
+        }
+    </script>
+}
