@@ -1,4 +1,4 @@
-﻿@model doanweb.Models.Product
+@model doanweb.Models.Product
 
 @{
     ViewData["Title"] = Model.ProductName;
@@ -86,7 +86,7 @@
                                 <input type="number" id="product-qty" class="qty-input-detail" value="1" min="1" max="@Model.StockQuantity">
                                 <button class="qty-btn-detail" onclick="increaseQty('@Model.StockQuantity')" id="qty-plus">+</button>
                             </div>
-                            <button class="btn-add-to-cart" onclick="addProductToCart(@Model.ProductId, '@Model.ProductName', @Model.Price, '@Model.ImageUrl')">
+                            <button class="btn-add-to-cart" onclick="addProductToCart(@Model.ProductId, '@Model.ProductName', @Model.Price, '@Model.ImageUrl', @Model.StockQuantity)">
                                 <i class="fa fa-shopping-cart"></i> Thêm vào giỏ
                             </button>
                         }
@@ -713,14 +713,17 @@
         }
     }
 
-    function addProductToCart(productId, productName, price, imageUrl) {
+    function addProductToCart(productId, productName, price, imageUrl, stockQuantity) {
         const qtyInput = document.getElementById('product-qty');
-        const quantity = parseInt(qtyInput.value) || 1;
-        
-        // Add to cart using the cart manager
-        cart.addProduct(productId, productName, price, imageUrl, quantity);
-        
-        // Reset quantity input
+        const maxStock = parseInt(stockQuantity, 10) || 0;
+        let quantity = parseInt(qtyInput.value, 10) || 1;
+
+        if (quantity > maxStock) {
+            quantity = maxStock;
+            qtyInput.value = maxStock;
+        }
+
+        cart.addProduct(productId, productName, price, imageUrl, quantity, maxStock);
         qtyInput.value = 1;
     }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
 using doanweb.Models;
+using doanweb.Services;
 
 namespace doanweb.Controllers
 {
@@ -9,201 +10,36 @@ namespace doanweb.Controllers
     {
         private readonly GymDbContext _dbContext;
         private readonly ILogger<OrderController> _logger;
+        private readonly IInvoiceService _invoiceService;
 
-        public OrderController(GymDbContext dbContext, ILogger<OrderController> logger)
+        public OrderController(GymDbContext dbContext, ILogger<OrderController> logger, IInvoiceService invoiceService)
         {
-            _dbContext = dbContext;
-            _logger = logger;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _invoiceService = invoiceService ?? throw new ArgumentNullException(nameof(invoiceService));
         }
 
-        // Ki?m tra xem user ?„ ??ng nh?p ch?a
-        private bool IsUserLoggedIn(out int userId)
-        {
-            userId = 0;
-            var userIdSession = HttpContext.Session.GetInt32("UserId");
-            if (!userIdSession.HasValue)
-            {
-                return false;
-            }
-            userId = userIdSession.Value;
-            return true;
-        }
-
-        /// <summary>
-        /// Hi?n th? t?t c? c·c gÛi t?p m‡ kh·ch h‡ng ?„ mua
-        /// </summary>
+        // GET: Trang ƒë·∫∑t h√†ng s·∫£n ph·∫©m th√†nh c√¥ng
         [HttpGet]
-        public async Task<IActionResult> MyPackages()
+        public async Task<IActionResult> Success(int id)
         {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Order/MyPackages" });
-            }
-
             try
             {
-                // L?y t?t c? subscription c?a user
-                var subscriptions = await _dbContext.Subscriptions
-                    .Where(s => s.UserId == userId)
-                    .Include(s => s.Package)
-                    .Include(s => s.User)
-                    .OrderByDescending(s => s.StartDate)
-                    .ToListAsync();
-
-                _logger.LogInformation($"User {userId} accessed MyPackages. Found {subscriptions.Count} packages");
-
-                return View(subscriptions);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in MyPackages: {ex.Message}");
-                TempData["ErrorMessage"] = "?„ x?y ra l?i khi t?i danh s·ch gÛi t?p";
-                return RedirectToAction("Index", "Home");
-            }
-        }
-
-        /// <summary>
-        /// Hi?n th? chi ti?t m?t gÛi t?p c? th?
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> PackageDetail(int subscriptionId)
-        {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Order/PackageDetail/{subscriptionId}" });
-            }
-
-            try
-            {
-                var subscription = await _dbContext.Subscriptions
-                    .Where(s => s.SubscriptionId == subscriptionId && s.UserId == userId)
-                    .Include(s => s.Package)
-                    .Include(s => s.User)
-                    .Include(s => s.Attendances)
-                    .FirstOrDefaultAsync();
-
-                if (subscription == null)
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
                 {
-                    TempData["ErrorMessage"] = "GÛi t?p khÙng t?n t?i ho?c b?n khÙng cÛ quy?n truy c?p";
-                    return RedirectToAction("MyPackages");
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Order/Success/{id}" });
                 }
 
-                return View(subscription);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in PackageDetail: {ex.Message}");
-                TempData["ErrorMessage"] = "?„ x?y ra l?i khi t?i chi ti?t gÛi t?p";
-                return RedirectToAction("MyPackages");
-            }
-        }
-
-        /// <summary>
-        /// L?y danh s·ch c·c gÛi t?p theo tr?ng th·i (API endpoint)
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetPackagesByStatus(string status = "Active")
-        {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return Json(new { success = false, message = "B?n ch?a ??ng nh?p" });
-            }
-
-            try
-            {
-                var query = _dbContext.Subscriptions
-                    .Where(s => s.UserId == userId)
-                    .Include(s => s.Package)
-                    .AsQueryable();
-
-                if (!string.IsNullOrEmpty(status))
-                {
-                    query = query.Where(s => s.Status == status);
-                }
-
-                var packages = await query
-                    .OrderByDescending(s => s.StartDate)
-                    .ToListAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    count = packages.Count,
-                    data = packages.Select(s => new
-                    {
-                        subscriptionId = s.SubscriptionId,
-                        packageName = s.Package?.PackageName,
-                        status = s.Status,
-                        startDate = s.StartDate.ToString("dd/MM/yyyy"),
-                        endDate = s.EndDate.ToString("dd/MM/yyyy"),
-                        remainingDays = (int)(s.EndDate - DateTime.Now).TotalDays,
-                        amountPaid = s.AmountPaid,
-                        sessionsUsed = s.SessionsUsed
-                    }).ToList()
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in GetPackagesByStatus: {ex.Message}");
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Hi?n th? danh s·ch ??n h‡ng s?n ph?m c?a kh·ch h‡ng
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> MyOrders()
-        {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Order/MyOrders" });
-            }
-
-            try
-            {
-                var orders = await _dbContext.Orders
-                    .Where(o => o.UserId == userId)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .OrderByDescending(o => o.OrderDate)
-                    .ToListAsync();
-
-                _logger.LogInformation($"User {userId} accessed MyOrders. Found {orders.Count} orders");
-
-                return View(orders);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in MyOrders: {ex.Message}");
-                TempData["ErrorMessage"] = "?„ x?y ra l?i khi t?i danh s·ch ??n h‡ng";
-                return RedirectToAction("Index", "Home");
-            }
-        }
-
-        /// <summary>
-        /// Hi?n th? chi ti?t m?t ??n h‡ng
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> Details(int id)
-        {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Order/Details/{id}" });
-            }
-
-            try
-            {
                 var order = await _dbContext.Orders
-                    .Where(o => o.OrderId == id && o.UserId == userId)
                     .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .Include(o => o.User)
-                    .FirstOrDefaultAsync();
+                    .ThenInclude(oi => oi.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == id && o.UserId == userId.Value);
 
                 if (order == null)
                 {
-                    TempData["ErrorMessage"] = "??n h‡ng khÙng t?n t?i ho?c b?n khÙng cÛ quy?n truy c?p";
+                    _logger.LogWarning($"Order ID {id} not found for user {userId}");
+                    TempData["ErrorMessage"] = "Kh√¥ng t√¨m th·∫•y th√¥ng tin ƒë∆°n h√†ng";
                     return RedirectToAction("MyOrders");
                 }
 
@@ -211,98 +47,144 @@ namespace doanweb.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in Details: {ex.Message}");
-                TempData["ErrorMessage"] = "?„ x?y ra l?i khi t?i chi ti?t ??n h‡ng";
+                _logger.LogError(ex, "Error loading order success page for order {OrderId}", id);
+                TempData["ErrorMessage"] = "ƒê√£ x·∫£y ra l·ªói khi t·∫£i trang ƒë∆°n h√†ng";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        // GET: Download h√≥a ƒë∆°n PDF
+        [HttpGet]
+        public async Task<IActionResult> DownloadInvoice(int id)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Unauthorized();
+                }
+
+                var order = await _dbContext.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == id && o.UserId == userId.Value);
+
+                if (order == null)
+                {
+                    return NotFound();
+                }
+
+                var orderItems = order.OrderItems?.ToList() ?? new List<OrderItem>();
+                if (orderItems.Count == 0)
+                {
+                    _logger.LogWarning("Order {OrderId} has no items for invoice", id);
+                }
+
+                var pdfBytes = _invoiceService.GenerateInvoicePdf(order, orderItems);
+
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    return StatusCode(500, "Kh√¥ng t·∫°o ƒë∆∞·ª£c file PDF h√≥a ƒë∆°n");
+                }
+
+                return File(pdfBytes, "application/pdf", $"HoaDon_{order.OrderId}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating invoice PDF for order {OrderId}: {Message}", id, ex.Message);
+                return StatusCode(500, "L·ªói khi t·∫°o h√≥a ƒë∆°n");
+            }
+        }
+
+        // GET: ??n h√†ng c?a t√¥i
+        [HttpGet]
+        public async Task<IActionResult> MyOrders()
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Order/MyOrders" });
+                }
+
+                var orders = await _dbContext.Orders
+                    .Where(o => o.UserId == userId.Value)
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToListAsync();
+
+                return View(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error loading orders: {ex.Message}");
+                TempData["ErrorMessage"] = "ƒê√£ x·∫£y ra l·ªói khi t·∫£i ƒë∆°n h√†ng";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        // GET: Chi ti?t ??n h√†ng
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Order/Details/{id}" });
+                }
+
+                var order = await _dbContext.Orders
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == id && o.UserId == userId.Value);
+
+                if (order == null)
+                {
+                    TempData["ErrorMessage"] = "Kh√¥ng t√¨m th·∫•y ƒë∆°n h√†ng";
+                    return RedirectToAction("MyOrders");
+                }
+
+                return View(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error loading order details: {ex.Message}");
+                TempData["ErrorMessage"] = "ƒê√£ x·∫£y ra l·ªói khi t·∫£i chi ti·∫øt ƒë∆°n h√†ng";
                 return RedirectToAction("MyOrders");
             }
         }
 
-        /// <summary>
-        /// L?y th?ng kÍ ??n h‡ng c?a kh·ch h‡ng (API endpoint)
-        /// </summary>
+        // GET: G√≥i t?p c?a t√¥i
         [HttpGet]
-        public async Task<IActionResult> GetOrderStats()
+        public async Task<IActionResult> MyPackages()
         {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return Json(new { success = false, message = "B?n ch?a ??ng nh?p" });
-            }
-
             try
             {
-                var stats = await _dbContext.Orders
-                    .Where(o => o.UserId == userId)
-                    .GroupBy(o => o.Status)
-                    .Select(g => new
-                    {
-                        status = g.Key,
-                        count = g.Count(),
-                        totalAmount = g.Sum(o => o.TotalAmount)
-                    })
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Order/MyPackages" });
+                }
+
+                var subscriptions = await _dbContext.Subscriptions
+                    .Where(s => s.UserId == userId.Value)
+                    .Include(s => s.Package)
+                    .OrderByDescending(s => s.CreatedDate)
                     .ToListAsync();
 
-                var totalOrders = await _dbContext.Orders
-                    .Where(o => o.UserId == userId)
-                    .CountAsync();
-
-                var totalSpent = await _dbContext.Orders
-                    .Where(o => o.UserId == userId)
-                    .SumAsync(o => o.TotalAmount);
-
-                return Json(new
-                {
-                    success = true,
-                    totalOrders = totalOrders,
-                    totalSpent = totalSpent,
-                    byStatus = stats
-                });
+                return View(subscriptions);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in GetOrderStats: {ex.Message}");
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// H?y ??n h‡ng (ch? khi ??n h‡ng ? tr?ng th·i Pending)
-        /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> CancelOrder(int orderId)
-        {
-            if (!IsUserLoggedIn(out int userId))
-            {
-                return Json(new { success = false, message = "B?n ch?a ??ng nh?p" });
-            }
-
-            try
-            {
-                var order = await _dbContext.Orders
-                    .Where(o => o.OrderId == orderId && o.UserId == userId)
-                    .FirstOrDefaultAsync();
-
-                if (order == null)
-                {
-                    return Json(new { success = false, message = "??n h‡ng khÙng t?n t?i" });
-                }
-
-                if (order.Status != "Pending")
-                {
-                    return Json(new { success = false, message = "Ch? cÛ th? h?y ??n h‡ng ? tr?ng th·i Ch? X·c Nh?n" });
-                }
-
-                order.Status = "Cancelled";
-                _dbContext.Orders.Update(order);
-                await _dbContext.SaveChangesAsync();
-
-                _logger.LogInformation($"Order {orderId} cancelled by user {userId}");
-
-                return Json(new { success = true, message = "??n h‡ng ?„ ???c h?y th‡nh cÙng" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in CancelOrder: {ex.Message}");
-                return Json(new { success = false, message = "?„ x?y ra l?i khi h?y ??n h‡ng" });
+                _logger.LogError($"Error loading packages: {ex.Message}");
+                TempData["ErrorMessage"] = "ƒë√£ x·∫£y ra l·ªói khi t·∫£i g√≥i t?p";
+                return RedirectToAction("Index", "Home");
             }
         }
     }

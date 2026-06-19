@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using doanweb.Data;
 using doanweb.Models;
 using Microsoft.EntityFrameworkCore;
@@ -76,26 +76,102 @@ namespace doanweb.Controllers
         }
 
         /// <summary>
-        /// Thêm sản phẩm vào giỏ hàng
+        /// Lấy tồn kho một sản phẩm
         /// </summary>
-        [HttpPost]
-        public IActionResult AddToCart(int id, int quantity = 1)
+        [HttpGet]
+        public async Task<IActionResult> Stock(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.ProductId == id);
-
-            if (product == null)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null || product.Status != "Active")
             {
-                return NotFound();
+                return Json(new { productId = id, stockQuantity = 0, inStock = false });
             }
 
-            // Return JSON response for JavaScript to handle
-            return Ok(new
+            return Json(new
+            {
+                productId = product.ProductId,
+                stockQuantity = product.StockQuantity,
+                inStock = product.StockQuantity > 0
+            });
+        }
+
+        /// <summary>
+        /// Lấy tồn kho nhiều sản phẩm (cho giỏ hàng)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> StockBatch(string ids)
+        {
+            if (string.IsNullOrWhiteSpace(ids))
+            {
+                return Json(Array.Empty<object>());
+            }
+
+            var productIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => int.TryParse(s.Trim(), out var id) ? id : 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            var products = await _context.Products
+                .Where(p => productIds.Contains(p.ProductId))
+                .Select(p => new { p.ProductId, p.StockQuantity, p.Status })
+                .ToListAsync();
+
+            var result = productIds.Select(id =>
+            {
+                var product = products.FirstOrDefault(p => p.ProductId == id);
+                return new
+                {
+                    productId = id,
+                    stockQuantity = product?.StockQuantity ?? 0,
+                    status = product?.Status ?? "Inactive"
+                };
+            }).ToList();
+
+            return Json(result);
+        }
+
+        /// <summary>
+        /// Thêm sản phẩm vào giỏ hàng (kiểm tra tồn kho)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int id, int quantity = 1)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product == null || product.Status != "Active")
+            {
+                return Json(new { success = false, message = "Sản phẩm không tồn tại hoặc ngừng bán" });
+            }
+
+            if (product.StockQuantity <= 0)
+            {
+                return Json(new { success = false, message = "Sản phẩm đã hết hàng" });
+            }
+
+            if (quantity < 1)
+            {
+                quantity = 1;
+            }
+
+            if (quantity > product.StockQuantity)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"{product.ProductName} chỉ còn {product.StockQuantity} sản phẩm trong kho",
+                    stockQuantity = product.StockQuantity
+                });
+            }
+
+            return Json(new
             {
                 success = true,
                 productId = product.ProductId,
                 productName = product.ProductName,
                 price = product.Price,
                 imageUrl = product.ImageUrl,
+                stockQuantity = product.StockQuantity,
                 quantity = quantity
             });
         }

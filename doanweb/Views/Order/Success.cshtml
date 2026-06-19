@@ -113,6 +113,9 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
+                <a href="/Order/DownloadInvoice/@Model.OrderId" class="btn btn-success" title="Tải về hóa đơn PDF">
+                    <i class="fa fa-download"></i> Tải Hóa Đơn PDF
+                </a>
                 <a href="/Order/MyOrders" class="btn btn-primary">
                     <i class="fa fa-list"></i> Xem Đơn Hàng của Tôi
                 </a>
@@ -431,5 +434,16 @@
 
     .btn-secondary:hover {
         background-color: #d0d0d0;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        transform: translateY(-2px);
     }
 </style>

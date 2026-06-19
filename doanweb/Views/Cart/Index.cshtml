@@ -1,5 +1,9 @@
-﻿@{
+@model List<doanweb.Models.CartLineViewModel>
+@{
     ViewData["Title"] = "Giỏ Hàng";
+    var availableLines = Model.Where(x => !x.IsOutOfStock).ToList();
+    var totalItems = availableLines.Sum(x => x.Quantity);
+    var totalAmount = availableLines.Sum(x => x.LineTotal);
 }
 
 <!-- Breadcrumb -->
@@ -15,7 +19,76 @@
                 <div class="cart-items-wrapper">
                     <h3>Sản Phẩm Trong Giỏ Hàng</h3>
                     <div id="cart-items-list" class="cart-items-list">
-                        <!-- Items will be loaded here by JavaScript -->
+                        @if (Model == null || !Model.Any())
+                        {
+                            <div class="cart-empty-message">
+                                <i class="fa fa-shopping-cart"></i>
+                                <p>Giỏ hàng của bạn đang trống</p>
+                                <p style="font-size: 14px; margin-top: 10px;">
+                                    <a href="/Products" style="color: #f36100; text-decoration: none;">Tiếp tục mua sắm</a>
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            @if (Model.Any(x => x.IsOutOfStock) && availableLines.Any())
+                            {
+                                <div id="cart-stock-warning" style="background:#fff3cd;color:#856404;padding:12px;border-radius:5px;margin-bottom:15px;border-left:4px solid #ffc107;font-size:14px;">
+                                    <i class="fa fa-exclamation-triangle"></i> Một số sản phẩm đã <strong>hết hàng</strong> và không được tính vào thanh toán.
+                                </div>
+                            }
+                            @foreach (var item in Model)
+                            {
+                                <div class="cart-item @(item.IsOutOfStock ? "out-of-stock" : "")" data-product-id="@item.ProductId">
+                                    <div class="cart-item-image">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="@item.ProductName">
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-cube"></i>
+                                        }
+                                    </div>
+                                    <div class="cart-item-details">
+                                        <div class="cart-item-name">@item.ProductName</div>
+                                        <div class="cart-item-price">@item.Price.ToString("N0") đ</div>
+                                        @if (item.IsOutOfStock)
+                                        {
+                                            <span class="badge-out-of-stock"><i class="fa fa-times-circle"></i> Hết hàng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-in-stock">Còn @item.StockQuantity sp trong kho</span>
+                                        }
+                                    </div>
+                                    <div class="cart-item-quantity">
+                                        @if (item.IsOutOfStock)
+                                        {
+                                            <span style="color:#dc3545;font-weight:600;font-size:13px;">Không thể mua</span>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="qty-btn" onclick="updateQty(@item.ProductId, @item.Quantity - 1)" @(item.Quantity <= 1 ? "disabled" : null)>-</button>
+                                            <input type="number" class="qty-input" value="@item.Quantity" min="1" max="@item.StockQuantity" onchange="updateQty(@item.ProductId, this.value)">
+                                            <button type="button" class="qty-btn" onclick="updateQty(@item.ProductId, @item.Quantity + 1)" @(item.Quantity >= item.StockQuantity ? "disabled" : null)>+</button>
+                                        }
+                                    </div>
+                                    <div style="text-align: right; min-width: 100px;">
+                                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;">Thành tiền</div>
+                                        <div style="font-size: 16px; font-weight: 700; color: @(item.IsOutOfStock ? "#999" : "#f36100"); margin-bottom: 10px;">
+                                            @(item.IsOutOfStock ? "—" : item.LineTotal.ToString("N0") + " đ")
+                                        </div>
+                                    </div>
+                                    <button type="button" class="cart-item-detail" onclick="viewProductDetail(@item.ProductId)" title="Xem chi tiết">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="cart-item-remove" onclick="removeFromCart(@item.ProductId)" title="Xóa">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        }
                     </div>
                 </div>
             </div>
@@ -25,11 +98,11 @@
                     <h3>Tóm Tắt Đơn Hàng</h3>
                     <div class="summary-item">
                         <span>Tổng sản phẩm:</span>
-                        <span id="summary-items">0</span>
+                        <span id="summary-items">@totalItems</span>
                     </div>
                     <div class="summary-item">
                         <span>Tổng tiền:</span>
-                        <span id="summary-total" class="total-amount">0 đ</span>
+                        <span id="summary-total" class="total-amount">@totalAmount.ToString("N0") đ</span>
                     </div>
                     <div class="summary-item">
                         <span>Phí vận chuyển:</span>
@@ -37,7 +110,7 @@
                     </div>
                     <div class="summary-item final-total">
                         <span>Thanh toán:</span>
-                        <span id="final-total">0 đ</span>
+                        <span id="final-total">@totalAmount.ToString("N0") đ</span>
                     </div>
 
                     <!-- Checkout Form -->
@@ -88,7 +161,7 @@
                             <i class="fa fa-info-circle"></i> <strong>Lưu ý:</strong> Sau khi đặt hàng thành công, bạn sẽ nhận được xác nhận qua email.
                         </div>
 
-                        <button type="submit" class="btn-checkout">
+                        <button type="submit" class="btn-checkout" @(totalItems == 0 ? "disabled" : null)>
                             <i class="fa fa-credit-card"></i> Thanh Toán Ngay
                         </button>
                     </form>
@@ -395,6 +468,36 @@
         transform: none;
     }
 
+    .cart-item.out-of-stock {
+        opacity: 0.75;
+        background: #fff8f8;
+        border: 1px solid #f5c6cb;
+    }
+
+    .badge-out-of-stock {
+        display: inline-block;
+        background: #dc3545;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 4px;
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-in-stock {
+        display: inline-block;
+        background: #d4edda;
+        color: #155724;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-top: 6px;
+    }
+
     .btn-continue-shopping {
         display: flex;
         align-items: center;
@@ -462,7 +565,6 @@
         <h3 style="color: #111111; margin-bottom: 20px; font-weight: 700;">🎯 Thanh Toán Qua QR Code</h3>
         
         <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
-            <!-- VietQR Dynamic QR Code -->
             <img id="orderQrImage" src="" alt="VietQR Code" style="width: 280px; height: 280px; border-radius: 8px; background: white; border: 2px solid #f36100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);" />
         </div>
 
@@ -520,90 +622,81 @@
     </div>
 </div>
 
+@section Scripts {
 <script>
-    // Load cart items on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadCartItems();
-    });
+    window.__CART_BOOTSTRAP = @Html.Raw(ViewBag.CartJson ?? "[]");
 
-    function loadCartItems() {
-        const cartItems = cart.cart;
-        const cartItemsList = document.getElementById('cart-items-list');
-        const summaryItems = document.getElementById('summary-items');
-        const summaryTotal = document.getElementById('summary-total');
-        const finalTotal = document.getElementById('final-total');
+    @if (ViewBag.ClearLocalCart == true)
+    {
+        <text>localStorage.removeItem('gymShoppingCart');</text>
+    }
 
-        cartItemsList.innerHTML = '';
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (typeof cart === 'undefined') return;
 
-        if (cartItems.length === 0) {
-            cartItemsList.innerHTML = `
-                <div class="cart-empty-message">
-                    <i class="fa fa-shopping-cart"></i>
-                    <p>Giỏ hàng của bạn đang trống</p>
-                    <p style="font-size: 14px; margin-top: 10px;">
-                        <a href="/Products" style="color: #f36100; text-decoration: none;">Tiếp tục mua sắm</a>
-                    </p>
-                </div>
-            `;
-            summaryItems.textContent = '0';
-            summaryTotal.textContent = '0 đ';
-            finalTotal.textContent = '0 đ';
-            document.querySelector('.btn-checkout').disabled = true;
+        if (Array.isArray(window.__CART_BOOTSTRAP)) {
+            cart.setCart(window.__CART_BOOTSTRAP);
+        } else {
+            await cart.fetchCartFromServer();
+        }
+
+        const local = cart.readRawStorage();
+        if (local.length > 0 && cart.cart.length === 0) {
+            await cart.syncLocalToServer();
+            window.location.reload();
             return;
         }
 
-        cartItems.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <div class="cart-item-image">
-                    ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.productName}">` : '<i class="fa fa-cube"></i>'}
-                </div>
-                <div class="cart-item-details">
-                    <div class="cart-item-name">${item.productName}</div>
-                    <div class="cart-item-price">${item.price.toLocaleString('vi-VN')} đ</div>
-                </div>
-                <div class="cart-item-quantity">
-                    <button class="qty-btn" onclick="updateQty(${item.productId}, ${item.quantity - 1})">-</button>
-                    <input type="number" class="qty-input" value="${item.quantity}" onchange="updateQty(${item.productId}, this.value)" min="1">
-                    <button class="qty-btn" onclick="updateQty(${item.productId}, ${item.quantity + 1})">+</button>
-                </div>
-                <div style="text-align: right; min-width: 100px;">
-                    <div style="font-size: 14px; color: #666; margin-bottom: 8px;">Subtotal</div>
-                    <div style="font-size: 16px; font-weight: 700; color: #f36100; margin-bottom: 10px;">${itemTotal.toLocaleString('vi-VN')} đ</div>
-                </div>
-                <button class="cart-item-detail" onclick="viewProductDetail(${item.productId})" title="Xem chi tiết sản phẩm">
-                    <i class="fa fa-eye"></i>
-                </button>
-                <button class="cart-item-remove" onclick="removeFromCart(${item.productId})" title="Xóa sản phẩm">
-                    <i class="fa fa-trash"></i>
-                </button>
-            `;
-            cartItemsList.appendChild(cartItem);
+        cart.updateCartUI();
+
+        const checkoutForm = document.getElementById('checkoutForm');
+        if (!checkoutForm) return;
+
+        checkoutForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (cart.getAvailableItems().length === 0) {
+            alert('Không có sản phẩm khả dụng để thanh toán. Vui lòng xóa sản phẩm hết hàng.');
+            return;
+        }
+
+        const deliveryAddress = document.querySelector('textarea[name="deliveryAddress"]').value.trim();
+        const paymentMethodRadio = document.querySelector('input[name="paymentMethodRadio"]:checked');
+        const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : '';
+        const transactionId = document.getElementById('inputOrderTransactionId').value.trim();
+        const notes = document.getElementById('inputOrderNotes').value.trim();
+
+        if (!deliveryAddress) {
+            alert('Vui lòng nhập địa chỉ giao hàng');
+            return;
+        }
+
+        if (!paymentMethod) {
+            alert('Vui lòng chọn phương thức thanh toán');
+            return;
+        }
+
+        if (paymentMethod === 'BankTransfer') {
+            const totalAmount = cart.getTotal();
+            showOrderQRModal(totalAmount, transactionId, notes, deliveryAddress);
+        } else {
+            submitOrderCheckout(deliveryAddress, paymentMethod, transactionId, notes);
+        }
         });
+    });
 
-        const totalItems = cart.getTotalItems();
-        const total = cart.getTotal();
-
-        summaryItems.textContent = totalItems;
-        summaryTotal.textContent = total.toLocaleString('vi-VN') + ' đ';
-        finalTotal.textContent = total.toLocaleString('vi-VN') + ' đ';
-        document.querySelector('.btn-checkout').disabled = false;
-    }
-
-    function updateQty(productId, quantity) {
-        const qty = parseInt(quantity);
+    async function updateQty(productId, quantity) {
+        const qty = parseInt(quantity, 10);
         if (qty > 0) {
-            cart.updateQuantity(productId, qty);
-            loadCartItems();
+            await cart.updateQuantity(productId, qty);
+            window.location.reload();
         }
     }
 
-    function removeFromCart(productId) {
+    async function removeFromCart(productId) {
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-            cart.removeProduct(productId);
-            loadCartItems();
+            await cart.removeProduct(productId);
+            window.location.reload();
         }
     }
 
@@ -611,65 +704,14 @@
         window.location.href = `/Products/Detail/${productId}`;
     }
 
-    function proceedToCheckout() {
-        if (cart.cart.length === 0) {
-            alert('Giỏ hàng của bạn đang trống!');
-            return;
-        }
-        // Redirect to payment page
-        window.location.href = '/Payment/Checkout';
-    }
-
-    // Handle checkout form submission
-    document.addEventListener('DOMContentLoaded', () => {
-        const checkoutForm = document.getElementById('checkoutForm');
-        if (checkoutForm) {
-            checkoutForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                if (cart.cart.length === 0) {
-                    alert('Giỏ hàng của bạn đang trống!');
-                    return;
-                }
-
-                const deliveryAddress = document.querySelector('textarea[name="deliveryAddress"]').value.trim();
-                const paymentMethodRadio = document.querySelector('input[name="paymentMethodRadio"]:checked');
-                const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : '';
-                const transactionId = document.getElementById('inputOrderTransactionId').value.trim();
-                const notes = document.getElementById('inputOrderNotes').value.trim();
-
-                if (!deliveryAddress) {
-                    alert('Vui lòng nhập địa chỉ giao hàng');
-                    return;
-                }
-
-                if (!paymentMethod) {
-                    alert('Vui lòng chọn phương thức thanh toán');
-                    return;
-                }
-
-                // If bank transfer is selected, show QR code
-                if (paymentMethod === 'BankTransfer') {
-                    const totalAmount = cart.getTotal();
-                    showOrderQRModal(totalAmount, transactionId, notes, deliveryAddress);
-                } else {
-                    // For cash payment, submit directly
-                    submitOrderCheckout(deliveryAddress, paymentMethod, transactionId, notes);
-                }
-            });
-        }
-    });
-
-    // Show QR Code Modal for Order
     function showOrderQRModal(amount, transactionId, notes, deliveryAddress) {
         const description = 'ThanhToanDonHang';
         const qrUrl = generateVietQRUrl(amount, description);
         
         document.getElementById('orderQrImage').src = qrUrl;
         document.getElementById('orderQrAmount').innerText = parseInt(amount).toLocaleString('vi-VN');
-        document.getElementById('orderQrModal').classList.add('show');
+        document.getElementById('orderQrModal').style.display = 'flex';
         
-        // Store order info for later submission
         window.orderCheckoutInfo = {
             deliveryAddress: deliveryAddress,
             paymentMethod: 'BankTransfer',
@@ -680,7 +722,7 @@
     }
 
     function closeOrderQrModal() {
-        document.getElementById('orderQrModal').classList.remove('show');
+        document.getElementById('orderQrModal').style.display = 'none';
     }
 
     function submitOrderCheckout(deliveryAddress, paymentMethod, transactionId, notes) {
@@ -689,7 +731,6 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang xử lý...';
 
-        // Call checkout
         cart.checkout(deliveryAddress, paymentMethod, notes, transactionId)
             .then(success => {
                 if (!success) {
@@ -711,7 +752,7 @@
     }
 
     // VietQR Configuration
-    const BANK_CODE = 'MB'; // Vietcombank
+    const BANK_CODE = 'MB';
     const ACCOUNT_NUMBER = '1234567890';
     const ACCOUNT_NAME = 'GYM CENTER';
 
@@ -721,3 +762,4 @@
         return `https://img.vietqr.io/image/${BANK_CODE}-${ACCOUNT_NUMBER}-compact.png?amount=${formattedAmount}&addInfo=${encodedDescription}`;
     }
 </script>
+}

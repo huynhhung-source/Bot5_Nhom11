@@ -46,6 +46,14 @@
                             <div class="pi-price" style="margin-bottom: 30px;">
                                 <h2 style="font-size: 60px; color: #f36100; font-weight: 600;">@package.Price.ToString("N0")₫</h2>
                                 <span style="color: #c4c4c4; font-size: 16px; font-weight: 700; text-transform: uppercase;">@(package.DurationDays > 0 ? (package.DurationDays / 30) : 0) tháng</span>
+                                @if (package.StockQuantity > 0)
+                                {
+                                    <span style="display: block; color: #28a745; font-size: 12px; margin-top: 8px; font-weight: 700;">✓ Còn @package.StockQuantity gói</span>
+                                }
+                                else
+                                {
+                                    <span style="display: block; color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: 700;">✗ Hết hàng</span>
+                                }
                             </div>
                             <ul style="margin-bottom: 40px; text-align: left;">
                                 @if (!string.IsNullOrEmpty(package.Features))
@@ -65,7 +73,14 @@
                                     <li style="font-size: 14px; color: #c4c4c4; line-height: 32px;">✓ Thành viên cộng đồng</li>
                                 }
                             </ul>
-                            <a href="/packages/detail/@package.PackageId" class="primary-btn pricing-btn" style="display: block; background: #f36100; color: white; padding: 14px 0 12px; border: none; font-size: 14px; text-transform: uppercase; font-weight: 700; cursor: pointer; text-decoration: none;">Tham gia ngay</a>
+                            @if (package.StockQuantity > 0)
+                            {
+                                <a href="/packages/detail/@package.PackageId" class="primary-btn pricing-btn" style="display: block; background: #f36100; color: white; padding: 14px 0 12px; border: none; border-radius: 4px; font-size: 14px; text-transform: uppercase; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;">Tham gia ngay</a>
+                            }
+                            else
+                            {
+                                <a href="javascript:void(0);" class="primary-btn pricing-btn" style="display: block; background: #ccc; color: #666; padding: 14px 0 12px; border: none; border-radius: 4px; font-size: 14px; text-transform: uppercase; font-weight: 700; cursor: not-allowed; text-decoration: none; text-align: center;">Hết hàng</a>
+                            }
                         </div>
                     </div>
                 }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
 using doanweb.Models;
+using System.Linq;
 
 namespace doanweb.Controllers
 {
@@ -12,54 +13,22 @@ namespace doanweb.Controllers
 
         public PaymentController(GymDbContext dbContext, ILogger<PaymentController> logger)
         {
-            _dbContext = dbContext;
-            _logger = logger;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // Ki?m tra xem user ?ã ??ng nh?p hay ch?a
-        [HttpGet]
-        public IActionResult CheckLogin()
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetInt32("UserId");
-                var isLoggedIn = userId.HasValue && userId.Value > 0;
-                
-                return Json(new { isLoggedIn = isLoggedIn });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in CheckLogin: {ex.Message}", ex);
-                return Json(new { isLoggedIn = false });
-            }
-        }
-
-        // Trang thanh toán
+        // GET: Trang Checkout
         [HttpGet]
         public async Task<IActionResult> Checkout(int packageId)
         {
             try
             {
-                _logger.LogInformation($"[Checkout GET] packageId={packageId}");
-
-                var userId = HttpContext.Session.GetInt32("UserId");
-                if (!userId.HasValue)
+                var package = await _dbContext.Packages.FindAsync(packageId);
+                if (package == null || package.Status != "Active")
                 {
-                    _logger.LogInformation($"[Checkout GET] User not logged in, redirecting to login");
-                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/payment/checkout?packageId={packageId}" });
+                    TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc không hợp lệ";
+                    return RedirectToAction("Detail", "Packages", new { id = packageId });
                 }
-
-                _logger.LogInformation($"[Checkout GET] userId={userId.Value}");
-
-                var package = await _dbContext.Packages.FirstOrDefaultAsync(p => p.PackageId == packageId && p.Status == "Active");
-                if (package == null)
-                {
-                    _logger.LogWarning($"[Checkout GET] Package not found or inactive: packageId={packageId}");
-                    TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc bị vô hiệu hóa";
-                    return RedirectToAction("Online", "Packages", new { area = "" });
-                }
-
-                _logger.LogInformation($"[Checkout GET] Package found: {package.PackageName}, Price={package.Price}");
 
                 var model = new PaymentViewModel
                 {
@@ -73,296 +42,260 @@ namespace doanweb.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"[Checkout GET] Error: {ex.Message}\n{ex.StackTrace}", ex);
-                TempData["ErrorMessage"] = "đã xảy ra lỗi khi tải trang thanh toán";
-                return RedirectToAction("Online", "Packages", new { area = "" });
+                _logger.LogError($"Error in Checkout GET: {ex.Message}\n{ex.StackTrace}");
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi tải trang thanh toán";
+                return RedirectToAction("Index", "Home");
             }
         }
 
-        // X? lý thanh toán
+        // POST: Xử lý thanh toán
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Checkout(PaymentViewModel model)
+        public async Task<IActionResult> Checkout(int packageId, string packageName, decimal price, int durationDays, string paymentMethod, string transactionId, string notes)
         {
             try
             {
-                _logger.LogInformation($"[Checkout POST] Starting payment process");
-                _logger.LogInformation($"[Checkout POST] ModelState valid: {ModelState.IsValid}");
+                _logger.LogInformation($"Payment checkout started: packageId={packageId}, paymentMethod={paymentMethod}");
 
                 var userId = HttpContext.Session.GetInt32("UserId");
                 if (!userId.HasValue)
                 {
-                    _logger.LogWarning($"[Checkout POST] User not logged in");
-                    TempData["ErrorMessage"] = "Vui lòng nhập trước khi thanh toán";
-                    return RedirectToAction("Login", "Account", new { area = "Customer" });
+                    _logger.LogWarning("User not logged in");
+                    TempData["ErrorMessage"] = "Vui lòng đăng nhập để tiếp tục";
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Payment/Checkout?packageId={packageId}" });
                 }
 
-                _logger.LogInformation($"[Checkout POST] userId={userId.Value}");
-                _logger.LogInformation($"[Checkout POST] Received model: PackageId={model?.PackageId}, Price={model?.Price}, PaymentMethod={model?.PaymentMethod}");
-
-                if (!ModelState.IsValid)
+                // Kiểm tra gói tập
+                var package = await _dbContext.Packages.FindAsync(packageId);
+                if (package == null || package.Status != "Active")
                 {
-                    var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                    _logger.LogWarning($"[Checkout POST] Invalid model state: {errors}");
-                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        _logger.LogWarning($"  - {error.ErrorMessage}");
-                    }
-                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. " + errors;
-                    return View(model);
+                    _logger.LogWarning($"Package {packageId} not found or inactive");
+                    TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc không khả dụng";
+                    return RedirectToAction("Detail", "Packages", new { id = packageId });
                 }
 
-                // Validate model data
-                if (model == null || model.PackageId <= 0 || model.Price <= 0 || model.DurationDays <= 0)
+                if (string.IsNullOrEmpty(paymentMethod))
                 {
-                    _logger.LogWarning($"[Checkout POST] Invalid payment model data: PackageId={model?.PackageId}, Price={model?.Price}, DurationDays={model?.DurationDays}");
-                    TempData["ErrorMessage"] = "Thông tin thanh toán không hợp lệ";
-                    return View(model);
-                }
-
-                if (string.IsNullOrEmpty(model.PaymentMethod))
-                {
-                    _logger.LogWarning($"[Checkout POST] Payment method not selected");
+                    _logger.LogWarning("No payment method selected");
                     TempData["ErrorMessage"] = "Vui lòng chọn phương thức thanh toán";
-                    return View(model);
+                    return RedirectToAction("Checkout", new { packageId = packageId });
                 }
 
-                var package = await _dbContext.Packages.FirstOrDefaultAsync(p => p.PackageId == model.PackageId && p.Status == "Active");
-                if (package == null)
+                // Tạo Subscription
+                var subscription = new Subscription
                 {
-                    _logger.LogWarning($"[Checkout POST] Package not found: {model.PackageId}");
-                    TempData["ErrorMessage"] = "Gói tập thông tin bị vô hiệu hóa";
-                    return RedirectToAction("Online", "Packages", new { area = "" });
-                }
+                    UserId = userId.Value,
+                    PackageId = packageId,
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddDays(durationDays),
+                    ActivationDate = DateTime.Now,
+                    CreatedDate = DateTime.Now,
+                    Status = "Active",
+                    RemainingDays = durationDays,
+                    SessionsUsed = 0,
+                    AmountPaid = price,
+                    Notes = notes
+                };
 
-                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId.Value && u.Status == "Active");
-                if (user == null)
-                {
-                    _logger.LogWarning($"[Checkout POST] User not found or inactive: {userId.Value}");
-                    TempData["ErrorMessage"] = "Tài khoản của bạn hoặc thông tin bị vô hiệu hóa";
-                    return RedirectToAction("Login", "Account", new { area = "Customer" });
-                }
+                _dbContext.Subscriptions.Add(subscription);
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation($"Subscription created: ID={subscription.SubscriptionId}");
 
-                _logger.LogInformation($"[Checkout POST] Creating payment for user {user.Email}, package {package.PackageName}, method {model.PaymentMethod}");
-
-                // T?o thanh toán
+                // Tạo Payment
                 var payment = new Payment
                 {
                     UserId = userId.Value,
-                    Amount = model.Price,
+                    SubscriptionId = subscription.SubscriptionId,
+                    Amount = price,
                     PaymentDate = DateTime.Now,
-                    PaymentMethod = model.PaymentMethod,
-                    TransactionId = string.IsNullOrEmpty(model.TransactionId) ? GenerateTransactionId() : model.TransactionId,
+                    PaymentMethod = paymentMethod,
+                    TransactionId = transactionId,
                     Status = "Success",
-                    Description = $"Thanh toán gói tập: {package.PackageName}",
-                    Notes = model.Notes
+                    Description = $"Thanh toán cho gói {packageName}",
+                    Notes = notes
+                };
+
+                _dbContext.Payments.Add(payment);
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation($"Payment created: ID={payment.PaymentId}, User={userId}");
+
+                // Redirect về controller Payment gốc (không phải Admin area)
+                return RedirectToAction("Success", "Payment", new { area = "", paymentId = payment.PaymentId });
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError($"Database error in Checkout POST: {dbEx.Message}\n{dbEx.InnerException?.Message}");
+                TempData["ErrorMessage"] = "Lỗi cơ sở dữ liệu khi xử lý thanh toán";
+                return RedirectToAction("Checkout", new { packageId = packageId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in Checkout POST: {ex.Message}\n{ex.StackTrace}");
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xử lý thanh toán: " + ex.Message;
+                return RedirectToAction("Checkout", new { packageId = packageId });
+            }
+        }
+
+        // GET: Payment Success page
+        [HttpGet]
+        public async Task<IActionResult> Success(int paymentId)
+        {
+            try
+            {
+                var payment = await _dbContext.Payments
+                    .Include(p => p.Subscription)
+                    .ThenInclude(s => s.Package)
+                    .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+
+                if (payment == null)
+                {
+                    _logger.LogWarning($"Payment {paymentId} not found");
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin thanh toán";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Verify that the payment belongs to the current user
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue || payment.UserId != userId.Value)
+                {
+                    _logger.LogWarning($"Unauthorized access to payment {paymentId}");
+                    TempData["ErrorMessage"] = "Bạn không có quyền truy cập thanh toán này";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                ViewBag.Payment = payment;
+                ViewBag.Subscription = payment.Subscription;
+
+                return View("PaymentSuccess");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in Payment Success: {ex.Message}\n{ex.StackTrace}");
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi tải trang thanh toán";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        // POST: Thanh toán sản phẩm từ giỏ hàng (JSON API)
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> CheckoutProducts([FromBody] CheckoutRequest request)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập để thanh toán" });
+                }
+
+                if (request?.CartItems == null || request.CartItems.Count == 0)
+                {
+                    return Json(new { success = false, message = "Giỏ hàng trống" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.deliveryAddress))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập địa chỉ giao hàng" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.paymentMethod))
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn phương thức thanh toán" });
+                }
+
+                decimal totalAmount = 0;
+                var orderItems = new List<OrderItem>();
+
+                foreach (var item in request.CartItems)
+                {
+                    if (item.quantity <= 0)
+                    {
+                        return Json(new { success = false, message = "Số lượng sản phẩm không hợp lệ" });
+                    }
+
+                    var product = await _dbContext.Products.FindAsync(item.productId);
+                    if (product == null || product.Status != "Active")
+                    {
+                        return Json(new { success = false, message = $"Sản phẩm '{item.productName}' không tồn tại hoặc ngừng bán" });
+                    }
+
+                    if (product.StockQuantity < item.quantity)
+                    {
+                        return Json(new { success = false, message = $"{product.ProductName} chỉ còn {product.StockQuantity} sản phẩm trong kho" });
+                    }
+
+                    var unitPrice = product.Price;
+                    var lineTotal = unitPrice * item.quantity;
+                    totalAmount += lineTotal;
+
+                    orderItems.Add(new OrderItem
+                    {
+                        ProductId = product.ProductId,
+                        Quantity = item.quantity,
+                        UnitPrice = unitPrice,
+                        TotalPrice = lineTotal
+                    });
+
+                    product.StockQuantity -= item.quantity;
+                    product.UpdatedDate = DateTime.Now;
+                }
+
+                var isCash = string.Equals(request.paymentMethod, "Cash", StringComparison.OrdinalIgnoreCase);
+                var order = new Order
+                {
+                    UserId = userId.Value,
+                    OrderDate = DateTime.Now,
+                    TotalAmount = totalAmount,
+                    Status = isCash ? "Confirmed" : "Pending",
+                    DeliveryAddress = request.deliveryAddress.Trim(),
+                    Notes = request.notes
+                };
+
+                _dbContext.Orders.Add(order);
+                await _dbContext.SaveChangesAsync();
+
+                foreach (var orderItem in orderItems)
+                {
+                    orderItem.OrderId = order.OrderId;
+                    _dbContext.OrderItems.Add(orderItem);
+                }
+
+                var transactionId = string.IsNullOrWhiteSpace(request.transactionId)
+                    ? null
+                    : request.transactionId.Trim();
+
+                var payment = new Payment
+                {
+                    UserId = userId.Value,
+                    Amount = totalAmount,
+                    PaymentDate = DateTime.Now,
+                    PaymentMethod = request.paymentMethod,
+                    TransactionId = transactionId,
+                    Status = isCash ? "Success" : "Pending",
+                    Description = $"Thanh toán đơn hàng #{order.OrderId}",
+                    Notes = request.notes
                 };
 
                 _dbContext.Payments.Add(payment);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"[Checkout POST] Payment created: PaymentId={payment.PaymentId}");
+                _logger.LogInformation(
+                    "Product checkout success: OrderId={OrderId}, UserId={UserId}, Amount={Amount}",
+                    order.OrderId, userId.Value, totalAmount);
 
-                // T?o subscription (??ng ký gói)
-                var subscription = new Subscription
-                {
-                    UserId = userId.Value,
-                    PackageId = model.PackageId,
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddDays(package.DurationDays),
-                    ActivationDate = DateTime.Now,
-                    Status = "Active",
-                    RemainingDays = package.DurationDays,
-                    SessionsUsed = 0,
-                    AmountPaid = model.Price,
-                    Notes = $"Thanh toán qua {model.PaymentMethod}"
-                };
-
-                _dbContext.Subscriptions.Add(subscription);
-                await _dbContext.SaveChangesAsync();
-
-                _logger.LogInformation($"[Checkout POST] Subscription created: SubscriptionId={subscription.SubscriptionId}");
-                _logger.LogInformation($"[Checkout POST] Payment successful: User {user.Email}, Amount {model.Price}, Package {package.PackageName}");
-
-                TempData["SuccessMessage"] = "Thanh toán thành công! Gói tập cảu bạn đã được kịch hoạt.";
-                
-                _logger.LogInformation($"[Checkout POST] Redirecting to PaymentSuccess with paymentId={payment.PaymentId}, subscriptionId={subscription.SubscriptionId}");
-                return RedirectToAction("PaymentSuccess", "Payment", new { area = "", paymentId = payment.PaymentId, subscriptionId = subscription.SubscriptionId });
+                return Json(new { success = true, orderId = order.OrderId });
             }
             catch (DbUpdateException dbEx)
             {
-                _logger.LogError($"[Checkout POST] Database error: {dbEx.InnerException?.Message ?? dbEx.Message}\n{dbEx.StackTrace}", dbEx);
-                TempData["ErrorMessage"] = "Lỗi cơ sở dữ liệu. Vui lòng thử lại hoặc liên hệ trước.";
-                return View(model);
+                _logger.LogError(dbEx, "Database error in CheckoutProducts");
+                return Json(new { success = false, message = "Lỗi cơ sở dữ liệu khi xử lý đơn hàng" });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"[Checkout POST] Unexpected error: {ex.Message}\n{ex.StackTrace}", ex);
-                TempData["ErrorMessage"] = "đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại hoặc liên hệ trước";
-                return View(model);
+                _logger.LogError(ex, "Error in CheckoutProducts");
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi xử lý đơn hàng" });
             }
-        }
-
-        // Trang thành công
-        [HttpGet]
-        public async Task<IActionResult> PaymentSuccess(int paymentId, int subscriptionId)
-        {
-            try
-            {
-                _logger.LogInformation($"[PaymentSuccess] paymentId={paymentId}, subscriptionId={subscriptionId}");
-
-                var userId = HttpContext.Session.GetInt32("UserId");
-                if (!userId.HasValue)
-                {
-                    _logger.LogWarning($"[PaymentSuccess] User not logged in");
-                    return RedirectToAction("Login", "Account", new { area = "Customer" });
-                }
-
-                var payment = await _dbContext.Payments
-                    .Include(p => p.User)
-                    .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.UserId == userId.Value);
-
-                if (payment == null)
-                {
-                    _logger.LogWarning($"[PaymentSuccess] Payment not found: paymentId={paymentId}, userId={userId.Value}");
-                    TempData["ErrorMessage"] = "Không tìm thấy thông tin thanh toán";
-                    return RedirectToAction("Online", "Packages", new { area = "" });
-                }
-
-                var subscription = await _dbContext.Subscriptions
-                    .Include(s => s.Package)
-                    .Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId && s.UserId == userId.Value);
-
-                if (subscription == null)
-                {
-                    _logger.LogWarning($"[PaymentSuccess] Subscription not found: subscriptionId={subscriptionId}, userId={userId.Value}");
-                    TempData["ErrorMessage"] = "Không tìm thấy thông tin gói tập";
-                    return RedirectToAction("Online", "Packages", new { area = "" });
-                }
-
-                // Double check: Ensure Package is loaded
-                if (subscription.Package == null)
-                {
-                    subscription.Package = await _dbContext.Packages
-                        .FirstOrDefaultAsync(p => p.PackageId == subscription.PackageId);
-                }
-
-                _logger.LogInformation($"[PaymentSuccess] Success page loaded for user {payment.User?.Email}, subscription package: {subscription.Package?.PackageName}");
-
-                ViewBag.Payment = payment;
-                ViewBag.Subscription = subscription;
-
-                return View();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"[PaymentSuccess] Error: {ex.Message}\n{ex.StackTrace}", ex);
-                TempData["ErrorMessage"] = "Có lỗi xảy ra khi gửi yêu cầu";
-                return RedirectToAction("Online", "Packages", new { area = "" });
-            }
-        }
-
-        // Thanh to?n s?n ph?m (t? gi? h?ng)
-        [HttpPost]
-        public async Task<IActionResult> CheckoutProducts([FromBody] CheckoutRequest request)
-        {
-            try
-    {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (!userId.HasValue)
-        {
-            return Unauthorized(new { message = "Vui lòng lòng nhập" });
-        }
-
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId.Value);
-        if (user == null)
-        {
-            return NotFound(new { message = "Người dùng không tìm thấy" });
-        }
-
-        if (request.CartItems == null || !request.CartItems.Any())
-        {
-            return BadRequest(new { message = "Giỏ hàng trống" });
-        }
-
-        // Tính t?ng ti?n
-        decimal totalAmount = request.CartItems.Sum(item => item.price * item.quantity);
-
-        // T?o ??n hàng
-        var order = new Order
-        {
-            UserId = userId.Value,
-            OrderDate = DateTime.Now,
-            TotalAmount = totalAmount,
-            DeliveryAddress = request.deliveryAddress,
-            Status = "Pending", // Ch? x? lý
-            Notes = request.notes
-        };
-
-        _dbContext.Orders.Add(order);
-        await _dbContext.SaveChangesAsync();
-
-        // T?o chi ti?t ??n hàng
-        foreach (var item in request.CartItems)
-        {
-            var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == item.productId);
-            if (product != null)
-            {
-                var orderItem = new OrderItem
-                {
-                    OrderId = order.OrderId,
-                    ProductId = item.productId,
-                    Quantity = item.quantity,
-                    UnitPrice = item.price,
-                    TotalPrice = item.price * item.quantity
-                };
-
-                _dbContext.OrderItems.Add(orderItem);
-
-                // C?p nh?t t?n kho
-                product.StockQuantity -= item.quantity;
-            }
-        }
-
-        await _dbContext.SaveChangesAsync();
-
-        // T?o thanh toán
-        var payment = new Payment
-        {
-            UserId = userId.Value,
-            Amount = totalAmount,
-            PaymentDate = DateTime.Now,
-            PaymentMethod = request.paymentMethod,
-            TransactionId = GenerateTransactionId(),
-            Status = "Success",
-            Description = $"Thanh toán mua hàng {request.CartItems.Count} sản phẩm",
-            Notes = request.notes
-        };
-
-        _dbContext.Payments.Add(payment);
-        await _dbContext.SaveChangesAsync();
-
-        _logger.LogInformation($"[CheckoutProducts] Order created: OrderId={order.OrderId}, UserId={userId.Value}, Amount={totalAmount}");
-
-        return Ok(new 
-        { 
-            success = true, 
-            orderId = order.OrderId,
-            message = "đơn hàng đã được tạothành công"
-        });
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"[CheckoutProducts] Error: {ex.Message}", ex);
-        return StatusCode(500, new { message = "Lỗi khi xử lý thanh toán" });
-    }
-}
-
-        // Hàm t?o mã giao d?ch
-        private string GenerateTransactionId()
-        {
-            return $"TXN{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(1000, 9999)}";
         }
     }
 }

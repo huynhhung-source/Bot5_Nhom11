@@ -82,6 +82,25 @@
                             </div>
                         </div>
 
+                        <!-- Số lượng tồn kho -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="StockQuantity">Số Lượng Tồn Kho (gói) *</label>
+                                    <input type="number" class="form-control" id="StockQuantity" name="StockQuantity" 
+                                           placeholder="Nhập số lượng gói tập có sẵn" 
+                                           value="@Model?.StockQuantity" min="0" required />
+                                    <small class="text-muted">Khi số lượng = 0, sản phẩm sẽ hiển thị "Hết hàng"</small>
+                                    @if (ViewData.ModelState.TryGetValue("StockQuantity", out var stockErrors))
+                                    {
+                                        @foreach (var error in stockErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
                         <!-- Mô tả -->
                         <div class="mb-3">
                             <label class="form-label" for="Description">Mô Tả *</label>

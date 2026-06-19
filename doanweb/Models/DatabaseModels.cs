@@ -89,6 +89,8 @@ namespace doanweb.Models
 
         public int MaxSessions { get; set; } // Số buổi tối đa trong gói
 
+        public int StockQuantity { get; set; } = 0; // Số lượng tồn kho gói tập
+
         [DataType(DataType.Date)]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
@@ -124,6 +126,12 @@ namespace doanweb.Models
 
         [DataType(DataType.Date)]
         public DateTime ActivationDate { get; set; } = DateTime.Now;
+
+        [DataType(DataType.Date)]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [DataType(DataType.Date)]
+        public DateTime? UpdatedDate { get; set; }
 
         [StringLength(50)]
         public string Status { get; set; } = "Active"; // Active, Expired, Cancelled, Suspended
@@ -266,7 +274,7 @@ namespace doanweb.Models
     }
 
     /// <summary>
-    /// Model ??i di?n cho thanh toán
+    /// Model đại diện cho thanh toán
     /// </summary>
     [Table("Payments")]
     public class Payment
@@ -277,6 +285,9 @@ namespace doanweb.Models
         [Required]
         [ForeignKey("User")]
         public int UserId { get; set; }
+
+        [ForeignKey("Subscription")]
+        public int? SubscriptionId { get; set; }
 
         [Required]
         public decimal Amount { get; set; }
@@ -302,6 +313,9 @@ namespace doanweb.Models
         // Navigation properties
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+
+        [ForeignKey("SubscriptionId")]
+        public virtual Subscription? Subscription { get; set; }
     }
 
     /// <summary>

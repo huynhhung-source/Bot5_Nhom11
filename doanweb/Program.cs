@@ -1,12 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using doanweb.Data;
 using doanweb.Services;
 using System.Text;
+using QuestPDF.Infrastructure;
 
 // UTF-8
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 Console.OutputEncoding = Encoding.UTF8;
+
+// QuestPDF: bắt buộc cấu hình license trước khi tạo PDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +50,7 @@ builder.Services.AddAuthentication(options =>
 
 // Service
 builder.Services.AddScoped<IOAuthService, OAuthService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 var app = builder.Build();
 
@@ -63,11 +68,11 @@ app.UseRouting();
 
 app.UseSession();
 
-// 🔥 BẮT BUỘC
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Route Admin
+// Route Adminsa
 app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{controller=Home}/{action=Index}/{id?}",

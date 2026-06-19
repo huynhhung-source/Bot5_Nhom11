@@ -73,6 +73,22 @@
                                     </p>
                                 </div>
                             </div>
+                            @if (Model.StockQuantity > 0)
+                            {
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                                    <span style="color: #28a745; font-weight: 700; font-size: 14px;">
+                                        <i class="fa fa-check-circle"></i> Còn @Model.StockQuantity gói tập
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                                    <span style="color: #dc3545; font-weight: 700; font-size: 14px;">
+                                        <i class="fa fa-ban"></i> Gói tập hiện đã hết hàng
+                                    </span>
+                                </div>
+                            }
                         </div>
 
                         <!-- Package Information -->
@@ -189,9 +205,21 @@
                             <p style="margin-bottom: 25px; color: rgba(255,255,255,0.95); font-size: 16px;">
                                 Tham gia ngay hôm nay và bắt đầu hành trình của bạn
                             </p>
-                            <a href="/Payment/Checkout?packageId=@Model.PackageId" class="primary-btn" style="background: white; color: #f36100; border: none; padding: 16px 45px; border-radius: 5px; font-size: 15px; font-weight: 700; text-transform: uppercase; text-align: center; display: inline-block; text-decoration: none; cursor: pointer; transition: all 0.3s;">
-                                <i class="fa fa-shopping-cart" style="margin-right: 8px;"></i> Thanh Toán Ngay
-                            </a>
+                            @if (Model.StockQuantity > 0)
+                            {
+                                <a href="/Payment/Checkout?packageId=@Model.PackageId" class="primary-btn" style="background: white; color: #f36100; border: none; padding: 16px 45px; border-radius: 5px; font-size: 15px; font-weight: 700; text-transform: uppercase; text-align: center; display: inline-block; text-decoration: none; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fa fa-shopping-cart" style="margin-right: 8px;"></i> Thanh Toán Ngay
+                                </a>
+                            }
+                            else
+                            {
+                                <div style="background: #dc3545; padding: 16px 45px; border-radius: 5px; font-size: 15px; font-weight: 700; text-transform: uppercase; display: inline-block;">
+                                    <i class="fa fa-ban" style="margin-right: 8px;"></i> Gói Tập Đã Hết Hàng
+                                </div>
+                                <p style="margin-top: 15px; color: rgba(255,255,255,0.9); font-size: 14px;">
+                                    Vui lòng quay lại sau hoặc chọn gói tập khác
+                                </p>
+                            }
                         </div>
 
                         <!-- Back Button -->

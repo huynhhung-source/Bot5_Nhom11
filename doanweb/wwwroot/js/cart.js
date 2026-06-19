@@ -1,99 +1,290 @@
-﻿// Shopping Cart Manager
+// Shopping Cart Manager
 class ShoppingCart {
     constructor() {
         this.storageKey = 'gymShoppingCart';
-        this.cart = this.loadCart();
+        this.cart = [];
+        this._syncing = false;
     }
 
-    loadCart() {
-        const saved = localStorage.getItem(this.storageKey);
-        return saved ? JSON.parse(saved) : [];
+    isLoggedIn() {
+        return document.body?.dataset?.loggedIn === 'true';
     }
 
-    saveCart() {
+    readRawStorage() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return [];
+            let items = JSON.parse(saved);
+            if (!Array.isArray(items)) {
+                items = items && typeof items === 'object' ? Object.values(items) : [];
+            }
+            return items;
+        } catch {
+            return [];
+        }
+    }
+
+    normalizeProductId(item) {
+        const raw = item?.productId ?? item?.ProductId ?? item?.id ?? item?.Id ?? 0;
+        const n = parseInt(raw, 10);
+        return Number.isNaN(n) ? 0 : n;
+    }
+
+    normalizeItem(item) {
+        return {
+            productId: this.normalizeProductId(item),
+            productName: item.productName || item.ProductName || '',
+            price: Number(item.price ?? item.Price) || 0,
+            imageUrl: item.imageUrl || item.ImageUrl || '',
+            quantity: Math.max(0, parseInt(item.quantity ?? item.Quantity, 10) || 0),
+            stockQuantity: item.stockQuantity != null
+                ? parseInt(item.stockQuantity ?? item.StockQuantity, 10)
+                : null,
+            outOfStock: !!(item.outOfStock ?? item.OutOfStock),
+            unavailable: !!(item.unavailable ?? item.Unavailable)
+        };
+    }
+
+    setCart(items) {
+        this.cart = (items || [])
+            .map(item => this.normalizeItem(item))
+            .filter(item => item.productId > 0 && item.quantity > 0);
         localStorage.setItem(this.storageKey, JSON.stringify(this.cart));
         this.updateCartUI();
     }
 
-    addProduct(productId, productName, price, imageUrl, quantity = 1) {
-        const existingItem = this.cart.find(item => item.productId === productId);
-        
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            this.cart.push({
-                productId: productId,
-                productName: productName,
-                price: price,
-                imageUrl: imageUrl,
-                quantity: quantity
-            });
+    async fetchCartFromServer() {
+        if (!this.isLoggedIn()) {
+            return false;
         }
-        
-        this.saveCart();
-        this.showNotification(`${productName} đã được thêm vào giỏ hàng!`, 'success');
-    }
-
-    removeProduct(productId) {
-        this.cart = this.cart.filter(item => item.productId !== productId);
-        this.saveCart();
-    }
-
-    updateQuantity(productId, quantity) {
-        const item = this.cart.find(item => item.productId === productId);
-        if (item) {
-            item.quantity = Math.max(1, quantity);
-            this.saveCart();
+        try {
+            const response = await fetch('/Cart/Items');
+            if (!response.ok) {
+                return false;
+            }
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                this.setCart(data);
+                return true;
+            }
+        } catch (e) {
+            console.error('fetchCartFromServer:', e);
         }
+        return false;
     }
 
-    getTotal() {
-        return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
+    async syncLocalToServer() {
+        if (!this.isLoggedIn()) {
+            return false;
+        }
+        const local = this.readRawStorage()
+            .map(item => this.normalizeItem(item))
+            .filter(item => item.productId > 0 && item.quantity > 0);
 
-    getTotalItems() {
-        return this.cart.reduce((total, item) => total + item.quantity, 0);
-    }
-
-    clearCart() {
-        this.cart = [];
-        this.saveCart();
-    }
-
-    checkout(deliveryAddress, paymentMethod, notes = '') {
-        if (this.cart.length === 0) {
-            alert('Giỏ hàng trống!');
+        if (local.length === 0) {
             return false;
         }
 
-        const checkoutData = {
-            cartItems: this.cart,
-            deliveryAddress: deliveryAddress,
-            paymentMethod: paymentMethod,
-            notes: notes
-        };
+        try {
+            const response = await fetch('/Cart/Sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(local)
+            });
+            const data = await response.json();
+            if (data.success && Array.isArray(data.cart)) {
+                this.setCart(data.cart);
+                return true;
+            }
+        } catch (e) {
+            console.error('syncLocalToServer:', e);
+        }
+        return false;
+    }
+
+    getMaxStock(item) {
+        const stock = item?.stockQuantity;
+        return typeof stock === 'number' && !Number.isNaN(stock) ? stock : null;
+    }
+
+    isOutOfStock(item) {
+        if (!item) return true;
+        if (item.unavailable) return true;
+        if (item.outOfStock) return true;
+        const max = this.getMaxStock(item);
+        return max !== null && max <= 0;
+    }
+
+    isPurchasable(item) {
+        if (!item || this.isOutOfStock(item)) return false;
+        const max = this.getMaxStock(item);
+        if (max === null) return item.quantity > 0;
+        return item.quantity > 0 && item.quantity <= max;
+    }
+
+    getAvailableItems() {
+        return this.cart.filter(item => this.isPurchasable(item));
+    }
+
+    getDisplayItemCount() {
+        return this.cart.reduce((total, item) => total + (item.quantity || 0), 0);
+    }
+
+    async addProduct(productId, productName, price, imageUrl, quantity = 1, stockQuantity = null) {
+        const pid = this.normalizeProductId({ productId });
+        const qty = Math.max(1, parseInt(quantity, 10) || 1);
+
+        if (!this.isLoggedIn()) {
+            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+            return false;
+        }
+
+        try {
+            const response = await fetch('/Cart/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: pid, quantity: qty })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                this.showNotification(data.message || 'Không thể thêm vào giỏ hàng', 'error');
+                return false;
+            }
+
+            if (Array.isArray(data.cart)) {
+                this.setCart(data.cart);
+            }
+
+            this.showNotification(data.message || `${productName} đã được thêm vào giỏ hàng!`, 'success');
+            return true;
+        } catch (e) {
+            console.error('addProduct:', e);
+            this.showNotification('Lỗi kết nối khi thêm vào giỏ hàng', 'error');
+            return false;
+        }
+    }
+
+    async removeProduct(productId) {
+        const pid = this.normalizeProductId({ productId });
+
+        if (this.isLoggedIn()) {
+            try {
+                const response = await fetch('/Cart/Remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: pid, quantity: 0 })
+                });
+                const data = await response.json();
+                if (data.success && Array.isArray(data.cart)) {
+                    this.setCart(data.cart);
+                    return;
+                }
+            } catch (e) {
+                console.error('removeProduct:', e);
+            }
+        }
+
+        this.cart = this.cart.filter(item => item.productId !== pid);
+        this.setCart(this.cart);
+    }
+
+    async updateQuantity(productId, quantity) {
+        const pid = this.normalizeProductId({ productId });
+        const qty = parseInt(quantity, 10) || 1;
+
+        if (this.isLoggedIn()) {
+            try {
+                const response = await fetch('/Cart/UpdateQuantity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: pid, quantity: qty })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    this.showNotification(data.message || 'Không thể cập nhật số lượng', 'warning');
+                    return false;
+                }
+                if (Array.isArray(data.cart)) {
+                    this.setCart(data.cart);
+                }
+                return true;
+            } catch (e) {
+                console.error('updateQuantity:', e);
+            }
+        }
+
+        const item = this.cart.find(i => i.productId === pid);
+        if (item) {
+            item.quantity = qty;
+            this.setCart(this.cart);
+        }
+        return true;
+    }
+
+    getTotal() {
+        return this.getAvailableItems().reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+
+    getTotalItems() {
+        return this.getAvailableItems().reduce((total, item) => total + item.quantity, 0);
+    }
+
+    async clearCart() {
+        this.cart = [];
+        localStorage.removeItem(this.storageKey);
+        if (this.isLoggedIn()) {
+            try {
+                await fetch('/Cart/Sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '[]'
+                });
+            } catch (e) {
+                console.error('clearCart:', e);
+            }
+        }
+        this.updateCartUI();
+    }
+
+    checkout(deliveryAddress, paymentMethod, notes = '', transactionId = '') {
+        const available = this.getAvailableItems();
+        if (available.length === 0) {
+            alert('Không có sản phẩm khả dụng để thanh toán.');
+            return Promise.resolve(false);
+        }
 
         return fetch('/Payment/CheckoutProducts', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(checkoutData)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cartItems: available,
+                deliveryAddress: deliveryAddress,
+                paymentMethod: paymentMethod,
+                transactionId: transactionId || null,
+                notes: notes
+            })
         })
-        .then(response => response.json())
+        .then(async response => {
+            const data = await response.json().catch(() => null);
+            if (!response.ok || !data) {
+                throw new Error(data?.message || 'Không thể xử lý đơn hàng');
+            }
+            return data;
+        })
         .then(data => {
             if (data.success) {
                 cart.clearCart();
                 window.location.href = `/Order/Success/${data.orderId}`;
                 return true;
-            } else {
-                alert('Lỗi: ' + (data.message || 'Không thể xử lý đơn hàng'));
-                return false;
             }
+            alert('Lỗi: ' + (data.message || 'Không thể xử lý đơn hàng'));
+            return false;
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Lỗi kết nối');
+            console.error('checkout:', error);
+            alert(error.message || 'Lỗi kết nối');
             return false;
         });
     }
@@ -101,72 +292,50 @@ class ShoppingCart {
     updateCartUI() {
         const cartCount = document.getElementById('cart-count');
         const cartBadge = document.getElementById('cart-badge');
-        const totalItems = this.getTotalItems();
+        const count = this.getDisplayItemCount();
 
         if (cartCount) {
-            cartCount.textContent = totalItems;
-            cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+            cartCount.textContent = count;
+            if (cartBadge) {
+                cartBadge.style.display = count > 0 ? 'flex' : 'none';
+            }
         }
     }
 
     showNotification(message, type = 'info') {
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#f36100',
+            info: '#f36100'
+        };
+
         const notification = document.createElement('div');
-        notification.className = `cart-notification ${type}`;
         notification.textContent = message;
         notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: ${type === 'success' ? '#28a745' : '#f36100'};
-            color: white;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            z-index: 9999;
-            animation: slideIn 0.3s ease-in-out;
-            font-weight: 600;
+            position: fixed; bottom: 20px; right: 20px; padding: 15px 20px;
+            background-color: ${colors[type] || colors.info}; color: white;
+            border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 9999; font-weight: 600; max-width: 320px;
         `;
-        
         document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-in-out';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 
-// Initialize cart
 const cart = new ShoppingCart();
 
-// Add styles for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+document.addEventListener('DOMContentLoaded', async () => {
+    if (document.getElementById('cart-items-list')) {
+        return;
     }
 
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
+    if (cart.isLoggedIn()) {
+        const loaded = await cart.fetchCartFromServer();
+        if (!loaded) {
+            await cart.syncLocalToServer();
         }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
+    } else {
+        cart.setCart(cart.readRawStorage().map(i => cart.normalizeItem(i)).filter(i => i.productId > 0));
     }
-`;
-document.head.appendChild(style);
-
-// Update cart UI on page load
-document.addEventListener('DOMContentLoaded', () => {
-    cart.updateCartUI();
 });
