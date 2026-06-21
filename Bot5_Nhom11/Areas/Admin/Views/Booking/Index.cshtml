@@ -1,0 +1,210 @@
+@model doanweb.Models.AdminBookingIndexViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Đặt Lịch";
+    ViewData["AdminPageTitle"] = "Quản Lý Đặt Lịch";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-bookings.css" asp-append-version="true" />
+}
+
+<section class="booking-admin-page">
+    <div class="booking-page-header">
+        <div>
+            <span class="booking-kicker">GymPro Admin</span>
+            <h1>Quản lý đặt lịch (@Model.FilteredCount)</h1>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="booking-alert booking-alert-success">
+            <i class="fa fa-check-circle"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="booking-alert booking-alert-danger">
+            <i class="fa fa-exclamation-circle"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <div class="booking-toolbar">
+        <form class="booking-search" method="get" asp-area="Admin" asp-controller="Booking" asp-action="Index">
+            <input type="hidden" name="status" value="@Model.StatusFilter" />
+            <i class="fa fa-search"></i>
+            <input type="search"
+                   name="search"
+                   value="@Model.SearchTerm"
+                   placeholder="Tìm theo tên, mã đặt, lớp..."
+                   autocomplete="off" />
+            <button type="submit" title="Tìm kiếm" aria-label="Tìm kiếm">
+                <i class="fa fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <nav class="booking-filters" aria-label="Lọc trạng thái đặt lịch">
+            <a class="booking-filter-button @(Model.StatusFilter == "all" ? "is-active" : "")"
+               asp-area="Admin"
+               asp-controller="Booking"
+               asp-action="Index"
+               asp-route-search="@Model.SearchTerm"
+               asp-route-status="all">
+                Tất cả <span>@Model.TotalCount</span>
+            </a>
+            <a class="booking-filter-button @(Model.StatusFilter == "confirmed" ? "is-active" : "")"
+               asp-area="Admin"
+               asp-controller="Booking"
+               asp-action="Index"
+               asp-route-search="@Model.SearchTerm"
+               asp-route-status="confirmed">
+                Xác nhận <span>@Model.ConfirmedCount</span>
+            </a>
+            <a class="booking-filter-button @(Model.StatusFilter == "pending" ? "is-active" : "")"
+               asp-area="Admin"
+               asp-controller="Booking"
+               asp-action="Index"
+               asp-route-search="@Model.SearchTerm"
+               asp-route-status="pending">
+                Chờ duyệt <span>@Model.PendingCount</span>
+            </a>
+            <a class="booking-filter-button @(Model.StatusFilter == "cancelled" ? "is-active" : "")"
+               asp-area="Admin"
+               asp-controller="Booking"
+               asp-action="Index"
+               asp-route-search="@Model.SearchTerm"
+               asp-route-status="cancelled">
+                Đã hủy <span>@Model.CancelledCount</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="booking-table-shell">
+        @if (Model.Bookings.Any())
+        {
+            <div class="booking-table-scroll">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đặt</th>
+                            <th>Hội viên</th>
+                            <th>Lớp học / Phòng</th>
+                            <th>HLV</th>
+                            <th>Ngày / Giờ</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var booking in Model.Bookings)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="booking-code">@booking.BookingCode</span>
+                                </td>
+                                <td>
+                                    <div class="booking-member">
+                                        <strong>@booking.MemberName</strong>
+                                        <span>@booking.MemberPhone</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="booking-class">
+                                        <strong>@booking.ClassName</strong>
+                                        <span>@booking.Room</span>
+                                    </div>
+                                </td>
+                                <td class="booking-trainer">@booking.TrainerName</td>
+                                <td>
+                                    <div class="booking-date">
+                                        <strong>@booking.ClassDate.ToString("dd/MM/yyyy")</strong>
+                                        <span>@booking.StartTime.ToString(@"hh\:mm") - @booking.EndTime.ToString(@"hh\:mm")</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="booking-status booking-status-@booking.StatusKind">
+                                        @if (booking.StatusKind == "pending")
+                                        {
+                                            <i class="fa fa-clock-o"></i>
+                                        }
+                                        else if (booking.StatusKind == "cancelled")
+                                        {
+                                            <i class="fa fa-times-circle-o"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-check-circle-o"></i>
+                                        }
+                                        @booking.StatusLabel
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="booking-actions">
+                                        @if (booking.CanConfirm)
+                                        {
+                                            <form method="post"
+                                                  asp-area="Admin"
+                                                  asp-controller="Booking"
+                                                  asp-action="Confirm"
+                                                  asp-route-id="@booking.EnrollmentId">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                                <input type="hidden" name="status" value="@Model.StatusFilter" />
+                                                <button class="booking-icon-button booking-icon-confirm" type="submit" title="Xác nhận">
+                                                    <i class="fa fa-check-circle"></i>
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (booking.CanCancel)
+                                        {
+                                            <form method="post"
+                                                  asp-area="Admin"
+                                                  asp-controller="Booking"
+                                                  asp-action="Cancel"
+                                                  asp-route-id="@booking.EnrollmentId"
+                                                  onsubmit="return confirm('Bạn muốn hủy lịch @booking.BookingCode?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                                <input type="hidden" name="status" value="@Model.StatusFilter" />
+                                                <button class="booking-icon-button booking-icon-cancel" type="submit" title="Hủy lịch">
+                                                    <i class="fa fa-times-circle"></i>
+                                                </button>
+                                            </form>
+                                        }
+
+                                        <form method="post"
+                                              asp-area="Admin"
+                                              asp-controller="Booking"
+                                              asp-action="Delete"
+                                              asp-route-id="@booking.EnrollmentId"
+                                              onsubmit="return confirm('Xóa vĩnh viễn lịch @booking.BookingCode?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="status" value="@Model.StatusFilter" />
+                                            <button class="booking-icon-button booking-icon-delete" type="submit" title="Xóa">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="booking-empty-state">
+                <i class="fa fa-calendar-o"></i>
+                <strong>Chưa có lịch phù hợp</strong>
+                <span>Thử đổi từ khóa tìm kiếm hoặc bộ lọc trạng thái.</span>
+            </div>
+        }
+    </div>
+</section>

@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="~/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="~/css/style.css" type="text/css">
     <link rel="stylesheet" href="~/css/admin.css" type="text/css">
+    @RenderSection("Styles", required: false)
 </head>
 <body class="admin-layout">
     <!-- Page Preloder -->
@@ -35,10 +36,14 @@
 
     <!-- Admin Top Bar -->
     <div class="admin-topbar">
-        <div>
+        <div class="admin-topbar-left">
             <button class="menu-toggle" onclick="toggleSidebar()">
                 <i class="fa fa-bars"></i>
             </button>
+            @if (ViewData["AdminPageTitle"] != null)
+            {
+                <span class="admin-page-title">@ViewData["AdminPageTitle"]</span>
+            }
         </div>
         <div class="admin-topbar-info">
             <div class="user-info">
