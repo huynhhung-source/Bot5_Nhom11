@@ -28,6 +28,17 @@ namespace doanweb.Controllers
             return View();
         }
 
+        public IActionResult Trainers()
+        {
+            return View(TrainerCatalog.All);
+        }
+
+        public IActionResult TrainerDetail(int id)
+        {
+            var trainer = TrainerCatalog.Find(id);
+            return trainer is null ? NotFound() : View(trainer);
+        }
+
         public IActionResult OnlinePackages()
         {
             return View();
