@@ -79,6 +79,16 @@ namespace doanweb.Areas.Admin.Controllers
 
             return View(viewModel);
         }
+
+        public IActionResult Trainers()
+        {
+            return RedirectToAction("Trainers", "Home", new { area = "" });
+        }
+
+        public IActionResult TrainerDetail(int id)
+        {
+            return RedirectToAction("TrainerDetail", "Home", new { area = "", id });
+        }
     }
 
     // ViewModel cho Dashboard

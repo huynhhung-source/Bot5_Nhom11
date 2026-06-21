@@ -1,0 +1,77 @@
+@model IReadOnlyList<doanweb.Models.TrainerViewModel>
+
+@{
+    ViewData["Title"] = "Đội ngũ huấn luyện viên";
+}
+
+<link rel="stylesheet" href="~/css/trainers.css" asp-append-version="true" />
+
+<section class="trainer-hero">
+    <div class="container">
+        <div class="trainer-heading">
+            <span>Đội ngũ chuyên nghiệp</span>
+            <h1>Huấn luyện viên của chúng tôi</h1>
+            <p>Đồng hành cùng bạn bằng kinh nghiệm, chuyên môn và một lộ trình tập luyện phù hợp.</p>
+        </div>
+    </div>
+</section>
+
+<section class="trainer-section">
+    <div class="container">
+        <div class="trainer-grid">
+            @foreach (var trainer in Model)
+            {
+                <article class="trainer-card">
+                    <div class="trainer-photo">
+                        <img src="@trainer.Image" alt="Huấn luyện viên @trainer.Name" />
+                        <span class="trainer-status @trainer.StatusClass">@trainer.Status</span>
+                        <div class="trainer-photo-shade"></div>
+                    </div>
+
+                    <div class="trainer-body">
+                        <div class="trainer-main-info">
+                            <div>
+                                <h2>@trainer.Name</h2>
+                                <p class="trainer-role">@trainer.Role</p>
+                            </div>
+                            <div class="trainer-rating" aria-label="@trainer.Rating trên 5 sao">
+                                <i class="fa fa-star"></i>
+                                <span>@trainer.Rating</span>
+                            </div>
+                        </div>
+
+                        <p class="trainer-meta">@trainer.Experience <span>•</span> @trainer.Reviews</p>
+
+                        <div class="trainer-skills">
+                            @foreach (var skill in trainer.Skills)
+                            {
+                                <span>@skill</span>
+                            }
+                        </div>
+
+                        <a class="trainer-detail"
+                           asp-controller="Home"
+                           asp-action="TrainerDetail"
+                           asp-route-id="@trainer.Id">
+                            Xem chi tiết
+                            <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section id="contact" class="trainer-cta">
+    <div class="container">
+        <div class="trainer-cta-box">
+            <div>
+                <span>Bắt đầu ngay hôm nay</span>
+                <h2>Bạn chưa biết nên chọn huấn luyện viên nào?</h2>
+                <p>Hãy để đội ngũ của chúng tôi tư vấn theo mục tiêu và thể trạng của bạn.</p>
+            </div>
+            <a href="/#contact" class="trainer-cta-button">Liên hệ tư vấn</a>
+        </div>
+    </div>
+</section>
