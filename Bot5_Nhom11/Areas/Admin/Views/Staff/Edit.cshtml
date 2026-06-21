@@ -1,0 +1,179 @@
+@model doanweb.Models.StaffMemberFormViewModel
+
+@{
+    ViewData["Title"] = "Cập Nhật Nhân Viên / HLV";
+    ViewData["AdminPageTitle"] = "Nhân Viên / HLV";
+    var staffMemberId = ViewBag.StaffMemberId;
+    var staffCode = ViewBag.StaffCode as string ?? "";
+    var currentImageUrl = ViewBag.CurrentImageUrl as string ?? Model.ImageUrl;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-staff.css" asp-append-version="true" />
+}
+
+<section class="staff-edit-page">
+    <div class="staff-edit-header">
+        <div>
+            <span class="staff-kicker">GymPro Admin</span>
+            <h1>Cập nhật thông tin</h1>
+            <p>@staffCode</p>
+        </div>
+        <a asp-area="Admin" asp-controller="Staff" asp-action="Index" class="staff-back-link">
+            <i class="fa fa-long-arrow-left"></i>
+            <span>Quay lại</span>
+        </a>
+    </div>
+
+    <form method="post"
+          asp-area="Admin"
+          asp-controller="Staff"
+          asp-action="Edit"
+          asp-route-id="@staffMemberId"
+          enctype="multipart/form-data"
+          class="staff-edit-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="staff-validation-summary"></div>
+
+        <aside class="staff-edit-photo">
+            @if (!string.IsNullOrWhiteSpace(currentImageUrl))
+            {
+                <img src="@currentImageUrl" alt="@Model.FullName" />
+            }
+            else
+            {
+                <span>@(string.IsNullOrWhiteSpace(Model.FullName) ? "A" : Model.FullName.Trim().Split(' ').Last().Substring(0, 1).ToUpperInvariant())</span>
+            }
+            <label>
+                <span>Đổi ảnh</span>
+                <input asp-for="PhotoFile" type="file" accept=".jpg,.jpeg,.png,.webp" />
+            </label>
+            <span asp-validation-for="PhotoFile" class="staff-field-error"></span>
+        </aside>
+
+        <div class="staff-edit-fields">
+            <div class="staff-form-grid">
+                <label>
+                    <span>Họ và tên *</span>
+                    <input asp-for="FullName" />
+                    <span asp-validation-for="FullName" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Chuyên môn</span>
+                    <input asp-for="Specialty" />
+                    <span asp-validation-for="Specialty" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <label>
+                <span>Đường dẫn ảnh</span>
+                <input asp-for="ImageUrl" placeholder="/img/team/team-1.jpg" />
+                <span asp-validation-for="ImageUrl" class="staff-field-error"></span>
+            </label>
+
+            <div class="staff-form-grid">
+                <label>
+                    <span>Số điện thoại *</span>
+                    <input asp-for="PhoneNumber" />
+                    <span asp-validation-for="PhoneNumber" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Email</span>
+                    <input asp-for="Email" />
+                    <span asp-validation-for="Email" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <div class="staff-form-grid staff-form-grid-three">
+                <label>
+                    <span>Vị trí</span>
+                    <select asp-for="Position">
+                        <option value="Huấn Luyện Viên">Huấn Luyện Viên</option>
+                        <option value="Lễ Tân">Lễ Tân</option>
+                        <option value="Kỹ Thuật">Kỹ Thuật</option>
+                        <option value="Quản Lý">Quản Lý</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Trạng thái</span>
+                    <select asp-for="Status">
+                        <option value="Active">Đang làm</option>
+                        <option value="OnLeave">Nghỉ phép</option>
+                        <option value="Inactive">Tạm nghỉ</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Lương (VND)</span>
+                    <input asp-for="Salary" type="number" min="0" step="100000" />
+                    <span asp-validation-for="Salary" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <div class="staff-form-grid staff-form-grid-three">
+                <label>
+                    <span>Kinh nghiệm</span>
+                    <input asp-for="ExperienceYears" type="number" min="0" max="50" />
+                    <span asp-validation-for="ExperienceYears" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Đánh giá</span>
+                    <input asp-for="Rating" type="number" min="0" max="5" step="0.1" />
+                    <span asp-validation-for="Rating" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Lớp/tháng</span>
+                    <input asp-for="MonthlyClasses" type="number" min="0" />
+                    <span asp-validation-for="MonthlyClasses" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <label>
+                <span>Địa điểm</span>
+                <input asp-for="Location" />
+                <span asp-validation-for="Location" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Giới thiệu trên trang đội ngũ</span>
+                <textarea asp-for="Introduction" rows="4"></textarea>
+                <span asp-validation-for="Introduction" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Triết lý huấn luyện</span>
+                <textarea asp-for="Philosophy" rows="3"></textarea>
+                <span asp-validation-for="Philosophy" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Chứng chỉ</span>
+                <input asp-for="Certificates" placeholder="Cách nhau bằng dấu phẩy" />
+                <span asp-validation-for="Certificates" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Lịch làm việc</span>
+                <input asp-for="ScheduleText" placeholder="Thứ 2 - Thứ 6|06:00 - 11:00;Thứ 7|08:00 - 12:00" />
+                <span asp-validation-for="ScheduleText" class="staff-field-error"></span>
+            </label>
+
+            <div class="staff-modal-actions">
+                <a asp-area="Admin" asp-controller="Staff" asp-action="Index" class="staff-cancel-button">Hủy</a>
+                <button type="submit" class="staff-save-button">
+                    <i class="fa fa-check"></i>
+                    <span>Cập nhật</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -12,15 +12,18 @@ namespace doanweb.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly GymDbContext _dbContext;
         private readonly IGymService _gymService;
+        private readonly IStaffDirectoryService _staffDirectoryService;
 
         public HomeController(
             ILogger<HomeController> logger,
             GymDbContext dbContext,
-            IGymService gymService)
+            IGymService gymService,
+            IStaffDirectoryService staffDirectoryService)
         {
             _logger = logger;
             _dbContext = dbContext;
             _gymService = gymService;
+            _staffDirectoryService = staffDirectoryService;
         }
 
         public IActionResult Index()
@@ -28,14 +31,15 @@ namespace doanweb.Controllers
             return View();
         }
 
-        public IActionResult Trainers()
+        public async Task<IActionResult> Trainers()
         {
-            return View(TrainerCatalog.All);
+            var trainers = await _staffDirectoryService.GetTrainerViewModelsAsync();
+            return View(trainers);
         }
 
-        public IActionResult TrainerDetail(int id)
+        public async Task<IActionResult> TrainerDetail(int id)
         {
-            var trainer = TrainerCatalog.Find(id);
+            var trainer = await _staffDirectoryService.GetTrainerViewModelAsync(id);
             return trainer is null ? NotFound() : View(trainer);
         }
 
