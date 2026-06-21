@@ -1,0 +1,44 @@
+@model doanweb.Models.GymLocation
+
+@{
+    ViewData["Title"] = $"Chi tiết lớp {Model.ClassName}";
+}
+
+<link rel="stylesheet" href="~/css/gyms.css" asp-append-version="true" />
+
+<section class="class-detail">
+    <div class="container">
+        <a class="class-detail__back" href="/Home/Gyms">
+            <i class="fa fa-long-arrow-left"></i> Quay lại danh sách
+        </a>
+
+        <div class="class-detail__grid">
+            <div class="class-detail__image">
+                <img src="@Model.ImageUrl" alt="@Model.ClassName" />
+            </div>
+            <div class="class-detail__content">
+                <span class="gym-eyebrow">@Model.City</span>
+                <h1>@Model.ClassName</h1>
+                <p class="class-detail__gym">@Model.Name</p>
+
+                <div class="class-detail__info">
+                    <div><i class="fa fa-user"></i><span>Huấn luyện viên</span><strong>@Model.InstructorName</strong></div>
+                    <div><i class="fa fa-users"></i><span>Số chỗ còn lại</span><strong>@Model.AvailableSlots chỗ</strong></div>
+                    <div><i class="fa fa-clock-o"></i><span>Giờ hoạt động</span><strong>@Model.Hours</strong></div>
+                    <div><i class="fa fa-map-marker"></i><span>Địa điểm</span><strong>@Model.Address</strong></div>
+                </div>
+
+                <div class="gym-amenities">
+                    @foreach (var amenity in Model.Amenities)
+                    {
+                        <span>@amenity</span>
+                    }
+                </div>
+
+                <a class="gym-btn gym-btn--primary class-detail__action" href="/customer/account/register">
+                    Đăng ký tham gia
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

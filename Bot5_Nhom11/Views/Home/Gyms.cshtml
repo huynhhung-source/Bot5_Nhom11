@@ -4,12 +4,12 @@
     ViewData["Title"] = "Danh sách phòng tập";
     var gyms = new[]
     {
-        new { Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Nguyễn Huệ", Address = "68 Nguyễn Huệ, Phường Bến Nghé, Quận 1", Hours = "05:30 - 23:00", Phone = "0901 234 567", Rating = "4.9", Image = "gallery-1.jpg", Tags = "Gym|Yoga|Sauna|PT 1:1", Featured = true, Closing = false, Map = "68+Nguyen+Hue+Quan+1" },
-        new { Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Thủ Đức", Address = "216 Võ Văn Ngân, TP. Thủ Đức", Hours = "05:30 - 22:30", Phone = "0902 345 678", Rating = "4.8", Image = "gallery-2.jpg", Tags = "Gym|Boxing|Locker", Featured = false, Closing = false, Map = "216+Vo+Van+Ngan+Thu+Duc" },
-        new { Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Phú Nhuận", Address = "180 Phan Xích Long, Quận Phú Nhuận", Hours = "06:00 - 22:30", Phone = "0903 456 789", Rating = "4.7", Image = "gallery-3.jpg", Tags = "Gym|Zumba|PT 1:1", Featured = false, Closing = false, Map = "180+Phan+Xich+Long+Phu+Nhuan" },
-        new { Area = "hanoi", City = "Hà Nội", Name = "Gym Center Cầu Giấy", Address = "88 Trần Thái Tông, Quận Cầu Giấy", Hours = "05:30 - 23:00", Phone = "0904 567 890", Rating = "4.9", Image = "gallery-4.jpg", Tags = "Gym|Yoga|Sauna", Featured = false, Closing = false, Map = "88+Tran+Thai+Tong+Cau+Giay" },
-        new { Area = "hanoi", City = "Hà Nội", Name = "Gym Center Hai Bà Trưng", Address = "250 Bà Triệu, Quận Hai Bà Trưng", Hours = "06:00 - 22:00", Phone = "0905 678 901", Rating = "4.8", Image = "gallery-5.jpg", Tags = "Gym|Dance|Locker", Featured = false, Closing = true, Map = "250+Ba+Trieu+Ha+Noi" },
-        new { Area = "danang", City = "Đà Nẵng", Name = "Gym Center Hải Châu", Address = "126 Nguyễn Văn Linh, Quận Hải Châu", Hours = "05:30 - 22:30", Phone = "0906 789 012", Rating = "4.9", Image = "gallery-6.jpg", Tags = "Gym|Pool|Sauna", Featured = false, Closing = false, Map = "126+Nguyen+Van+Linh+Da+Nang" }
+        new { Id = 1, Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Nguyễn Huệ", Address = "68 Nguyễn Huệ, Phường Bến Nghé, Quận 1", Hours = "05:30 - 23:00", Phone = "0901 234 567", ClassName = "Yoga Flow buổi sáng", Instructor = "Nguyễn Minh Anh", Rating = "4.9", Image = "gallery-1.jpg", Tags = "Gym|Yoga|Sauna|PT 1:1", AvailableSlots = 18, Featured = true, Closing = false },
+        new { Id = 2, Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Thủ Đức", Address = "216 Võ Văn Ngân, TP. Thủ Đức", Hours = "05:30 - 22:30", Phone = "0902 345 678", ClassName = "Boxing Fitness", Instructor = "Trần Quốc Huy", Rating = "4.8", Image = "gallery-2.jpg", Tags = "Gym|Boxing|Locker", AvailableSlots = 7, Featured = false, Closing = false },
+        new { Id = 3, Area = "hcm", City = "TP. Hồ Chí Minh", Name = "Gym Center Phú Nhuận", Address = "180 Phan Xích Long, Quận Phú Nhuận", Hours = "06:00 - 22:30", Phone = "0903 456 789", ClassName = "Zumba Energy", Instructor = "Lê Thảo Vy", Rating = "4.7", Image = "gallery-3.jpg", Tags = "Gym|Zumba|PT 1:1", AvailableSlots = 12, Featured = false, Closing = false },
+        new { Id = 4, Area = "hanoi", City = "Hà Nội", Name = "Gym Center Cầu Giấy", Address = "88 Trần Thái Tông, Quận Cầu Giấy", Hours = "05:30 - 23:00", Phone = "0904 567 890", ClassName = "Strength Foundation", Instructor = "Phạm Đức Long", Rating = "4.9", Image = "gallery-4.jpg", Tags = "Gym|Yoga|Sauna", AvailableSlots = 25, Featured = false, Closing = false },
+        new { Id = 5, Area = "hanoi", City = "Hà Nội", Name = "Gym Center Hai Bà Trưng", Address = "250 Bà Triệu, Quận Hai Bà Trưng", Hours = "06:00 - 22:00", Phone = "0905 678 901", ClassName = "Dance Cardio", Instructor = "Vũ Ngọc Mai", Rating = "4.8", Image = "gallery-5.jpg", Tags = "Gym|Dance|Locker", AvailableSlots = 3, Featured = false, Closing = true },
+        new { Id = 6, Area = "danang", City = "Đà Nẵng", Name = "Gym Center Hải Châu", Address = "126 Nguyễn Văn Linh, Quận Hải Châu", Hours = "05:30 - 22:30", Phone = "0906 789 012", ClassName = "Aqua Fitness", Instructor = "Đỗ Hoàng Nam", Rating = "4.9", Image = "gallery-6.jpg", Tags = "Gym|Pool|Sauna", AvailableSlots = 16, Featured = false, Closing = false }
     };
 }
 
@@ -75,9 +75,14 @@
                             <div class="gym-rating"><i class="fa fa-star"></i> @gym.Rating</div>
                         </div>
                         <p class="gym-address"><i class="fa fa-map-marker"></i> @gym.Address</p>
+                        <p class="gym-class-name"><i class="fa fa-calendar"></i> @gym.ClassName</p>
+                        <p class="gym-instructor"><i class="fa fa-user"></i> HLV phụ trách: <strong>@gym.Instructor</strong></p>
                         <div class="gym-meta">
                             <span><i class="fa fa-clock-o"></i> @gym.Hours</span>
                             <span><i class="fa fa-phone"></i> @gym.Phone</span>
+                            <span class="gym-slots @(gym.AvailableSlots <= 5 ? "gym-slots--low" : "")">
+                                <i class="fa fa-users"></i> Còn @gym.AvailableSlots chỗ
+                            </span>
                         </div>
                         <div class="gym-amenities">
                             @foreach (var tag in gym.Tags.Split('|'))
@@ -86,7 +91,7 @@
                             }
                         </div>
                         <div class="gym-card__actions">
-                            <a class="gym-btn gym-btn--primary" href="#gymPackages">Xem gói tập</a>
+                            <a class="gym-btn gym-btn--primary" href="/Home/ClassDetail/@gym.Id">Xem chi tiết lớp học</a>
                         </div>
                     </div>
                 </article>

@@ -51,6 +51,7 @@ builder.Services.AddAuthentication(options =>
 // Service
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddSingleton<IGymService, GymService>();
 
 var app = builder.Build();
 
