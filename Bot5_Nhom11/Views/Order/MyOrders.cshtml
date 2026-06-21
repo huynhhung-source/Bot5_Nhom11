@@ -1,0 +1,177 @@
+﻿@model List<doanweb.Models.Order>
+
+@{
+    ViewData["Title"] = "Đơn Hàng Của Tôi";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">Đơn Hàng Của Tôi</h2>
+                    <div class="bt-option" style="margin-top: 20px;">
+                        <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang Chủ</a>
+                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">Đơn Hàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- My Orders Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 style="color: white; margin-bottom: 40px; font-size: 32px; font-weight: 600;">Danh Sách Đơn Hàng</h2>
+
+                @if (Model == null || Model.Count == 0)
+                {
+                    <div style="background: white; padding: 50px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 60px; color: #ddd; margin-bottom: 20px;">
+                            <i class="fa fa-shopping-bag"></i>
+                        </div>
+                        <h3 style="color: #666; margin-bottom: 10px;">Không Có Đơn Hàng</h3>
+                        <p style="color: #999; margin-bottom: 30px;">
+                            Bạn chưa có đơn hàng nào. Hãy <a href="/Products" style="color: #f36100; font-weight: 600;">mua sắm ngay</a>!
+                        </p>
+                        <a href="/Products" class="btn" style="background: #f36100; color: white; padding: 12px 30px; border: none; border-radius: 5px; text-decoration: none; font-weight: 700;">
+                            <i class="fa fa-shopping-cart" style="margin-right: 8px;"></i>
+                            Tiếp Tục Mua Sắm
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #f8f9fa; border-bottom: 2px solid #f36100;">
+                                <tr>
+                                    <th style="padding: 20px; text-align: left; font-weight: 600; color: #111;">Mã Đơn Hàng</th>
+                                    <th style="padding: 20px; text-align: left; font-weight: 600; color: #111;">Ngày Đặt</th>
+                                    <th style="padding: 20px; text-align: left; font-weight: 600; color: #111;">Tổng Tiền</th>
+                                    <th style="padding: 20px; text-align: left; font-weight: 600; color: #111;">Trạng Thái</th>
+                                    <th style="padding: 20px; text-align: center; font-weight: 600; color: #111;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr style="border-bottom: 1px solid #eee; transition: background 0.3s;">
+                                        <td style="padding: 20px; color: #111; font-weight: 600;">
+                                            #@order.OrderId
+                                        </td>
+                                        <td style="padding: 20px; color: #666;">
+                                            @order.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td style="padding: 20px; color: #f36100; font-weight: 700;">
+                                            @order.TotalAmount.ToString("N0")₫
+                                        </td>
+                                        <td style="padding: 20px;">
+                                            @{
+                                                string statusColor = "#17a2b8";
+                                                string statusText = "Chờ xử lý";
+                                                string statusIcon = "fa-clock";
+
+                                                if (order.Status == "Pending")
+                                                {
+                                                    statusColor = "#ffc107";
+                                                    statusText = "Chờ xử lý";
+                                                    statusIcon = "fa-hourglass-half";
+                                                }
+                                                else if (order.Status == "Confirmed" || order.Status == "Processing")
+                                                {
+                                                    statusColor = "#28a745";
+                                                    statusText = "Đã xác nhận";
+                                                    statusIcon = "fa-check-circle";
+                                                }
+                                                else if (order.Status == "Shipped")
+                                                {
+                                                    statusColor = "#0066cc";
+                                                    statusText = "Đang giao";
+                                                    statusIcon = "fa-truck";
+                                                }
+                                                else if (order.Status == "Delivered" || order.Status == "Completed")
+                                                {
+                                                    statusColor = "#28a745";
+                                                    statusText = "Hoàn Thành";
+                                                    statusIcon = "fa-box";
+                                                }
+                                                else if (order.Status == "Cancelled")
+                                                {
+                                                    statusColor = "#dc3545";
+                                                    statusText = "Đã hủy";
+                                                    statusIcon = "fa-ban";
+                                                }
+                                            }
+                                            <span style="background: @statusColor; color: white; padding: 6px 12px; border-radius: 5px; display: inline-block; font-size: 12px; font-weight: 600;">
+                                                <i class="fa @statusIcon" style="margin-right: 5px;"></i>@statusText
+                                            </span>
+                                        </td>
+                                        <td style="padding: 20px; text-align: center;">
+                                            <a href="/Order/Details/@order.OrderId" class="btn btn-sm" style="background: #f36100; color: white; padding: 8px 15px; border: none; border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: 600; margin-right: 8px;">
+                                                <i class="fa fa-eye" style="margin-right: 4px;"></i>Xem Chi Tiết
+                                            </a>
+                                            @if (order.Status == "Pending")
+                                            {
+                                                <form method="post" action="/Order/CancelOrder/@order.OrderId" style="display: inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm" style="background: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                                                        <i class="fa fa-times" style="margin-right: 4px;"></i>Hủy
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="/Products" class="btn" style="background: #f36100; color: white; padding: 12px 30px; border: none; border-radius: 5px; text-decoration: none; font-weight: 700;">
+                <i class="fa fa-arrow-left" style="margin-right: 8px;"></i>
+                Tiếp Tục Mua Sắm
+            </a>
+        </div>
+    </div>
+</section>
+<!-- My Orders Section End -->
+
+<style>
+    table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+</style>
+
+@* Media Query - Responsive *@
+<style>
+    @@media (max-width: 768px) {
+        table {
+            font-size: 12px;
+        }
+
+        table td, table th {
+            padding: 12px 8px;
+        }
+
+        .btn {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+    }
+</style>

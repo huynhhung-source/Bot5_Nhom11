@@ -1,0 +1,344 @@
+﻿@model List<doanweb.Models.Subscription>
+
+@{
+    ViewData["Title"] = "Gói Tập Của Tôi";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">Gói Tập Của Tôi</h2>
+                    <div class="bt-option" style="margin-top: 20px;">
+                        <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang chủ</a>
+                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">Gói Tập Của Tôi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- My Packages Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="section-title">
+                    <span style="color: #f36100; font-size: 16px; text-transform: uppercase; font-weight: 700;">
+                        <i class="fa fa-briefcase"></i> Quản Lý Gói Tập
+                    </span>
+                    <h2 style="color: white; font-size: 36px; font-weight: 600; text-transform: uppercase; margin-top: 8px;">
+                        <i class="fa fa-th-list"></i> Các Gói Tập Đã Mua
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <!-- Empty State -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div style="background: white; padding: 60px 40px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                        <div style="font-size: 80px; color: #ddd; margin-bottom: 20px;">
+                            <i class="fa fa-inbox"></i>
+                        </div>
+                        <h2 style="color: #111111; margin-bottom: 10px; font-size: 28px; font-weight: 600;">Chưa Có Gói Tập Nào</h2>
+                        <p style="color: #666; font-size: 16px; margin-bottom: 30px; line-height: 1.6;">
+                            Bạn chưa mua gói tập nào. Hãy khám phá và chọn một gói tập phù hợp với mục tiêu tập luyện của bạn.
+                        </p>
+                        <a href="/Packages/Online" class="primary-btn" style="background: #f36100; color: white; border: none; padding: 15px 40px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: inline-block; text-decoration: none; margin-right: 15px;">
+                            <i class="fa fa-shopping-bag"></i> Xem Gói Tập Online
+                        </a>
+                        <a href="/Packages/Offline" class="primary-btn" style="background: transparent; color: #f36100; border: 2px solid #f36100; padding: 13px 40px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; display: inline-block; text-decoration: none;">
+                            <i class="fa fa-building"></i> Xem Gói Tập Offline
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Active Packages -->
+            <div class="row mb-5">
+                <div class="col-lg-12">
+                    <h3 style="color: white; font-weight: 600; margin-bottom: 25px; font-size: 20px;">
+                        <i class="fa fa-check-circle" style="color: #28a745;"></i> Gói Tập Đang Hoạt Động
+                    </h3>
+                </div>
+            </div>
+
+            var activePackages = Model.Where(s => s.Status == "Active").ToList();
+
+            @if (activePackages.Count > 0)
+            {
+                @foreach (var subscription in activePackages)
+                {
+                    <div class="row mb-4">
+                        <div class="col-lg-12">
+                            <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                                <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0;">
+                                    <!-- Package Image -->
+                                    <div style="background: linear-gradient(135deg, #f36100, #dc143c); display: flex; align-items: center; justify-content: center; min-height: 200px; position: relative; overflow: hidden;">
+                                        @if (!string.IsNullOrEmpty(subscription.Package?.ImageUrl))
+                                        {
+                                            <img src="@subscription.Package.ImageUrl" alt="@subscription.Package.PackageName" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="font-size: 60px; color: rgba(255,255,255,0.3);">
+                                                <i class="fa fa-shopping-bag"></i>
+                                            </div>
+                                        }
+                                        <!-- Badge Status -->
+                                        <div style="position: absolute; top: 15px; right: 15px; background: #28a745; color: white; padding: 8px 15px; border-radius: 5px; font-weight: 700; font-size: 12px; text-transform: uppercase;">
+                                            <i class="fa fa-check-circle"></i> Hoạt Động
+                                        </div>
+                                    </div>
+
+                                    <!-- Package Details -->
+                                    <div style="padding: 30px;">
+                                        <h3 style="color: #111111; margin: 0 0 15px 0; font-size: 24px; font-weight: 700;">
+                                            @subscription.Package?.PackageName
+                                        </h3>
+                                        
+                                        <div style="margin-bottom: 20px;">
+                                            <p style="color: #666; margin: 0 0 8px 0; font-size: 14px;">
+                                                <strong>📝 Mô Tả:</strong> @(string.IsNullOrEmpty(subscription.Package?.Description) ? "Không có mô tả" : subscription.Package.Description)
+                                            </p>
+                                        </div>
+
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                            <div>
+                                                <span style="color: #666; font-weight: 600; display: block; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Loại Gói</span>
+                                                <p style="color: #f36100; font-weight: 700; margin: 0;">
+                                                    @if (subscription.Package?.PackageType == "Online")
+                                                    {
+                                                        <span style="background: #d1ecf1; color: #0c5460; padding: 5px 10px; border-radius: 3px; display: inline-block;">
+                                                            <i class="fa fa-desktop"></i> Online
+                                                        </span>
+                                                    }
+                                                    else if (subscription.Package?.PackageType == "Offline")
+                                                    {
+                                                        <span style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 3px; display: inline-block;">
+                                                            <i class="fa fa-building"></i> Offline
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Không xác định</span>
+                                                    }
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <span style="color: #666; font-weight: 600; display: block; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Danh Mục</span>
+                                                <p style="color: #f36100; font-weight: 700; margin: 0;">@(string.IsNullOrEmpty(subscription.Package?.Category) ? "Chưa phân loại" : subscription.Package.Category)</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Features -->
+                                        @if (!string.IsNullOrEmpty(subscription.Package?.Features))
+                                        {
+                                            <div style="margin-top: 15px;">
+                                                <span style="color: #666; font-weight: 600; display: block; font-size: 12px; text-transform: uppercase; margin-bottom: 8px;">✨ Tính Năng & Lợi Ích:</span>
+                                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                                    @foreach (var feature in subscription.Package.Features.Split(',').Take(3))
+                                                    {
+                                                        <span style="background: #f0f0f0; color: #333; padding: 5px 10px; border-radius: 3px; font-size: 13px;">
+                                                            <i class="fa fa-check"></i> @feature.Trim()
+                                                        </span>
+                                                    }
+                                                    @if (subscription.Package.Features.Split(',').Length > 3)
+                                                    {
+                                                        <span style="background: #f0f0f0; color: #333; padding: 5px 10px; border-radius: 3px; font-size: 13px;">
+                                                            +@(subscription.Package.Features.Split(',').Length - 3) tính năng khác
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Timeline & Actions -->
+                                    <div style="padding: 30px; background: #f8f9fa; display: flex; flex-direction: column;">
+                                        <!-- Timeline -->
+                                        <div style="margin-bottom: 25px; padding-bottom: 25px; border-bottom: 2px solid #e0e0e0;">
+                                            <h4 style="color: #111111; margin-bottom: 15px; font-weight: 700; font-size: 14px;">
+                                                <i class="fa fa-calendar"></i> Thời Gian
+                                            </h4>
+
+                                            <div style="margin-bottom: 12px;">
+                                                <span style="color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Ngày Bắt Đầu</span>
+                                                <p style="color: #28a745; font-weight: 700; margin: 5px 0 0 0; font-size: 15px;">
+                                                    <i class="fa fa-check-circle"></i> @subscription.StartDate.ToString("dd/MM/yyyy")
+                                                </p>
+                                            </div>
+
+                                            <div style="margin-bottom: 12px;">
+                                                <span style="color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Ngày Kết Thúc</span>
+                                                <p style="color: @(subscription.EndDate < DateTime.Now.AddDays(7) ? "#dc3545" : "#f36100"); font-weight: 700; margin: 5px 0 0 0; font-size: 15px;">
+                                                    <i class="fa fa-calendar-times-o"></i> @subscription.EndDate.ToString("dd/MM/yyyy")
+                                                </p>
+                                            </div>
+
+                                            <!-- Remaining Days -->
+                                            @{int daysRemaining = (int)(subscription.EndDate - DateTime.Now).TotalDays;}
+                                            <div>
+                                                <span style="color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Còn Lại</span>
+                                                <div style="margin: 8px 0 0 0;">
+                                                    <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                                        <div style="background: @(daysRemaining > 30 ? "#28a745" : (daysRemaining > 7 ? "#ffc107" : "#dc3545")); height: 100%; width: @Math.Min((daysRemaining * 100) / 365, 100)%;"></div>
+                                                    </div>
+                                                    <p style="color: #333; font-weight: 700; margin: 8px 0 0 0; font-size: 14px;">
+                                                        @(daysRemaining > 0 ? $"{daysRemaining} ngày" : "Hết hạn")
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                     
+
+                                        <!-- Payment Info -->
+                                        
+                                            <h4 style="color: #111111; margin-bottom: 10px; font-weight: 700; font-size: 14px;">
+                                                <i class="fa fa-money"></i> Thanh Toán
+                                            </h4>
+                                            <p style="color: #666; margin: 0; font-size: 13px;">
+                                                <strong>Số Tiền:</strong> <span style="color: #f36100; font-weight: 700;">@subscription.AmountPaid.ToString("N0")₫</span>
+                                            </p>
+                                        </div>
+
+                                  
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                  
+                }
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div style="background: white; padding: 40px; border-radius: 10px; text-align: center; color: #666;">
+                            <i class="fa fa-info-circle" style="font-size: 24px; margin-right: 10px;"></i>
+                            Hiện không có gói tập nào đang hoạt động
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Expired/Cancelled Packages -->
+            var inactivePackages = Model.Where(s => s.Status != "Active").ToList();
+
+            @if (inactivePackages.Count > 0)
+            {
+                <div class="row mb-5" style="margin-top: 60px;">
+                    <div class="col-lg-12">
+                        <h3 style="color: white; font-weight: 600; margin-bottom: 25px; font-size: 20px;">
+                            <i class="fa fa-times-circle" style="color: #dc3545;"></i> Gói Tập Đã Hết Hạn / Hủy
+                        </h3>
+                    </div>
+                </div>
+
+                @foreach (var subscription in inactivePackages)
+                {
+                    <div class="row mb-4">
+                        <div class="col-lg-12">
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; opacity: 0.8;">
+                                <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0;">
+                                    <!-- Package Image -->
+                                    <div style="background: linear-gradient(135deg, #666, #444); display: flex; align-items: center; justify-content: center; min-height: 150px; position: relative; overflow: hidden;">
+                                        @if (!string.IsNullOrEmpty(subscription.Package?.ImageUrl))
+                                        {
+                                            <img src="@subscription.Package.ImageUrl" alt="@subscription.Package.PackageName" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="font-size: 50px; color: rgba(255,255,255,0.2);">
+                                                <i class="fa fa-shopping-bag"></i>
+                                            </div>
+                                        }
+                                        <!-- Badge Status -->
+                                        <div style="position: absolute; top: 15px; right: 15px; background: #dc3545; color: white; padding: 8px 15px; border-radius: 5px; font-weight: 700; font-size: 12px; text-transform: uppercase;">
+                                            <i class="fa fa-times-circle"></i> @subscription.Status
+                                        </div>
+                                    </div>
+
+                                    <!-- Package Details -->
+                                    <div style="padding: 20px; color: rgba(255,255,255,0.7);">
+                                        <h4 style="color: rgba(255,255,255,0.9); margin: 0 0 10px 0; font-size: 18px; font-weight: 700;">
+                                            @subscription.Package?.PackageName
+                                        </h4>
+                                        <p style="margin: 0; font-size: 13px;">
+                                            Kết thúc: <strong>@subscription.EndDate.ToString("dd/MM/yyyy")</strong>
+                                        </p>
+                                    </div>
+
+                                    <!-- Renew Button -->
+                                    <div style="padding: 20px; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+                                        <a href="/Packages/Detail/@subscription.Package?.PackageId" class="primary-btn" style="background: #f36100; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 13px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                            <i class="fa fa-refresh"></i> Gia Hạn
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            <!-- Browse More Packages -->
+            <div class="row" style="margin-top: 60px;">
+                <div class="col-lg-12">
+                    <div style="background: linear-gradient(135deg, #f36100, #dc143c); color: white; padding: 50px; border-radius: 10px; text-align: center;">
+                        <h2 style="margin-bottom: 15px; color: white;">Khám Phá Thêm Gói Tập Khác?</h2>
+                        <p style="font-size: 16px; margin-bottom: 30px; color: rgba(255,255,255,0.95);">
+                            Chúng tôi có nhiều gói tập phù hợp với mọi mục tiêu và nhu cầu
+                        </p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto;">
+                            <a href="/Packages/Online" class="primary-btn" style="background: white; color: #f36100; border: none; padding: 15px; border-radius: 5px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                <i class="fa fa-desktop"></i> Gói Online
+                            </a>
+                            <a href="/Packages/Offline" class="primary-btn" style="background: white; color: #f36100; border: none; padding: 15px; border-radius: 5px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; display: block; text-decoration: none;">
+                                <i class="fa fa-building"></i> Gói Offline
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+<!-- My Packages Section End -->
+
+<style>
+    .primary-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    @@media (max-width: 1024px) {
+        div[style*="grid-template-columns: 1fr 2fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        .section-title h2 {
+            font-size: 24px !important;
+        }
+    }
+</style>
+    

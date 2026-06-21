@@ -1,0 +1,386 @@
+﻿@model doanweb.Models.Order
+
+@{
+    ViewData["Title"] = "Cập Nhật Trạng Thái Hóa Đơn";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <h1>Cập Nhật Trạng Thái</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/Admin/Home/Index">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/Admin/Order/Index">Hóa Đơn</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Cập Nhật Trạng Thái</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Form -->
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="order-info-box">
+                        <h4>Hóa Đơn #@Model.OrderId</h4>
+                        <div class="info-item">
+                            <span class="label">Khách Hàng:</span>
+                            <span class="value">@Model.User?.FullName</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Ngày Đặt:</span>
+                            <span class="value">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Tổng Tiền:</span>
+                            <span class="value price">@Model.TotalAmount.ToString("N0") đ</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Trạng Thái Hiện Tại:</span>
+                            <span class="value" >
+                                @if (Model.Status == "Pending")
+                                {
+                                    <span class="badge badge-warning">Chờ Xử Lý</span>
+                                }
+                                else if (Model.Status == "Processing")
+                                {
+                                    <span class="badge badge-info">Đang Xử Lý</span>
+                                }
+                                else if (Model.Status == "Completed")
+                                {
+                                    <span class="badge badge-success">Hoàn Thành</span>
+                                }
+                                else if (Model.Status == "Cancelled")
+                                {
+                                    <span class="badge badge-danger">Hủy</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+
+                    <form method="post" class="update-form">
+                        <div class="form-group">
+                            <label class="form-label">Cập Nhật Trạng Thái</label>
+                            <div class="select-wrapper">
+                                <select name="status" style="height: 50px" class="form-control form-select" required>
+                                    <option value="">-- Chọn Trạng Thái --</option>
+                                    <option value="Pending">Chờ Xử Lý</option>
+                                    <option value="Processing">Đang Xử Lý</option>
+                                    <option value="Completed">Hoàn Thành</option>
+                                    <option value="Cancelled">Hủy</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-save">
+                                <i class="fa fa-save"></i> Lưu Thay Đổi
+                            </button>
+                            <a href="/Admin/Order/Details/@Model.OrderId" class="btn btn-secondary btn-cancel">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="status-guide">
+                        <h5>Hướng Dẫn Trạng Thái</h5>
+                        <ul>
+                            <li><strong>Chờ Xử Lý:</strong> Đơn hàng vừa được đặt, chưa xác nhận</li>
+                            <li><strong>Đang Xử Lý:</strong> Đơn hàng đã được xác nhận, đang chuẩn bị giao</li>
+                            <li><strong>Hoàn Thành:</strong> Đơn hàng đã giao thành công cho khách hàng</li>
+                            <li><strong>Hủy:</strong> Đơn hàng đã bị hủy</li>
+                        </ul>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const currentStatus = '@Model.Status';
+                            const select = document.querySelector('select[name="status"]');
+                            if (select) {
+                                select.value = currentStatus;
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        background-color: #1a1a1a;
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-bottom: 3px solid #f36100;
+    }
+
+    .page-header h1 {
+        font-size: 44px;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .page-header .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-header .breadcrumb-item a {
+        color: #f36100;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .page-header .breadcrumb-item a:hover {
+        color: #d94d00;
+    }
+
+    .page-header .breadcrumb-item.active {
+        color: #999;
+        font-size: 13px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .order-info-box {
+        background: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .order-info-box h4 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 14px;
+    }
+
+    .info-item .label {
+        font-weight: 600;
+        color: #666;
+    }
+
+    .info-item .value {
+        color: #222;
+        font-weight: 500;
+    }
+
+    .info-item .price {
+        color: #f36100;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-info {
+        background: #e7f3ff;
+        color: #0056b3;
+    }
+
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .update-form {
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #333;
+        background-color: #fff;
+        box-sizing: border-box;
+        line-height: 1.6;
+        transition: all 0.3s ease;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+        padding-right: 40px;
+    }
+
+    .form-select option {
+        padding: 10px 16px;
+        color: #333;
+        background-color: #fff;
+        line-height: 1.6;
+        font-size: 14px;
+        border: none;
+        margin: 5px 0;
+    }
+
+    .form-select option:hover {
+        background: linear-gradient(#f36100, #f36100);
+    }
+
+    .form-select option:checked {
+        background: linear-gradient(#f36100, #f36100);
+        color: white;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #f36100;
+        box-shadow: 0 0 0 3px rgba(243, 97, 0, 0.15);
+        outline: none;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: #f36100;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #d94d00;
+        box-shadow: 0 4px 12px rgba(243, 97, 0, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background-color: #d0d0d0;
+    }
+
+    .status-guide {
+        background: #f0f8ff;
+        border: 1px solid #b3d9ff;
+        border-radius: 6px;
+        padding: 20px;
+    }
+
+    .status-guide h5 {
+        font-weight: 700;
+        color: #0056b3;
+        margin-bottom: 15px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-guide ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .status-guide li {
+        padding: 8px 0;
+        color: #333;
+        font-size: 13px;
+        border-bottom: 1px solid #d9e7f7;
+    }
+
+    .status-guide li:last-child {
+        border-bottom: none;
+    }
+
+    .status-guide strong {
+        color: #0056b3;
+    }
+</style>

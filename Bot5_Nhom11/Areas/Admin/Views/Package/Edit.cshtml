@@ -1,0 +1,376 @@
+﻿@model doanweb.Models.Package
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Gói Tập";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Thông tin Gói Tập: <strong>@Model?.PackageName</strong></h5>
+                </div>
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="fa fa-exclamation-circle"></i> Lỗi:</strong>
+                            <ul style="margin-top: 10px; margin-bottom: 0;">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form method="post" action="/admin/package/edit/@Model?.PackageId" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="PackageId" value="@Model?.PackageId" />
+
+                        <!-- Tên gói tập -->
+                        <div class="mb-3">
+                            <label class="form-label" for="PackageName">Tên Gói Tập *</label>
+                            <input type="text" class="form-control" id="PackageName" name="PackageName" 
+                                   placeholder="Nhập tên gói tập" 
+                                   value="@Model?.PackageName" required />
+                            @if (ViewData.ModelState.TryGetValue("PackageName", out var errors))
+                            {
+                                @foreach (var error in errors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Giá -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="Price">Giá (₫) *</label>
+                                    <input type="number" class="form-control" id="Price" name="Price" 
+                                           placeholder="Nhập giá" 
+                                           value="@Model?.Price" min="0" required />
+                                    @if (ViewData.ModelState.TryGetValue("Price", out var priceErrors))
+                                    {
+                                        @foreach (var error in priceErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Thời hạn -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="DurationDays">Thời Hạn (ngày) *</label>
+                                    <input type="number" class="form-control" id="DurationDays" name="DurationDays" 
+                                           placeholder="Nhập thời hạn tính bằng ngày" 
+                                           value="@Model?.DurationDays" min="1" required />
+                                    @if (ViewData.ModelState.TryGetValue("DurationDays", out var durationErrors))
+                                    {
+                                        @foreach (var error in durationErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Số lượng tồn kho -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="StockQuantity">Số Lượng Tồn Kho (gói) *</label>
+                                    <input type="number" class="form-control" id="StockQuantity" name="StockQuantity" 
+                                           placeholder="Nhập số lượng gói tập có sẵn" 
+                                           value="@Model?.StockQuantity" min="0" required />
+                                    <small class="text-muted">Khi số lượng = 0, sản phẩm sẽ hiển thị "Hết hàng"</small>
+                                    @if (ViewData.ModelState.TryGetValue("StockQuantity", out var stockErrors))
+                                    {
+                                        @foreach (var error in stockErrors.Errors)
+                                        {
+                                            <span class="text-danger small">@error.ErrorMessage</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Description">Mô Tả *</label>
+                            <textarea class="form-control" id="Description" name="Description" rows="4"
+                                      placeholder="Nhập mô tả gói tập" required>@Model?.Description</textarea>
+                            @if (ViewData.ModelState.TryGetValue("Description", out var descErrors))
+                            {
+                                @foreach (var error in descErrors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Hình ảnh gói tập -->
+                        <div class="mb-3">
+                            <label class="form-label">Hình Ảnh Gói Tập</label>
+                            
+                            <!-- File Upload Area with Drag & Drop -->
+                            <div id="dropZone" class="drop-zone" style="border: 2px dashed #ddd; border-radius: 8px; padding: 30px; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px;">
+                                <div style="display: none;" id="dropZoneText">
+                                    <i class="fa fa-cloud-upload" style="font-size: 32px; color: #f36100; margin-bottom: 10px; display: block;"></i>
+                                    <p style="margin: 0 0 10px 0; color: #333; font-weight: 600;">Kéo thả hình ảnh vào đây hoặc nhấp để chọn</p>
+                                    <p style="margin: 0; color: #666; font-size: 14px;">Hỗ trợ: JPG, PNG, GIF (Tối đa 5MB)</p>
+                                </div>
+                                <input type="file" id="ImageUpload" name="ImageFile" accept="image/*" class="form-control" style="display: none;" />
+                            </div>
+                            
+                            <!-- Display selected file name -->
+                            <div id="fileInfo" style="display: none; background: #e8f5e9; padding: 12px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                                <i class="fa fa-check-circle" style="color: #4caf50; margin-right: 8px;"></i>
+                                <span id="fileName" style="color: #333; font-weight: 600;"></span>
+                                <button type="button" id="clearFile" class="btn btn-sm btn-link" style="color: #f36100; float: right; margin-top: -3px;">Xóa</button>
+                            </div>
+
+                            <!-- Or enter URL -->
+                            <label class="form-label" style="margin-top: 15px; margin-bottom: 8px;">
+                                <small style="color: #666;">Hoặc nhập URL hình ảnh</small>
+                            </label>
+                            <input type="text" class="form-control" id="ImageUrl" name="ImageUrl" 
+                                   placeholder="Ví dụ: /images/packages/fatlose.jpg hoặc https://example.com/image.jpg" 
+                                   value="@Model?.ImageUrl" />
+                            
+                            <small class="text-muted d-block mt-2">
+                                <i class="fa fa-info-circle"></i> Nếu bạn chọn file, URL sẽ được ghi đè bằng đường dẫn file mới
+                            </small>
+                            
+                            @if (ViewData.ModelState.TryGetValue("ImageUrl", out var imageErrors))
+                            {
+                                @foreach (var error in imageErrors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" style="margin-top: 15px; text-align: center;">
+                                @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                                {
+                                    <img src="@Model.ImageUrl" alt="Package Image" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" />
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Loại gói tập -->
+                        <div class="mb-3">
+                            <label class="form-label" for="PackageType">Loại Gói Tập</label>
+                            <select class="form-control" id="PackageType" name="PackageType">
+                                <option value="">-- Không chọn --</option>
+                                <option value="Online">Online</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Combo">Combo</option>
+                            </select>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Status">Trạng Thái *</label>
+                            <select class="form-control" id="Status" name="Status" required>
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Không hoạt động</option>
+                            </select>
+                            @if (ViewData.ModelState.TryGetValue("Status", out var statusErrors))
+                            {
+                                @foreach (var error in statusErrors.Errors)
+                                {
+                                    <span class="text-danger small">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Thông tin bổ sung -->
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Ngày tạo:</strong> @Model?.CreatedDate.ToString("dd/MM/yyyy HH:mm") <br />
+                            </small>
+                        </div>
+
+                        <!-- Nút hành động -->
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary" style="background: #f36100; border: none; padding: 10px 30px;">
+                                <i class="fa fa-save"></i> Cập Nhật
+                            </button>
+                            <a href="/admin/package/index" class="btn btn-secondary" style="padding: 10px 30px;">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: #f36100;
+        box-shadow: 0 0 0 0.2rem rgba(243, 97, 0, 0.25);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: #e55a00 !important;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+
+    .drop-zone:hover {
+        border-color: #f36100;
+        background: #fff8f0;
+    }
+
+    .drop-zone.dragover {
+        border-color: #f36100;
+        background: #fff3e0;
+        box-shadow: 0 0 0 3px rgba(243, 97, 0, 0.1);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        let hasFileSelected = false;
+
+        // Initialize drop zone display
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZoneText = document.getElementById('dropZoneText');
+            if (dropZoneText) {
+                dropZoneText.style.display = 'block';
+            }
+            updateImagePreview();
+        });
+
+        // Drop zone handling
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('ImageUpload');
+
+        if (dropZone && imageInput) {
+            dropZone.addEventListener('click', (e) => {
+                e.preventDefault();
+                imageInput.click();
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    imageInput.files = files;
+                    handleFileSelect();
+                }
+            });
+
+            // File input change handler
+            imageInput.addEventListener('change', handleFileSelect);
+
+            function handleFileSelect() {
+                const files = imageInput.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Vui lòng chọn file ảnh!');
+                        imageInput.value = '';
+                        return;
+                    }
+                    
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Kích thước file không được vượt quá 5MB!');
+                        imageInput.value = '';
+                        return;
+                    }
+                    
+                    // Display file info
+                    const fileInfo = document.getElementById('fileInfo');
+                    const fileName = document.getElementById('fileName');
+                    fileName.textContent = file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)';
+                    fileInfo.style.display = 'block';
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewDiv = document.getElementById('imagePreview');
+                        previewDiv.innerHTML = `<img src="${e.target.result}" alt="Package Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" />`;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    hasFileSelected = true;
+                }
+            }
+
+            // Clear file handler
+            const clearFileBtn = document.getElementById('clearFile');
+            if (clearFileBtn) {
+                clearFileBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    imageInput.value = '';
+                    hasFileSelected = false;
+                    document.getElementById('fileInfo').style.display = 'none';
+                    updateImagePreview();
+                });
+            }
+        }
+
+        // Image URL Change Handler
+        const imageUrlInput = document.getElementById('ImageUrl');
+        if (imageUrlInput) {
+            imageUrlInput.addEventListener('change', function() {
+                if (!hasFileSelected) {
+                    updateImagePreview();
+                }
+            });
+        }
+
+        // Image Preview Update
+        function updateImagePreview() {
+            const imageUrl = document.getElementById('ImageUrl').value;
+            const previewDiv = document.getElementById('imagePreview');
+            
+            if (imageUrl && !hasFileSelected) {
+                previewDiv.innerHTML = `<img src="${imageUrl}" alt="Package Image" style="max-width: 200px; max-height: 150px; border-radius: 5px; border: 2px solid #f36100;" onerror="this.src='/images/placeholder.png'" />`;
+            } else if (!hasFileSelected) {
+                previewDiv.innerHTML = '';
+            }
+        }
+
+        // Set Package Type
+        var packageType = '@Model?.PackageType';
+        if (packageType) {
+            document.getElementById('PackageType').value = packageType;
+        }
+    </script>
+}

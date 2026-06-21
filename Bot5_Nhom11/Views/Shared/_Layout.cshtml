@@ -1,0 +1,331 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Gym Template">
+    <meta name="keywords" content="Gym, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Gym | Template</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@300;400;500;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="~/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/css/flaticon.css" type="text/css">
+    <link rel="stylesheet" href="~/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="~/css/barfiller.css" type="text/css">
+    <link rel="stylesheet" href="~/css/magnific-popup.css" type="text/css">
+    <link rel="stylesheet" href="~/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="~/css/style.css" type="text/css">
+    <link rel="stylesheet" href="~/css/products.css" type="text/css">
+    <link rel="stylesheet" href="~/css/cart-responsive.css" type="text/css">
+    <link rel="stylesheet" href="~/css/admin-products.css" type="text/css">
+    <link rel="stylesheet" href="~/css/order-responsive.css" type="text/css">
+    <style>
+        body, button, input, select, textarea {
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+    </style>
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+    <!-- Page Preloder -->
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Top Bar Begin (Login/Register) -->
+  
+    <!-- Top Bar End -->
+
+    <!-- Offcanvas Menu Section Begin -->
+    <div class="offcanvas-menu-overlay"></div>
+    <div class="offcanvas-menu-wrapper">
+        <div class="canvas-close">
+            <i class="fa fa-close"></i>
+        </div>
+        <div class="canvas-search search-switch">
+            <i class="fa fa-search"></i>
+        </div>
+        <nav class="canvas-menu mobile-menu">
+            <ul>
+                <li><a href="/">Trang chủ</a></li>
+                <li class="dropdown">
+                    <a href="/Packages/Online">Gói Tập</a>
+                    <ul class="submenu">
+                        <li><a href="/Packages/Online">Gói Tập Online</a></li>
+                        <li><a href="/Packages/Offline">Gói Tập Offline</a></li>
+                    </ul>
+                </li>
+                <li><a href="/Home/Gyms">Phòng tập</a></li>
+                <li><a href="/Products">Sân phẩm</a></li>
+                <li><a href="/#team">Đội ngũ</a></li>
+                <li><a href="/#contact">Liên hệ</a></li>
+            </ul>
+        </nav>
+        <div id="mobile-menu-wrap"></div>
+        <div class="canvas-social">
+            <a href="@Configuration["SocialLinks:Facebook"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-facebook"></i></a>
+            <a href="@Configuration["SocialLinks:Twitter"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
+            <a href="@Configuration["SocialLinks:YouTube"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i></a>
+            <a href="@Configuration["SocialLinks:Instagram"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-instagram"></i></a>
+        </div>
+    </div>
+    <!-- Offcanvas Menu Section End -->
+
+    <!-- Header Section Begin -->
+    <header class="header-section" style="background-color: #151515; padding-top: 35px; padding-bottom: 35px">
+        <div class="container-fluid">
+            <div class="row" style="flex-wrap: nowrap; align-items: center;">
+                <div class="col-lg-3">
+                    <div class="logo">
+                        <a href="/">
+                            <img src="~/img/logo.png" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6" >
+                    <nav class="nav-menu">
+                        <ul style="margin-left: -200px">
+                            <li><a href="/">Trang chủ</a></li>
+                            <li class="dropdown">
+                                <a href="/Packages/Online">Gói Tập</a>
+                                <ul class="dropdown">
+                                    <li><a href="/Packages/Online">Gói Tập Online</a></li>
+                                    <li><a href="/Packages/Offline">Gói Tập Offline</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="/Home/Gyms">Phòng tập</a></li>
+                            <li><a href="/Products">Sản phẩm</a></li>
+                            <li><a href="/#team">Đội ngũ</a></li>
+                            <li><a href="/#contact">Liên hệ</a></li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-lg-3" style="display: flex; justify-content: flex-end; gap: 10px; align-items: center; flex-wrap: nowrap; white-space: nowrap;">
+                    @{
+                        string userEmail = null;
+                        if (Context.Session.TryGetValue("UserEmail", out byte[] userEmailBytes))
+                        {
+                            userEmail = System.Text.Encoding.UTF8.GetString(userEmailBytes);
+                        }
+                    }
+
+                    <!-- Shopping Cart Icon - Only show when logged in -->
+                    @if (userEmail != null)
+                    {
+                        <div style="position: relative;">
+                            <a href="/Cart" style="color: #ffffff; font-size: 18px; text-decoration: none; display: flex; align-items: center; position: relative;">
+                                <i class="fa fa-shopping-cart"></i>
+                                <span id="cart-badge" style="position: absolute; top: -10px; right: -10px; background-color: #f36100; color: white; border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
+                                    <span id="cart-count">0</span>
+                                </span>
+                            </a>
+                        </div>
+                    }
+
+                    @if (userEmail == null)
+                    {
+                        <a href="/customer/account/login" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                            <i class="fa fa-sign-in" style="margin-right: 5px;"></i> Đăng nhập
+                        </a>
+                        <span style="color: #555;">/</span>
+                        <a href="/customer/account/register" style="color: #f36100; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                            <i class="fa fa-user-plus" style="margin-right: 5px;"></i> Đăng ký
+                        </a>
+                    }
+                    else
+                    {
+                        <!-- My Order Link -->
+                        <a href="/Order/MyOrders" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s; display: flex; align-items: center;">
+                            <i class="fa fa-list-ul" style="margin-right: 5px;"></i> Đơn Hàng
+                        </a>
+
+                        <!-- My Packages Link -->
+                        <a href="/Order/MyPackages" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s; display: flex; align-items: center; margin-left: 15px;">
+                            <i class="fa fa-briefcase" style="margin-right: 5px;"></i> Gói Tập Của Tôi
+                        </a>
+
+                        <div style="display: flex; align-items: center; gap: 15px; margin-left: 15px;">
+                            @{
+                                string userName = "User";
+                                if (Context.Session.TryGetValue("UserName", out byte[] userNameBytes))
+                                {
+                                    userName = System.Text.Encoding.UTF8.GetString(userNameBytes);
+                                }
+                            }
+                            <span style="color: #f36100; font-size: 14px; font-weight: 600;">
+                                <i class="fa fa-user-circle" style="margin-right: 5px;"></i> @userName
+                            </span>
+                            @{
+                                string userRole = null;
+                                if (Context.Session.TryGetValue("UserRole", out byte[] userRoleBytes))
+                                {
+                                    userRole = System.Text.Encoding.UTF8.GetString(userRoleBytes);
+                                }
+                                if (userRole == "Admin")
+                                {
+                                    <span style="color: #555;">|</span>
+                                    <a href="/admin/home/index" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                                        <i class="fa fa-cog" style="margin-right: 5px;"></i> Admin
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="color: #555;">|</span>
+                                    <a href="/customer/account/profile" style="color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                                        <i class="fa fa-user" style="margin-right: 5px;"></i> Tài khoản
+                                    </a>
+                                }
+                            }
+                            <span style="color: #555;">|</span>
+                            <form method="post" action="/customer/account/logout" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" style="background: none; border: none; color: #ffffff; font-size: 14px; text-decoration: none; font-weight: 600; cursor: pointer; transition: color 0.3s;">
+                                    <i class="fa fa-sign-out" style="margin-right: 5px;"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="canvas-open">
+                <i class="fa fa-bars"></i>
+            </div>
+        </div>
+    </header>
+    <!-- Header End -->
+
+    <main class="main-content">
+        @RenderBody()
+    </main>
+    
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="fs-about">
+                        <div class="fa-logo">
+                            <a href="#"><img src="~/img/logo.png" alt=""></a>
+                        </div>
+                        <p>
+                            Chúng tôi cung cấp chương trình tập luyện chất lượng cao với sự hỗ trợ của các huấn luyện viên chuyên nghiệp.
+                        </p>
+                        <div class="fa-social">
+                            <a href="@Configuration["SocialLinks:Facebook"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-facebook"></i></a>
+                            <a href="@Configuration["SocialLinks:Instagram"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-instagram"></i></a>
+                            <a href="@Configuration["SocialLinks:Twitter"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
+                            <a href="@Configuration["SocialLinks:YouTube"]" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <div class="fs-widget">
+                        <h4>Liên kết</h4>
+                        <ul>
+                            <li><a href="/">Trang chủ</a></li>
+                            <li><a href="/#team">Về chúng tôi</a></li>
+                            <li><a href="/Home/Gyms">Phòng tập</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <div class="fs-widget">
+                        <h4>Hỗ trợ</h4>
+                        <ul>
+                            <li><a href="/#contact">Liên hệ</a></li>
+                            <li><a href="#">Câu hỏi thường gặp</a></li>
+                            <li><a href="#">Điều khoản &amp; Điều kiện</a></li>
+                            <li><a href="#">Chính sách bảo mật</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="fs-contact">
+                        <h4>Thông tin liên hệ</h4>
+                        <ul>
+                            <li>Địa chỉ: 333 Middle Winchendon Rd, Rindge, NH 03461</li>
+                            <li>Điện thoại: 125-711-811 / 125-668-886</li>
+                            <li>Email: Support.gymcenter@gmail.com</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="footer-copyright">
+                        <p>Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Search Model Begin -->
+    <div class="search-model">
+        <div class="h-100 d-flex align-items-center justify-content-center">
+            <div class="search-close-switch">+</div>
+            <form class="search-model-form">
+                <input type="text" id="search-input" placeholder="Tìm kiếm...">
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Model End -->
+
+    <script src="~/js/jquery-3.3.1.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.magnific-popup.min.js"></script>
+    <script src="~/js/masonry.pkgd.min.js"></script>
+    <script src="~/js/jquery.barfiller.js"></script>
+    <script src="~/js/jquery.slicknav.js"></script>
+    <script src="~/js/owl.carousel.min.js"></script>
+    <script src="~/js/cart.js?v=3"></script>
+    <script src="~/js/main.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    <script>
+        // Hiển thị alert thông báo từ TempData
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            window.addEventListener('load', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    html: '@Html.Raw(TempData["SuccessMessage"])',
+                    confirmButtonColor: '#28a745'
+                });
+            });
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            window.addEventListener('load', function() {
+                var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    html: errorMsg,
+                    confirmButtonColor: '#f36100'
+                });
+            });
+            </text>
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+/* ================================================
+   ORDER VIEWS - RESPONSIVE STYLES
+   ================================================ */
+
+@media (max-width: 768px) {
+    .success-container {
+        padding: 30px 20px;
+    }
+
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .product-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .product-info {
+        text-align: center;
+    }
+
+    .product-price {
+        text-align: center;
+    }
+
+    /* My Orders */
+    .order-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .order-status {
+        text-align: left;
+    }
+
+    .order-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .order-details {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .order-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn-view,
+    .btn-cancel {
+        width: 100%;
+        justify-content: center;
+    }
+}

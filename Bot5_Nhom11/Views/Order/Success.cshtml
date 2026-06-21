@@ -1,0 +1,449 @@
+﻿@model doanweb.Models.Order
+
+@{
+    ViewData["Title"] = "Đơn Hàng Thành Công";
+}
+
+<!-- Success Page -->
+<section class="success-section" style="margin-top: 100px">
+    <div class="container">
+        <div class="success-container">
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <i class="fa fa-check-circle"></i>
+            </div>
+
+            <h1>Đơn Hàng Thành Công!</h1>
+            <p class="success-message">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.</p>
+
+            <!-- Order Summary -->
+            <div class="order-summary-card">
+                <div class="order-header">
+                    <h3>Mã Đơn Hàng: #@Model.OrderId</h3>
+                    <span class="order-date">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+
+                <div class="order-details">
+                    <div class="detail-row">
+                        <span class="label">Trạng Thái:</span>
+                        <span class="value">
+                            @if (Model.Status == "Pending")
+                            {
+                                <span class="badge badge-warning">Chờ Xử Lý</span>
+                            }
+                            else if (Model.Status == "Processing")
+                            {
+                                <span class="badge badge-info">Đang Xử Lý</span>
+                            }
+                            else if (Model.Status == "Completed")
+                            {
+                                <span class="badge badge-success">Hoàn Thành</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">Tổng Số Sản Phẩm:</span>
+                        <span class="value">@Model.OrderItems.Count sản phẩm</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">Tổng Tiền:</span>
+                        <span class="value price">@Model.TotalAmount.ToString("N0") đ</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">Địa Chỉ Giao:</span>
+                        <span class="value address">@(string.IsNullOrEmpty(Model.DeliveryAddress) ? "Chưa cập nhật" : Model.DeliveryAddress)</span>
+                    </div>
+                </div>
+
+                <!-- Products List -->
+                <div class="products-section">
+                    <h4>Danh Sách Sản Phẩm</h4>
+                    <div class="products-list">
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <div class="product-item">
+                                <div class="product-image">
+                                    @if (!string.IsNullOrEmpty(item.Product?.ImageUrl))
+                                    {
+                                        <img src="@item.Product.ImageUrl" alt="@item.Product.ProductName">
+                                    }
+                                    else
+                                    {
+                                        <i class="fa fa-cube"></i>
+                                    }
+                                </div>
+                                <div class="product-info">
+                                    <h5>@item.Product?.ProductName</h5>
+                                    <p class="brand">@item.Product?.Brand</p>
+                                </div>
+                                <div class="product-qty">
+                                    <span>x@(item.Quantity)</span>
+                                </div>
+                                <div class="product-price">
+                                    <p class="unit-price">@item.UnitPrice.ToString("N0") đ</p>
+                                    <p class="total-price">@item.TotalPrice.ToString("N0") đ</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>Bước Tiếp Theo</h3>
+                <ul>
+                    <li>
+                        <i class="fa fa-clock-o"></i>
+                        <span>Chúng tôi sẽ xác nhận và xử lý đơn hàng trong 24 giờ tới</span>
+                    </li>
+                    <li>
+                        <i class="fa fa-truck"></i>
+                        <span>Bạn sẽ nhận được thông báo khi đơn hàng được giao</span>
+                    </li>
+                    <li>
+                        <i class="fa fa-undo"></i>
+                        <span>Nếu có vấn đề, bạn có thể liên hệ hỗ trợ</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/Order/DownloadInvoice/@Model.OrderId" class="btn btn-success" title="Tải về hóa đơn PDF">
+                    <i class="fa fa-download"></i> Tải Hóa Đơn PDF
+                </a>
+                <a href="/Order/MyOrders" class="btn btn-primary">
+                    <i class="fa fa-list"></i> Xem Đơn Hàng của Tôi
+                </a>
+                <a href="/Products" class="btn btn-secondary">
+                    <i class="fa fa-shopping-bag"></i> Tiếp Tục Mua Sắm
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .success-section {
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+    }
+
+    .success-container {
+        background: white;
+        border-radius: 12px;
+        padding: 50px 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        font-size: 60px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    }
+
+    .success-container h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .success-message {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 40px;
+    }
+
+    .order-summary-card {
+        background: #f9f9f9;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 40px;
+        text-align: left;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 20px;
+    }
+
+    .order-header h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #222;
+        margin: 0;
+    }
+
+    .order-date {
+        color: #999;
+        font-size: 13px;
+    }
+
+    .order-details {
+        margin-bottom: 30px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-row .label {
+        font-weight: 600;
+        color: #666;
+    }
+
+    .detail-row .value {
+        color: #222;
+        font-weight: 500;
+    }
+
+    .detail-row .price {
+        color: #f36100;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .detail-row .address {
+        max-width: 400px;
+        word-break: break-word;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-info {
+        background: #e7f3ff;
+        color: #0056b3;
+    }
+
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .products-section {
+        margin-top: 30px;
+    }
+
+    .products-section h4 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .products-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .product-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        align-items: center;
+    }
+
+    .product-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-image i {
+        color: white;
+        font-size: 24px;
+    }
+
+    .product-info {
+        flex: 1;
+        text-align: left;
+    }
+
+    .product-info h5 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #222;
+        margin: 0 0 5px 0;
+    }
+
+    .brand {
+        color: #999;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .product-qty {
+        min-width: 60px;
+        text-align: center;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .product-price {
+        min-width: 100px;
+        text-align: right;
+    }
+
+    .unit-price {
+        font-size: 12px;
+        color: #999;
+        margin: 0;
+        text-decoration: line-through;
+    }
+
+    .total-price {
+        font-size: 14px;
+        color: #f36100;
+        font-weight: 700;
+        margin: 5px 0 0 0;
+    }
+
+    .next-steps {
+        background: #f0f8ff;
+        border-left: 4px solid #007bff;
+        padding: 20px;
+        border-radius: 6px;
+        margin-bottom: 40px;
+        text-align: left;
+    }
+
+    .next-steps h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #222;
+        margin: 0 0 15px 0;
+    }
+
+    .next-steps ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .next-steps li {
+        padding: 10px 0;
+        color: #555;
+        font-size: 14px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .next-steps i {
+        color: #007bff;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 14px 30px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+        background-color: #f36100;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #d94d00;
+        box-shadow: 0 4px 12px rgba(243, 97, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background-color: #d0d0d0;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        transform: translateY(-2px);
+    }
+</style>
