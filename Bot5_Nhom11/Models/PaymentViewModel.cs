@@ -3,33 +3,33 @@ using System.ComponentModel.DataAnnotations;
 namespace doanweb.Models
 {
     /// <summary>
-    /// Model cho trang thanh to�n
+    /// Model cho trang thanh toán.
     /// </summary>
     public class PaymentViewModel
     {
-        [Required(ErrorMessage = "PackageId l� b?t bu?c")]
+        [Required(ErrorMessage = "PackageId là bắt buộc")]
         public int PackageId { get; set; }
 
-        [Required(ErrorMessage = "T�n g�i l� b?t bu?c")]
-        [StringLength(200, ErrorMessage = "T�n g�i kh�ng ???c v??t qu� 200 k� t?")]
-        public string PackageName { get; set; }
+        [Required(ErrorMessage = "Tên gói là bắt buộc")]
+        [StringLength(200, ErrorMessage = "Tên gói không được vượt quá 200 ký tự")]
+        public string PackageName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Gi� l� b?t bu?c")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Gi� ph?i l?n h?n 0")]
+        [Required(ErrorMessage = "Giá là bắt buộc")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Giá phải lớn hơn 0")]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Th?i h?n l� b?t bu?c")]
-        [Range(1, 365, ErrorMessage = "Th?i h?n ph?i t? 1 ??n 365 ng�y")]
+        [Required(ErrorMessage = "Thời hạn là bắt buộc")]
+        [Range(1, 365, ErrorMessage = "Thời hạn phải từ 1 đến 365 ngày")]
         public int DurationDays { get; set; }
 
-        [Required(ErrorMessage = "Vui l�ng ch?n ph??ng th?c thanh to�n")]
-        [StringLength(50, ErrorMessage = "Ph??ng th?c thanh to�n kh�ng ???c v??t qu� 50 k� t?")]
-        public string PaymentMethod { get; set; }
+        [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
+        [StringLength(50, ErrorMessage = "Phương thức thanh toán không được vượt quá 50 ký tự")]
+        public string PaymentMethod { get; set; } = string.Empty;
 
-        [StringLength(100, ErrorMessage = "M� giao d?ch kh�ng ???c v??t qu� 100 k� t?")]
-        public string TransactionId { get; set; }
+        [StringLength(100, ErrorMessage = "Mã giao dịch không được vượt quá 100 ký tự")]
+        public string TransactionId { get; set; } = string.Empty;
 
-        [StringLength(500, ErrorMessage = "Ghi ch� kh�ng ???c v??t qu� 500 k� t?")]
-        public string Notes { get; set; }
+        [StringLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự")]
+        public string Notes { get; set; } = string.Empty;
     }
 }

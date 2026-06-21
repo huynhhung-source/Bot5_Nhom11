@@ -1,36 +1,34 @@
 @{
-    ViewData["Title"] = "Customer Dashboard";
+    ViewData["Title"] = "Trang khách hàng";
+    var userName = Context.Session.GetString("UserName");
 }
 
 <div class="container mt-5">
-    <h1>Trang kh�ch h�ng</h1>
+    <h1>Trang khách hàng</h1>
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h5>Th�ng tin t�i kho?n kh�ch h�ng</h5>
+                    <h5>Thông tin tài khoản khách hàng</h5>
                 </div>
                 <div class="card-body">
-                    @{
-                        var userName = Context.Session.GetString("UserName");
-                    }
-                    <p>Ch�o m?ng @userName ??n v?i kh�ng gian c� nh�n!</p>
+                    <p>Chào mừng @userName đến với không gian cá nhân!</p>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card text-center bg-light">
                                 <div class="card-body">
-                                    <h5 class="card-title">H? s? c� nh�n</h5>
-                                    <p class="card-text">C?p nh?t th�ng tin c� nh�n c?a b?n</p>
-                                    <a href="/customer/home/profile" class="btn btn-primary mt-3">Xem h? s?</a>
+                                    <h5 class="card-title">Hồ sơ cá nhân</h5>
+                                    <p class="card-text">Cập nhật thông tin cá nhân của bạn</p>
+                                    <a href="/customer/account/profile" class="btn btn-primary mt-3">Xem hồ sơ</a>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="card text-center bg-light">
                                 <div class="card-body">
-                                    <h5 class="card-title">G�i t?p c?a t�i</h5>
-                                    <p class="card-text">Xem c�c g�i t?p b?n ?� ??ng k�</p>
-                                    <a href="/customer/home/mypackages" class="btn btn-primary mt-3">Xem g�i t?p</a>
+                                    <h5 class="card-title">Gói tập của tôi</h5>
+                                    <p class="card-text">Xem các gói tập bạn đã đăng ký</p>
+                                    <a href="/Order/MyPackages" class="btn btn-primary mt-3">Xem gói tập</a>
                                 </div>
                             </div>
                         </div>
