@@ -55,16 +55,16 @@
             <ul>
                 <li><a href="/">Trang chủ</a></li>
                 <li class="dropdown">
-                    <a href="#">Gói Tập</a>
+                    <a href="/Packages/Online">Gói Tập</a>
                     <ul class="submenu">
                         <li><a href="/Packages/Online">Gói Tập Online</a></li>
                         <li><a href="/Packages/Offline">Gói Tập Offline</a></li>
                     </ul>
                 </li>
-                <li><a href="#">Lớp tập</a></li>
+                <li><a href="/Home/Gyms">Phòng tập</a></li>
                 <li><a href="/Products">Sân phẩm</a></li>
-                <li><a href="#">Đội ngũ</a></li>
-                <li><a href="#">Liên hệ</a></li>
+                <li><a href="/#team">Đội ngũ</a></li>
+                <li><a href="/#contact">Liên hệ</a></li>
             </ul>
         </nav>
         <div id="mobile-menu-wrap"></div>
@@ -93,21 +93,20 @@
                         <ul style="margin-left: -200px">
                             <li><a href="/">Trang chủ</a></li>
                             <li class="dropdown">
-                                <a href="#">Gói Tập</a>
+                                <a href="/Packages/Online">Gói Tập</a>
                                 <ul class="dropdown">
                                     <li><a href="/Packages/Online">Gói Tập Online</a></li>
                                     <li><a href="/Packages/Offline">Gói Tập Offline</a></li>
                                 </ul>
                             </li>
-                            <li><a href="#">Lớp tập</a></li>
+                            <li><a href="/Home/Gyms">Phòng tập</a></li>
                             <li><a href="/Products">Sản phẩm</a></li>
-                            <li><a href="#">Đội ngũ</a></li>
-                            <li><a href="#">Liên hệ</a></li>
+                            <li><a href="/#team">Đội ngũ</a></li>
+                            <li><a href="/#contact">Liên hệ</a></li>
                         </ul>
                     </nav>
                 </div>
                 <div class="col-lg-3" style="display: flex; justify-content: flex-end; gap: 10px; align-items: center; flex-wrap: nowrap; white-space: nowrap;">
-">
                     @{
                         string userEmail = null;
                         if (Context.Session.TryGetValue("UserEmail", out byte[] userEmailBytes))
@@ -229,8 +228,8 @@
                         <h4>Liên kết</h4>
                         <ul>
                             <li><a href="/">Trang chủ</a></li>
-                            <li><a href="#">Về chúng tôi</a></li>
-                            <li><a href="#">Lớp tập</a></li>
+                            <li><a href="/#team">Về chúng tôi</a></li>
+                            <li><a href="/Home/Gyms">Phòng tập</a></li>
                             <li><a href="#">Blog</a></li>
                         </ul>
                     </div>
@@ -239,7 +238,7 @@
                     <div class="fs-widget">
                         <h4>Hỗ trợ</h4>
                         <ul>
-                            <li><a href="#">Liên hệ</a></li>
+                            <li><a href="/#contact">Liên hệ</a></li>
                             <li><a href="#">Câu hỏi thường gặp</a></li>
                             <li><a href="#">Điều khoản &amp; Điều kiện</a></li>
                             <li><a href="#">Chính sách bảo mật</a></li>
@@ -277,7 +276,6 @@
         </div>
     </div>
 
-    style
     <!-- Search Model End -->
 
     <script src="~/js/jquery-3.3.1.min.js"></script>
