@@ -1,0 +1,82 @@
+@model AdminScheduleFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="ClassName" class="form-label">Tên lớp *</label>
+            <input asp-for="ClassName" class="form-control" placeholder="Morning Yoga, Boxing..." />
+            <span asp-validation-for="ClassName" class="text-danger small"></span>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="InstructorName" class="form-label">Huấn luyện viên *</label>
+            <input asp-for="InstructorName" class="form-control" />
+            <span asp-validation-for="InstructorName" class="text-danger small"></span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="TrainingRoomId" class="form-label">Phòng tập *</label>
+            <select asp-for="TrainingRoomId" asp-items="ViewBag.Rooms" class="form-control">
+                <option value="">-- Chọn phòng --</option>
+            </select>
+            <span asp-validation-for="TrainingRoomId" class="text-danger small"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="ClassType" class="form-label">Loại lớp</label>
+            <input asp-for="ClassType" class="form-control" placeholder="Yoga, Boxing, Gym..." />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="Level" class="form-label">Cấp độ</label>
+            <input asp-for="Level" class="form-control" placeholder="Beginner, Advanced..." />
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="ClassDate" class="form-label">Ngày tập *</label>
+            <input asp-for="ClassDate" type="date" class="form-control" />
+            <span asp-validation-for="ClassDate" class="text-danger small"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="StartTime" class="form-label">Giờ bắt đầu *</label>
+            <input asp-for="StartTime" type="time" class="form-control" />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label asp-for="EndTime" class="form-label">Giờ kết thúc *</label>
+            <input asp-for="EndTime" type="time" class="form-control" />
+            <span asp-validation-for="EndTime" class="text-danger small"></span>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Status" class="form-label">Trạng thái</label>
+    <select asp-for="Status" class="form-control">
+        <option value="Scheduled">Đã lên lịch</option>
+        <option value="InProgress">Đang diễn ra</option>
+        <option value="Completed">Hoàn thành</option>
+        <option value="Cancelled">Đã hủy</option>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label">Mô tả</label>
+    <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+</div>

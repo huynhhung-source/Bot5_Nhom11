@@ -59,10 +59,36 @@ namespace doanweb.Controllers
             return View(packages);
         }
 
-        public IActionResult ClassDetail(int id)
+        public async Task<IActionResult> ClassDetail(int id)
         {
             var gymClass = _gymService.GetById(id);
-            return gymClass is null ? NotFound() : View(gymClass);
+            if (gymClass is null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                ViewBag.JoinPackage = await _dbContext.Packages
+                    .AsNoTracking()
+                    .Where(p => p.Status == "Active" && p.PackageType == "Offline")
+                    .OrderBy(p => p.StockQuantity > 0 ? 0 : 1)
+                    .ThenBy(p => p.Price)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not load join package for class detail. Falling back to default group class package.");
+                ViewBag.JoinPackage = new Package
+                {
+                    PackageId = 5,
+                    PackageName = "Group Classes",
+                    Price = 790000,
+                    DurationDays = 30
+                };
+            }
+
+            return View(gymClass);
         }
 
         public IActionResult Privacy()

@@ -1,0 +1,35 @@
+@model TrainingRoomFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="RoomName" class="form-label">Tên phòng *</label>
+    <input asp-for="RoomName" class="form-control" placeholder="Ví dụ: Phòng Gym 1, Phòng Yoga, Phòng Boxing" />
+    <span asp-validation-for="RoomName" class="text-danger small"></span>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="Capacity" class="form-label">Sức chứa *</label>
+            <input asp-for="Capacity" type="number" min="1" class="form-control" />
+            <span asp-validation-for="Capacity" class="text-danger small"></span>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label">Trạng thái *</label>
+            <select asp-for="Status" class="form-control">
+                <option value="Active">Đang sử dụng</option>
+                <option value="Inactive">Ẩn / không còn sử dụng</option>
+            </select>
+            <span asp-validation-for="Status" class="text-danger small"></span>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label">Mô tả</label>
+    <textarea asp-for="Description" rows="4" class="form-control" placeholder="Nhập mô tả phòng, thiết bị hoặc lưu ý vận hành"></textarea>
+    <span asp-validation-for="Description" class="text-danger small"></span>
+</div>

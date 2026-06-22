@@ -1,0 +1,169 @@
+@model WorkoutScheduleIndexViewModel
+
+@{
+    ViewData["Title"] = "Giờ Tập";
+    var weekStart = Model.SelectedDate.AddDays(-((int)Model.SelectedDate.DayOfWeek + 6) % 7);
+    var dayLabels = new[] { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+    var selectedBookedClassId = Model.MyBookedClassIds.FirstOrDefault();
+}
+
+<section class="schedule-page">
+    <div class="schedule-shell">
+        <div class="schedule-heading">
+            <div>
+                <span>GymPro</span>
+                <h1>Giờ tập</h1>
+            </div>
+            <form class="schedule-filter" method="get" asp-controller="Schedule" asp-action="Index">
+                <input type="hidden" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                <select name="roomId" onchange="this.form.submit()">
+                    <option value="">Tất cả phòng</option>
+                    @foreach (var room in Model.Rooms)
+                    {
+                        <option value="@room.TrainingRoomId" selected="@(Model.RoomId == room.TrainingRoomId)">@room.RoomName</option>
+                    }
+                </select>
+                <select name="trainer" onchange="this.form.submit()">
+                    <option value="">Tất cả HLV</option>
+                    @foreach (var trainer in Model.Trainers)
+                    {
+                        <option value="@trainer" selected="@(Model.Trainer == trainer)">@trainer</option>
+                    }
+                </select>
+            </form>
+        </div>
+
+        <nav class="schedule-days">
+            @for (var i = 0; i < 7; i++)
+            {
+                var day = weekStart.AddDays(i);
+                <a class="@(day.Date == Model.SelectedDate.Date ? "active" : "")"
+                   asp-controller="Schedule"
+                   asp-action="Index"
+                   asp-route-date="@day.ToString("yyyy-MM-dd")"
+                   asp-route-roomId="@Model.RoomId"
+                   asp-route-trainer="@Model.Trainer">
+                    <strong>@dayLabels[i]</strong>
+                    <small>@day.ToString("dd/MM")</small>
+                </a>
+            }
+        </nav>
+
+        <div class="schedule-day-title">
+            <a asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.SelectedDate.AddDays(-1).ToString("yyyy-MM-dd")" asp-route-roomId="@Model.RoomId" asp-route-trainer="@Model.Trainer">
+                <i class="fa fa-chevron-left"></i>
+            </a>
+            <h2>@Model.SelectedDate.ToString("dddd, dd/MM/yyyy") - @Model.Classes.Count lớp</h2>
+            <a asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.SelectedDate.AddDays(1).ToString("yyyy-MM-dd")" asp-route-roomId="@Model.RoomId" asp-route-trainer="@Model.Trainer">
+                <i class="fa fa-chevron-right"></i>
+            </a>
+        </div>
+
+        @if (!Model.Classes.Any())
+        {
+            <div class="schedule-empty">
+                <i class="fa fa-calendar-o"></i>
+                <strong>Chưa có lịch tập phù hợp</strong>
+                <span>Thử chọn ngày, phòng hoặc huấn luyện viên khác.</span>
+            </div>
+        }
+        else
+        {
+            <div class="schedule-grid">
+                @foreach (var item in Model.Classes)
+                {
+                    var isBooked = Model.MyBookedClassIds.Contains(item.ClassId);
+                    var percent = item.Capacity > 0 ? Math.Min(100, item.RegisteredCount * 100 / item.Capacity) : 0;
+                    <article class="schedule-card @(isBooked ? "is-booked" : "")">
+                        <div class="schedule-card-top">
+                            <strong>@item.StartTime.ToString(@"hh\:mm")</strong>
+                            <span>@item.DurationMinutes phút</span>
+                        </div>
+                        <h3>@item.ClassName</h3>
+                        <ul>
+                            <li><i class="fa fa-users"></i>@item.InstructorName</li>
+                            <li><i class="fa fa-map-marker"></i>@item.RoomName</li>
+                            <li><i class="fa fa-clock-o"></i>Còn @item.AvailableSlots / @item.Capacity chỗ</li>
+                        </ul>
+                        <div class="schedule-progress">
+                            <span style="width: @percent%"></span>
+                        </div>
+
+                        @if (isBooked)
+                        {
+                            <form method="post" asp-controller="Schedule" asp-action="Cancel">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="classId" value="@item.ClassId" />
+                                <input type="hidden" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                                <input type="hidden" name="roomId" value="@Model.RoomId" />
+                                <input type="hidden" name="trainer" value="@Model.Trainer" />
+                                <button class="schedule-btn secondary" type="submit">Hủy lịch</button>
+                            </form>
+                        }
+                        else if (selectedBookedClassId > 0)
+                        {
+                            <form method="post" asp-controller="Schedule" asp-action="Change">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="oldClassId" value="@selectedBookedClassId" />
+                                <input type="hidden" name="newClassId" value="@item.ClassId" />
+                                <input type="hidden" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                                <input type="hidden" name="roomId" value="@Model.RoomId" />
+                                <input type="hidden" name="trainer" value="@Model.Trainer" />
+                                <button class="schedule-btn" type="submit" disabled="@item.IsFull">Đổi lịch</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form method="post" asp-controller="Schedule" asp-action="Book">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="classId" value="@item.ClassId" />
+                                <input type="hidden" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                                <input type="hidden" name="roomId" value="@Model.RoomId" />
+                                <input type="hidden" name="trainer" value="@Model.Trainer" />
+                                <button class="schedule-btn" type="submit" disabled="@item.IsFull">@(item.IsFull ? "Hết chỗ" : "Đặt ngay")</button>
+                            </form>
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    .schedule-page { background: #080808; min-height: 100vh; padding: 54px 0 80px; color: #fff; }
+    .schedule-shell { width: min(1380px, calc(100% - 48px)); margin: 0 auto; }
+    .schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 26px; }
+    .schedule-heading span { color: #f36100; font-weight: 800; text-transform: uppercase; }
+    .schedule-heading h1 { margin: 4px 0 0; font-family: Oswald, sans-serif; text-transform: uppercase; }
+    .schedule-filter { display: flex; gap: 10px; flex-wrap: wrap; }
+    .schedule-filter select { height: 42px; min-width: 180px; background: #151515; color: #fff; border: 1px solid #2b2b2b; padding: 0 12px; }
+    .schedule-days { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 34px; }
+    .schedule-days a { min-width: 84px; padding: 13px 18px; background: #181818; color: #9eacc4; border: 1px solid #2b2b2b; text-align: center; text-decoration: none; }
+    .schedule-days a.active { background: #f36100; color: #fff; border-color: #f36100; }
+    .schedule-days strong, .schedule-days small { display: block; }
+    .schedule-day-title { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+    .schedule-day-title a { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; color: #b8c4d8; border: 1px solid #2b2b2b; text-decoration: none; }
+    .schedule-day-title h2 { margin: 0; font-family: Oswald, sans-serif; font-size: 24px; }
+    .schedule-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .schedule-card { padding: 24px; background: #0a282b; border: 1px solid #16464b; }
+    .schedule-card:nth-child(3n + 2) { background: #26170d; border-color: #6b360d; }
+    .schedule-card:nth-child(3n) { background: #092414; border-color: #0d6b32; }
+    .schedule-card.is-booked { outline: 2px solid #f36100; }
+    .schedule-card-top { display: flex; justify-content: space-between; align-items: center; color: #ff7417; font-weight: 800; }
+    .schedule-card-top span { background: #12bde5; color: #fff; padding: 7px 10px; }
+    .schedule-card h3 { margin: 10px 0 18px; font-family: Oswald, sans-serif; font-size: 24px; }
+    .schedule-card ul { list-style: none; margin: 0; padding: 0; color: #aab7ce; }
+    .schedule-card li { margin-bottom: 8px; }
+    .schedule-card i { width: 22px; color: #f36100; }
+    .schedule-progress { height: 5px; background: rgba(255,255,255,.12); margin: 18px 0; }
+    .schedule-progress span { display: block; height: 100%; background: #f36100; }
+    .schedule-btn { width: 100%; border: 0; background: #f36100; color: #fff; min-height: 42px; font-family: Oswald, sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+    .schedule-btn.secondary { background: #30343c; }
+    .schedule-btn:disabled { background: #555; cursor: not-allowed; }
+    .schedule-empty { min-height: 260px; display: grid; place-items: center; align-content: center; gap: 8px; color: #9eacc4; border: 1px solid #2b2b2b; background: #111; }
+    .schedule-empty i { color: #f36100; font-size: 36px; }
+    .schedule-empty strong { color: #fff; font-size: 18px; }
+    @@media (max-width: 992px) { .schedule-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .schedule-heading { align-items: stretch; flex-direction: column; } }
+    @@media (max-width: 640px) { .schedule-shell { width: min(100% - 28px, 1380px); } .schedule-grid { grid-template-columns: 1fr; } }
+</style>

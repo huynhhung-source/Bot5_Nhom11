@@ -1,0 +1,278 @@
+@model AdminReportViewModel
+
+@{
+    ViewData["Title"] = "Báo Cáo";
+    ViewData["AdminPageTitle"] = "Báo Cáo";
+    var maxRevenue = Model.RevenueSeries.Any() ? Model.RevenueSeries.Max(x => x.Revenue) : 0m;
+    var maxActivity = Model.RevenueSeries.Any() ? Math.Max(1, Model.RevenueSeries.Max(x => Math.Max(x.Bookings, x.Cancellations))) : 1;
+}
+
+<section class="report-page">
+    <div class="report-header">
+        <div>
+            <h1>Báo cáo &amp; thống kê</h1>
+            <p>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
+        </div>
+        <form class="report-filter" method="get" asp-area="Admin" asp-controller="Report" asp-action="Index">
+            <select name="periodType">
+                @if (Model.PeriodType == "day")
+                {
+                    <option value="day" selected>Ngày</option>
+                }
+                else
+                {
+                    <option value="day">Ngày</option>
+                }
+                @if (Model.PeriodType == "month")
+                {
+                    <option value="month" selected>Tháng</option>
+                }
+                else
+                {
+                    <option value="month">Tháng</option>
+                }
+                @if (Model.PeriodType == "year")
+                {
+                    <option value="year" selected>Năm</option>
+                }
+                else
+                {
+                    <option value="year">Năm</option>
+                }
+            </select>
+            <input type="date" name="startDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+            <input type="date" name="endDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+            <button type="submit"><i class="fa fa-filter"></i> Lọc</button>
+            <a asp-area="Admin"
+               asp-controller="Report"
+               asp-action="Export"
+               asp-route-periodType="@Model.PeriodType"
+               asp-route-startDate="@Model.StartDate.ToString("yyyy-MM-dd")"
+               asp-route-endDate="@Model.EndDate.ToString("yyyy-MM-dd")">
+                <i class="fa fa-download"></i> Xuất CSV
+            </a>
+        </form>
+    </div>
+
+    <div class="report-stats">
+        <article>
+            <span>Khách hàng</span>
+            <strong>@Model.TotalCustomers</strong>
+            <small>Tổng số khách hàng</small>
+        </article>
+        <article>
+            <span>Hội viên hoạt động</span>
+            <strong class="green">@Model.ActiveMembers</strong>
+            <small>Gói còn hiệu lực</small>
+        </article>
+        <article>
+            <span>Doanh thu</span>
+            <strong>@Model.Revenue.ToString("N0")</strong>
+            <small>đồng</small>
+        </article>
+        <article>
+            <span>Lượt đặt lịch</span>
+            <strong class="blue">@Model.BookingCount</strong>
+            <small>Đặt thành công</small>
+        </article>
+        <article>
+            <span>Lượt hủy lịch</span>
+            <strong class="red">@Model.CancelledBookingCount</strong>
+            <small>Lịch đã hủy</small>
+        </article>
+        <article>
+            <span>Lớp nổi bật</span>
+            <strong class="small">@Model.TopClassName</strong>
+            <small>@Model.TopClassBookings lượt đăng ký</small>
+        </article>
+        <article>
+            <span>Phòng dùng nhiều</span>
+            <strong class="small">@Model.TopRoomName</strong>
+            <small>@Model.TopRoomBookings lượt đăng ký</small>
+        </article>
+    </div>
+
+    <div class="report-panel wide">
+        <div class="report-panel-title">
+            <h2>Doanh thu theo kỳ</h2>
+            <span>Đơn vị: đồng</span>
+        </div>
+        <div class="revenue-chart">
+            @foreach (var item in Model.RevenueSeries)
+            {
+                var height = maxRevenue > 0 ? Math.Max(4, (int)(item.Revenue * 100 / maxRevenue)) : 4;
+                <div class="revenue-bar">
+                    <span style="height: @height%"></span>
+                    <em>@item.Label</em>
+                    <b>@item.Revenue.ToString("N0")</b>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="report-grid">
+        <div class="report-panel">
+            <div class="report-panel-title">
+                <h2>Đặt lịch vs hủy lịch</h2>
+                <span>@Model.RevenueSeries.Count mốc</span>
+            </div>
+            <div class="activity-chart">
+                @foreach (var item in Model.RevenueSeries)
+                {
+                    var bookingHeight = Math.Max(4, item.Bookings * 100 / maxActivity);
+                    var cancelHeight = Math.Max(4, item.Cancellations * 100 / maxActivity);
+                    <div class="activity-column">
+                        <div>
+                            <span class="booking" style="height: @bookingHeight%"></span>
+                            <span class="cancel" style="height: @cancelHeight%"></span>
+                        </div>
+                        <em>@item.Label</em>
+                    </div>
+                }
+            </div>
+            <div class="report-legend">
+                <span><i class="orange"></i> Đặt lịch</span>
+                <span><i class="red"></i> Hủy lịch</span>
+            </div>
+        </div>
+
+        <div class="report-panel">
+            <div class="report-panel-title">
+                <h2>Lớp học được đăng ký nhiều nhất</h2>
+                <span>Top 5</span>
+            </div>
+            <div class="rank-list">
+                @foreach (var item in Model.TopClasses)
+                {
+                    <div class="rank-row">
+                        <strong>@item.Name</strong>
+                        <div><span style="width: @Math.Min(100, item.Rate)%"></span></div>
+                        <em>@item.Count lượt</em>
+                    </div>
+                }
+                @if (!Model.TopClasses.Any())
+                {
+                    <p class="empty">Chưa có dữ liệu đăng ký lớp.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="report-grid">
+        <div class="report-panel">
+            <div class="report-panel-title">
+                <h2>Phòng tập được sử dụng nhiều nhất</h2>
+                <span>Top 5</span>
+            </div>
+            <div class="rank-list">
+                @foreach (var item in Model.TopRooms)
+                {
+                    <div class="rank-row">
+                        <strong>@item.Name</strong>
+                        <div><span style="width: @Math.Min(100, item.Rate)%"></span></div>
+                        <em>@item.Count lượt</em>
+                    </div>
+                }
+                @if (!Model.TopRooms.Any())
+                {
+                    <p class="empty">Chưa có dữ liệu sử dụng phòng.</p>
+                }
+            </div>
+        </div>
+
+        <div class="report-panel">
+            <div class="report-panel-title">
+                <h2>Hiệu suất huấn luyện viên</h2>
+                <span>Theo tỉ lệ lấp đầy</span>
+            </div>
+            <div class="trainer-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>HLV</th>
+                            <th>Lớp</th>
+                            <th>Đặt</th>
+                            <th>Hủy</th>
+                            <th>Hiệu suất</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TrainerPerformance)
+                        {
+                            <tr>
+                                <td>@item.TrainerName</td>
+                                <td>@item.ClassCount</td>
+                                <td>@item.BookingCount</td>
+                                <td>@item.CancelledCount</td>
+                                <td>
+                                    <div class="trainer-rate"><span style="width: @Math.Min(100, item.FillRate)%"></span></div>
+                                    @item.FillRate.ToString("0.#")%
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.TrainerPerformance.Any())
+                {
+                    <p class="empty">Chưa có dữ liệu huấn luyện viên.</p>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .report-page { padding: 28px; min-height: calc(100vh - 70px); background: #0b0b0c; color: #fff; }
+    .report-header { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 24px; }
+    .report-header h1 { margin: 0; font-family: Oswald, sans-serif; font-size: 30px; text-transform: uppercase; }
+    .report-header p { margin: 6px 0 0; color: #8290aa; }
+    .report-filter { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .report-filter select, .report-filter input { height: 40px; background: #171719; color: #fff; border: 1px solid #2d2d31; padding: 0 10px; }
+    .report-filter button, .report-filter a { height: 40px; display: inline-flex; align-items: center; gap: 7px; border: 0; background: #f36100; color: #fff; padding: 0 14px; font-weight: 800; text-decoration: none; cursor: pointer; }
+    .report-filter a { background: #2f80ed; }
+    .report-stats { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .report-stats article, .report-panel { background: #181819; border: 1px solid #29292c; }
+    .report-stats article { min-height: 138px; padding: 20px; }
+    .report-stats span, .report-panel-title span, .report-stats small { color: #8190aa; }
+    .report-stats strong { display: block; margin: 12px 0 6px; color: #f36100; font-family: Oswald, sans-serif; font-size: 32px; line-height: 1.05; }
+    .report-stats strong.green { color: #17d878; }
+    .report-stats strong.blue { color: #5296ff; }
+    .report-stats strong.red { color: #ff4d5e; }
+    .report-stats strong.small { color: #fff; font-size: 20px; overflow-wrap: anywhere; }
+    .report-panel { padding: 22px; margin-bottom: 24px; }
+    .report-panel-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .report-panel h2 { margin: 0; font-family: Oswald, sans-serif; font-size: 20px; text-transform: uppercase; }
+    .report-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+    .revenue-chart { height: 280px; display: flex; align-items: end; gap: 10px; border-left: 1px solid #2b2b30; border-bottom: 1px solid #2b2b30; padding: 20px 10px 34px; overflow-x: auto; }
+    .revenue-bar { min-width: 64px; height: 100%; display: flex; flex-direction: column; justify-content: end; align-items: center; position: relative; }
+    .revenue-bar span { width: 28px; background: #f36100; display: block; }
+    .revenue-bar em { position: absolute; bottom: -28px; color: #8190aa; font-style: normal; font-size: 12px; }
+    .revenue-bar b { display: none; position: absolute; bottom: 100%; margin-bottom: 6px; background: #242428; padding: 4px 6px; font-size: 11px; white-space: nowrap; }
+    .revenue-bar:hover b { display: block; }
+    .activity-chart { height: 240px; display: flex; align-items: end; gap: 12px; border-bottom: 1px solid #2b2b30; padding: 14px 10px 28px; overflow-x: auto; }
+    .activity-column { min-width: 48px; height: 100%; display: flex; flex-direction: column; justify-content: end; align-items: center; position: relative; }
+    .activity-column div { height: 100%; display: flex; align-items: end; gap: 4px; }
+    .activity-column span { width: 14px; display: block; }
+    .activity-column .booking { background: #f36100; }
+    .activity-column .cancel { background: #9e2d31; }
+    .activity-column em { position: absolute; bottom: -24px; color: #8190aa; font-style: normal; font-size: 12px; }
+    .report-legend { display: flex; gap: 18px; color: #8190aa; margin-top: 12px; }
+    .report-legend i { width: 10px; height: 10px; display: inline-block; margin-right: 6px; }
+    .report-legend .orange { background: #f36100; }
+    .report-legend .red { background: #9e2d31; }
+    .rank-list { display: grid; gap: 14px; }
+    .rank-row { display: grid; grid-template-columns: 160px minmax(0, 1fr) 72px; align-items: center; gap: 12px; color: #b9c4d8; }
+    .rank-row strong { overflow-wrap: anywhere; }
+    .rank-row div, .trainer-rate { height: 8px; background: #27272a; }
+    .rank-row span, .trainer-rate span { height: 100%; display: block; background: #f36100; }
+    .rank-row em { color: #fff; font-style: normal; text-align: right; }
+    .trainer-table { overflow-x: auto; }
+    .trainer-table table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    .trainer-table th, .trainer-table td { padding: 12px 10px; border-bottom: 1px solid #29292c; color: #b9c4d8; }
+    .trainer-table th { color: #fff; text-align: left; }
+    .trainer-rate { width: 80px; display: inline-block; margin-right: 8px; vertical-align: middle; }
+    .empty { color: #8190aa; margin: 0; }
+    @@media (max-width: 1200px) { .report-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @@media (max-width: 860px) { .report-header { flex-direction: column; align-items: stretch; } .report-grid { grid-template-columns: 1fr; } .report-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @@media (max-width: 560px) { .report-stats { grid-template-columns: 1fr; } .rank-row { grid-template-columns: 1fr; } .rank-row em { text-align: left; } }
+</style>

@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = $"Chi tiết lớp {Model.ClassName}";
+    var joinPackage = ViewBag.JoinPackage as doanweb.Models.Package;
 }
 
 <link rel="stylesheet" href="~/css/gyms.css" asp-append-version="true" />
@@ -35,9 +36,28 @@
                     }
                 </div>
 
-                <a class="gym-btn gym-btn--primary class-detail__action" href="/customer/account/register">
-                    Đăng ký tham gia
-                </a>
+                @if (joinPackage != null)
+                {
+                    <div class="class-detail__checkout">
+                        <span>Gói đăng ký đề xuất</span>
+                        <strong>@joinPackage.PackageName</strong>
+                        <p>@joinPackage.Price.ToString("N0")₫ / @(Math.Max(1, joinPackage.DurationDays / 30)) tháng</p>
+                    </div>
+                    <a class="gym-btn gym-btn--primary class-detail__action"
+                       asp-area=""
+                       asp-controller="Payment"
+                       asp-action="Checkout"
+                       asp-route-packageId="@joinPackage.PackageId"
+                       asp-route-gymId="@Model.Id">
+                        Đăng ký tham gia
+                    </a>
+                }
+                else
+                {
+                    <a class="gym-btn gym-btn--primary class-detail__action" asp-controller="Packages" asp-action="Offline">
+                        Chọn gói tập
+                    </a>
+                }
             </div>
         </div>
     </div>

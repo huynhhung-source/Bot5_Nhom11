@@ -101,6 +101,8 @@
                                 </div>
                             </div>
 
+                        </div>
+
                         <!-- Mô tả -->
                         <div class="mb-3">
                             <label class="form-label" for="Description">Mô Tả *</label>
@@ -174,6 +176,38 @@
                                 <option value="Offline">Offline</option>
                                 <option value="Combo">Combo</option>
                             </select>
+                        </div>
+
+                        <!-- Danh mục -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Category">Danh Mục</label>
+                            <input type="text" class="form-control" id="Category" name="Category"
+                                   placeholder="Ví dụ: FatLoss, Muscle, Strength"
+                                   value="@Model?.Category" />
+                        </div>
+
+                        <!-- Tính năng -->
+                        <div class="mb-3">
+                            <label class="form-label" for="Features">Tính Năng</label>
+                            <textarea class="form-control" id="Features" name="Features" rows="3"
+                                      placeholder="Nhập các tính năng của gói tập">@Model?.Features</textarea>
+                        </div>
+
+                        <!-- Số buổi tối đa -->
+                        <div class="mb-3">
+                            <label class="form-label" for="MaxSessions">Số Buổi Tối Đa</label>
+                            <input type="number" class="form-control" id="MaxSessions" name="MaxSessions"
+                                   placeholder="Nhập số buổi tối đa (0 = không giới hạn)"
+                                   value="@Model?.MaxSessions" min="0" />
+                        </div>
+
+                        <!-- Loại lớp được phép -->
+                        <div class="mb-3">
+                            <label class="form-label" for="AllowedClassTypes">Loại Lớp Được Phép Đăng Ký</label>
+                            <input type="text" class="form-control" id="AllowedClassTypes" name="AllowedClassTypes"
+                                   placeholder="Ví dụ: Gym,Yoga,Boxing hoặc Yoga,Pilates,Zumba"
+                                   value="@Model?.AllowedClassTypes" />
+                            <small class="text-muted">Nhập các loại lớp cách nhau bằng dấu phẩy.</small>
                         </div>
 
                         <!-- Trạng thái -->
@@ -371,6 +405,11 @@
         var packageType = '@Model?.PackageType';
         if (packageType) {
             document.getElementById('PackageType').value = packageType;
+        }
+
+        var status = '@Model?.Status';
+        if (status) {
+            document.getElementById('Status').value = status;
         }
     </script>
 }

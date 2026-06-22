@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using doanweb.Data;
 using doanweb.Models;
+using doanweb.Services;
 using System.Linq;
 
 namespace doanweb.Controllers
@@ -10,16 +11,18 @@ namespace doanweb.Controllers
     {
         private readonly GymDbContext _dbContext;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IGymService _gymService;
 
-        public PaymentController(GymDbContext dbContext, ILogger<PaymentController> logger)
+        public PaymentController(GymDbContext dbContext, ILogger<PaymentController> logger, IGymService gymService)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _gymService = gymService ?? throw new ArgumentNullException(nameof(gymService));
         }
 
         // GET: Trang Checkout
         [HttpGet]
-        public async Task<IActionResult> Checkout(int packageId)
+        public async Task<IActionResult> Checkout(int packageId, int? gymId = null)
         {
             try
             {
@@ -38,6 +41,8 @@ namespace doanweb.Controllers
                     DurationDays = package.DurationDays
                 };
 
+                AddGymContext(model, gymId);
+
                 return View(model);
             }
             catch (Exception ex)
@@ -51,7 +56,20 @@ namespace doanweb.Controllers
         // POST: Xử lý thanh toán
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Checkout(int packageId, string packageName, decimal price, int durationDays, string paymentMethod, string transactionId, string notes)
+        public async Task<IActionResult> Checkout(
+            int packageId,
+            string packageName,
+            decimal price,
+            int durationDays,
+            string paymentMethod,
+            string? transactionId,
+            string? notes,
+            int? gymId,
+            string? gymName,
+            string? className,
+            string? instructorName,
+            string? gymAddress,
+            string? gymHours)
         {
             try
             {
@@ -62,7 +80,8 @@ namespace doanweb.Controllers
                 {
                     _logger.LogWarning("User not logged in");
                     TempData["ErrorMessage"] = "Vui lòng đăng nhập để tiếp tục";
-                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = $"/Payment/Checkout?packageId={packageId}" });
+                    var returnUrl = Url.Action("Checkout", "Payment", new { area = "", packageId, gymId });
+                    return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl });
                 }
 
                 // Kiểm tra gói tập
@@ -78,8 +97,13 @@ namespace doanweb.Controllers
                 {
                     _logger.LogWarning("No payment method selected");
                     TempData["ErrorMessage"] = "Vui lòng chọn phương thức thanh toán";
-                    return RedirectToAction("Checkout", new { packageId = packageId });
+                    return RedirectToAction("Checkout", new { packageId, gymId });
                 }
+
+                var gymContext = ResolveGymContext(gymId, gymName, className, instructorName, gymAddress, gymHours);
+                var trimmedNotes = TrimTo(notes, 255);
+                var subscriptionNotes = TrimTo(BuildSubscriptionNotes(gymContext, notes), 255);
+                var description = TrimTo(BuildPaymentDescription(package.PackageName, gymContext), 500);
 
                 // Tạo Subscription
                 var subscription = new Subscription
@@ -94,7 +118,7 @@ namespace doanweb.Controllers
                     RemainingDays = durationDays,
                     SessionsUsed = 0,
                     AmountPaid = price,
-                    Notes = notes
+                    Notes = subscriptionNotes
                 };
 
                 _dbContext.Subscriptions.Add(subscription);
@@ -109,10 +133,10 @@ namespace doanweb.Controllers
                     Amount = price,
                     PaymentDate = DateTime.Now,
                     PaymentMethod = paymentMethod,
-                    TransactionId = transactionId,
+                    TransactionId = TrimTo(transactionId, 100),
                     Status = "Success",
-                    Description = $"Thanh toán cho gói {packageName}",
-                    Notes = notes
+                    Description = description,
+                    Notes = trimmedNotes
                 };
 
                 _dbContext.Payments.Add(payment);
@@ -126,14 +150,120 @@ namespace doanweb.Controllers
             {
                 _logger.LogError($"Database error in Checkout POST: {dbEx.Message}\n{dbEx.InnerException?.Message}");
                 TempData["ErrorMessage"] = "Lỗi cơ sở dữ liệu khi xử lý thanh toán";
-                return RedirectToAction("Checkout", new { packageId = packageId });
+                return RedirectToAction("Checkout", new { packageId, gymId });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error in Checkout POST: {ex.Message}\n{ex.StackTrace}");
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xử lý thanh toán: " + ex.Message;
-                return RedirectToAction("Checkout", new { packageId = packageId });
+                return RedirectToAction("Checkout", new { packageId, gymId });
             }
+        }
+
+        private void AddGymContext(PaymentViewModel model, int? gymId)
+        {
+            if (!gymId.HasValue)
+            {
+                return;
+            }
+
+            var gym = _gymService.GetById(gymId.Value);
+            if (gym == null)
+            {
+                return;
+            }
+
+            model.GymId = gym.Id;
+            model.GymName = gym.Name;
+            model.ClassName = gym.ClassName;
+            model.InstructorName = gym.InstructorName;
+            model.GymAddress = gym.Address;
+            model.GymHours = gym.Hours;
+        }
+
+        private PaymentViewModel ResolveGymContext(
+            int? gymId,
+            string? gymName,
+            string? className,
+            string? instructorName,
+            string? gymAddress,
+            string? gymHours)
+        {
+            var model = new PaymentViewModel
+            {
+                GymId = gymId,
+                GymName = gymName,
+                ClassName = className,
+                InstructorName = instructorName,
+                GymAddress = gymAddress,
+                GymHours = gymHours
+            };
+
+            AddGymContext(model, gymId);
+            return model;
+        }
+
+        private static string BuildPaymentDescription(string packageName, PaymentViewModel gymContext)
+        {
+            if (!gymContext.IsGymCheckout)
+            {
+                return $"Thanh toán cho gói {packageName}";
+            }
+
+            var parts = new List<string> { $"Thanh toán phòng tập - gói {packageName}" };
+
+            if (!string.IsNullOrWhiteSpace(gymContext.GymName))
+            {
+                parts.Add(gymContext.GymName);
+            }
+
+            if (!string.IsNullOrWhiteSpace(gymContext.ClassName))
+            {
+                parts.Add($"Lớp {gymContext.ClassName}");
+            }
+
+            return string.Join(" | ", parts);
+        }
+
+        private static string? BuildSubscriptionNotes(PaymentViewModel gymContext, string? notes)
+        {
+            var parts = new List<string>();
+
+            if (gymContext.IsGymCheckout)
+            {
+                if (!string.IsNullOrWhiteSpace(gymContext.GymName))
+                {
+                    parts.Add($"Phòng tập: {gymContext.GymName}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(gymContext.ClassName))
+                {
+                    parts.Add($"Lớp: {gymContext.ClassName}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(gymContext.InstructorName))
+                {
+                    parts.Add($"HLV: {gymContext.InstructorName}");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(notes))
+            {
+                parts.Add(notes.Trim());
+            }
+
+            return parts.Count == 0 ? null : string.Join("; ", parts);
+        }
+
+        private static string? TrimTo(string? value, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var trimmed = value.Trim();
+            return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
         }
 
         // GET: Payment Success page

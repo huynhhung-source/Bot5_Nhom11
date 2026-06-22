@@ -1,7 +1,8 @@
 ﻿@model PaymentViewModel
 
 @{
-    ViewData["Title"] = "Thanh Toán";
+    var isGymCheckout = Model?.IsGymCheckout == true;
+    ViewData["Title"] = isGymCheckout ? "Thanh Toán Phòng Tập" : "Thanh Toán";
 }
 
 <!-- Breadcrumb Begin -->
@@ -10,10 +11,10 @@
         <div class="row">
             <div class="col-lg-12 text-center">
                 <div class="breadcrumb-text">
-                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">Thanh Toán</h2>
+                    <h2 style="color: white; font-size: 48px; font-weight: 600; text-transform: uppercase;">@(isGymCheckout ? "Thanh Toán Phòng Tập" : "Thanh Toán")</h2>
                     <div class="bt-option" style="margin-top: 20px;">
                         <a href="/" style="color: white; font-size: 16px; font-weight: 700; display: inline-block; margin-right: 20px;">Trang chủ</a>
-                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">Thanh Toán</span>
+                        <span style="color: #f36100; font-size: 16px; font-weight: 700;">@(isGymCheckout ? "Thanh Toán Phòng Tập" : "Thanh Toán")</span>
                     </div>
                 </div>
             </div>
@@ -27,7 +28,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                    <h2 style="text-align: center; margin-bottom: 40px; color: #111111;">Thông Tin Thanh Toán</h2>
+                    <h2 style="text-align: center; margin-bottom: 40px; color: #111111;">@(isGymCheckout ? "Thông Tin Thanh Toán Phòng Tập" : "Thông Tin Thanh Toán")</h2>
 
                     @if (Model == null)
                     {
@@ -39,6 +40,24 @@
                     }
                     else
                     {
+                        @if (Model.IsGymCheckout)
+                        {
+                            <div style="background: #111111; color: white; padding: 24px; border-radius: 6px; margin-bottom: 30px; border-left: 4px solid #f36100;">
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+                                    <div>
+                                        <span style="color: #f36100; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Phòng tập đăng ký</span>
+                                        <h3 style="color: white; margin: 8px 0 8px; font-size: 24px;">@Model.GymName</h3>
+                                        <p style="color: #cfcfcf; margin: 0;"><i class="fa fa-map-marker" style="color: #f36100; margin-right: 6px;"></i>@Model.GymAddress</p>
+                                    </div>
+                                    <div style="min-width: 210px; color: #d7d7d7; font-size: 14px;">
+                                        <p style="margin: 0 0 8px;"><i class="fa fa-calendar" style="color: #f36100; width: 20px;"></i> Lớp: <strong style="color: white;">@Model.ClassName</strong></p>
+                                        <p style="margin: 0 0 8px;"><i class="fa fa-user" style="color: #f36100; width: 20px;"></i> HLV: <strong style="color: white;">@Model.InstructorName</strong></p>
+                                        <p style="margin: 0;"><i class="fa fa-clock-o" style="color: #f36100; width: 20px;"></i> Giờ mở cửa: <strong style="color: white;">@Model.GymHours</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
                         <!-- Thông tin gói tập -->
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px; border-left: 4px solid #f36100;">
                             <h4 style="color: #111111; margin-bottom: 15px;">Thông Tin Gói Tập</h4>
@@ -53,7 +72,7 @@
                                 </div>
                                 <div style="grid-column: 1 / -1;">
                                     <span style="color: #666; font-weight: 600;">Giá:</span>
-                                    <p style="color: #f36100; font-weight: 700; font-size: 24px; margin-top: 5px;">@Model.Price.ToString("N0")</p>
+                                    <p style="color: #f36100; font-weight: 700; font-size: 24px; margin-top: 5px;">@Model.Price.ToString("N0")₫</p>
                                 </div>
                             </div>
                         </div>
@@ -64,6 +83,12 @@
                             <input type="hidden" name="PackageName" value="@Model.PackageName" />
                             <input type="hidden" name="Price" value="@Model.Price" />
                             <input type="hidden" name="DurationDays" value="@Model.DurationDays" />
+                            <input type="hidden" name="GymId" value="@Model.GymId" />
+                            <input type="hidden" name="GymName" value="@Model.GymName" />
+                            <input type="hidden" name="ClassName" value="@Model.ClassName" />
+                            <input type="hidden" name="InstructorName" value="@Model.InstructorName" />
+                            <input type="hidden" name="GymAddress" value="@Model.GymAddress" />
+                            <input type="hidden" name="GymHours" value="@Model.GymHours" />
                             <input type="hidden" id="paymentMethod" name="PaymentMethod" value="" />
                             <input type="hidden" id="transactionId" name="TransactionId" value="" />
                             <input type="hidden" id="notes" name="Notes" value="" />
@@ -110,7 +135,7 @@
                             <!-- Thông báo -->
                             <div style="background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #17a2b8;">
                                 <i class="fa fa-info-circle"></i>
-                                <strong>Lưu ý:</strong> Sau khi thanh toán thành công, gói tập sẽ được kích hoạt ngay lập tức.
+                                <strong>Lưu ý:</strong> Sau khi thanh toán thành công, gói tập sẽ được kích hoạt ngay lập tức@(Model.IsGymCheckout ? " cho phòng tập đã chọn." : ".")
                             </div>
 
                             <!-- Nút thanh toán -->
@@ -219,10 +244,12 @@
             if (bankTransferChecked) {
                 const amount = document.querySelector('input[name="Price"]').value;
                 const packageName = document.querySelector('input[name="PackageName"]').value;
+                const gymName = document.querySelector('input[name="GymName"]')?.value || '';
+                const className = document.querySelector('input[name="ClassName"]')?.value || '';
 
                 document.getElementById('qrAmount').innerText = parseInt(amount).toLocaleString('vi-VN');
 
-                const description = `ThanhToanGoi-${packageName}`;
+                const description = ['ThanhToanGoi', packageName, gymName, className].filter(Boolean).join('-');
                 const qrUrl = generateVietQRUrl(amount, description);
 
                 document.getElementById('qrImage').src = qrUrl;
@@ -274,6 +301,7 @@
             console.log('PackageId:', document.querySelector('input[name="PackageId"]').value);
             console.log('Price:', document.querySelector('input[name="Price"]').value);
             console.log('DurationDays:', document.querySelector('input[name="DurationDays"]').value);
+            console.log('GymId:', document.querySelector('input[name="GymId"]')?.value || '');
             console.log('===============================');
 
             const form = document.getElementById('paymentForm');

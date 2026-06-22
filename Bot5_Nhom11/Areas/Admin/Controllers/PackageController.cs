@@ -35,6 +35,28 @@ namespace doanweb.Areas.Admin.Controllers
             }
 
             var packages = await _dbContext.Packages.ToListAsync();
+            var subscriptions = await _dbContext.Subscriptions
+                .Include(s => s.User)
+                .Include(s => s.Package)
+                .OrderByDescending(s => s.EndDate)
+                .Take(20)
+                .Select(s => new AdminPackageSubscriptionViewModel
+                {
+                    SubscriptionId = s.SubscriptionId,
+                    PackageId = s.PackageId,
+                    CustomerName = s.User.FullName,
+                    CustomerEmail = s.User.Email,
+                    PackageName = s.Package.PackageName,
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    Status = s.EndDate.Date < DateTime.Today ? "Expired" : s.Status,
+                    RemainingDays = Math.Max(0, EF.Functions.DateDiffDay(DateTime.Today, s.EndDate)),
+                    SessionsUsed = s.SessionsUsed,
+                    MaxSessions = s.Package.MaxSessions
+                })
+                .ToListAsync();
+
+            ViewBag.Subscriptions = subscriptions;
             return View(packages);
         }
 
@@ -163,6 +185,9 @@ namespace doanweb.Areas.Admin.Controllers
                 existingPackage.PackageType = model.PackageType ?? existingPackage.PackageType;
                 existingPackage.Category = model.Category ?? existingPackage.Category;
                 existingPackage.Features = model.Features ?? existingPackage.Features;
+                existingPackage.MaxSessions = model.MaxSessions;
+                existingPackage.StockQuantity = model.StockQuantity;
+                existingPackage.AllowedClassTypes = model.AllowedClassTypes;
 
                 _dbContext.Packages.Update(existingPackage);
                 await _dbContext.SaveChangesAsync();
@@ -217,15 +242,11 @@ namespace doanweb.Areas.Admin.Controllers
                     DeleteOldFile(package.ImageUrl);
                 }
 
-                // Delete related subscriptions first (if any)
                 if (package.Subscriptions != null && package.Subscriptions.Any())
                 {
-                    _logger.LogInformation($"Deleting {package.Subscriptions.Count} subscriptions");
-                    var subscriptionsToDelete = package.Subscriptions.ToList();
-                    foreach (var subscription in subscriptionsToDelete)
-                    {
-                        _dbContext.Subscriptions.Remove(subscription);
-                    }
+                    package.Status = "Inactive";
+                    await _dbContext.SaveChangesAsync();
+                    return Json(new { success = true, message = "Gói tập đã có khách sử dụng nên hệ thống đã ẩn gói thay vì xóa." });
                 }
 
                 _dbContext.Packages.Remove(package);
@@ -244,6 +265,86 @@ namespace doanweb.Areas.Admin.Controllers
                 _logger.LogError($"Error deleting package: {ex.Message}\n{ex.StackTrace}");
                 return Json(new { success = false, message = $"Đã xảy ra lỗi khi xóa gói tập: {ex.Message}" });
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RenewSubscription(int subscriptionId, int extraDays)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer" });
+            }
+
+            if (extraDays <= 0)
+            {
+                TempData["ErrorMessage"] = "Số ngày gia hạn phải lớn hơn 0.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var subscription = await _dbContext.Subscriptions
+                .Include(s => s.Package)
+                .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
+            var baseDate = subscription.EndDate.Date < DateTime.Today ? DateTime.Today : subscription.EndDate.Date;
+            subscription.EndDate = baseDate.AddDays(extraDays);
+            subscription.RemainingDays = Math.Max(0, (subscription.EndDate.Date - DateTime.Today).Days);
+            subscription.Status = "Active";
+            subscription.UpdatedDate = DateTime.Now;
+
+            await _dbContext.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Đã gia hạn {extraDays} ngày cho gói {subscription.Package.PackageName}.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckCustomerStatus(string keyword)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer" });
+            }
+
+            keyword = keyword?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập tên, email hoặc số điện thoại khách hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var subscriptions = await _dbContext.Subscriptions
+                .Include(s => s.User)
+                .Include(s => s.Package)
+                .Where(s =>
+                    s.User.FullName.Contains(keyword) ||
+                    s.User.Email.Contains(keyword) ||
+                    s.User.PhoneNumber.Contains(keyword))
+                .OrderByDescending(s => s.EndDate)
+                .Select(s => new AdminPackageSubscriptionViewModel
+                {
+                    SubscriptionId = s.SubscriptionId,
+                    PackageId = s.PackageId,
+                    CustomerName = s.User.FullName,
+                    CustomerEmail = s.User.Email,
+                    PackageName = s.Package.PackageName,
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    Status = s.EndDate.Date < DateTime.Today ? "Expired" : s.Status,
+                    RemainingDays = Math.Max(0, EF.Functions.DateDiffDay(DateTime.Today, s.EndDate)),
+                    SessionsUsed = s.SessionsUsed,
+                    MaxSessions = s.Package.MaxSessions
+                })
+                .ToListAsync();
+
+            var packages = await _dbContext.Packages.ToListAsync();
+            ViewBag.Subscriptions = subscriptions;
+            ViewBag.StatusKeyword = keyword;
+            return View("Index", packages);
         }
 
         // Helper class for JSON body

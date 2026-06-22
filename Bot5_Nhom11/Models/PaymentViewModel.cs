@@ -31,5 +31,24 @@ namespace doanweb.Models
 
         [StringLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự")]
         public string Notes { get; set; } = string.Empty;
+
+        public int? GymId { get; set; }
+
+        [StringLength(150)]
+        public string? GymName { get; set; }
+
+        [StringLength(150)]
+        public string? ClassName { get; set; }
+
+        [StringLength(150)]
+        public string? InstructorName { get; set; }
+
+        [StringLength(250)]
+        public string? GymAddress { get; set; }
+
+        [StringLength(80)]
+        public string? GymHours { get; set; }
+
+        public bool IsGymCheckout => GymId.HasValue;
     }
 }

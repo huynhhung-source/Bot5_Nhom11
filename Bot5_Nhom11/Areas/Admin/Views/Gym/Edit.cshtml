@@ -1,0 +1,37 @@
+@model TrainingRoomFormViewModel
+
+@{
+    ViewData["Title"] = "Sửa Phòng Tập";
+    ViewData["AdminPageTitle"] = "Sửa Phòng Tập";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Cập nhật phòng: <strong>@Model.RoomName</strong></h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Edit" asp-route-id="@Model.TrainingRoomId">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="TrainingRoomId" />
+                        <partial name="_RoomForm" model="Model" />
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary" style="background: #f36100; border: none;">
+                                <i class="fa fa-save"></i> Cập nhật
+                            </button>
+                            <a asp-area="Admin" asp-controller="Gym" asp-action="Index" class="btn btn-secondary">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

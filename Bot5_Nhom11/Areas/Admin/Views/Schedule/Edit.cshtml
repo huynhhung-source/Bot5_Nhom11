@@ -1,0 +1,37 @@
+@model AdminScheduleFormViewModel
+
+@{
+    ViewData["Title"] = "Sửa Giờ Tập";
+    ViewData["AdminPageTitle"] = "Sửa Giờ Tập";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-9 offset-md-1">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Sửa giờ tập: <strong>@Model.ClassName</strong></h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-area="Admin" asp-controller="Schedule" asp-action="Edit" asp-route-id="@Model.ClassId">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ClassId" />
+                        <partial name="_ScheduleForm" model="Model" />
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary" style="background: #f36100; border: none;">
+                                <i class="fa fa-save"></i> Cập nhật
+                            </button>
+                            <a asp-area="Admin" asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.ClassDate.ToString("yyyy-MM-dd")" class="btn btn-secondary">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
