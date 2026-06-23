@@ -26,9 +26,28 @@ namespace doanweb.Models
         public int Capacity { get; set; }
         public int RegisteredCount { get; set; }
         public string Status { get; set; } = string.Empty;
+        public bool HasCheckedIn { get; set; }
         public int AvailableSlots => Math.Max(0, Capacity - RegisteredCount);
         public int DurationMinutes => Math.Max(1, (int)(EndTime - StartTime).TotalMinutes);
         public bool IsFull => AvailableSlots <= 0;
+        public bool IsRegistrationOpen => Status == "Scheduled" &&
+            (ClassDate.Date > DateTime.Today ||
+                (ClassDate.Date == DateTime.Today && EndTime > DateTime.Now.TimeOfDay));
+    }
+
+    public class MyWorkoutScheduleViewModel
+    {
+        public List<MyWorkoutScheduleItemViewModel> UpcomingClasses { get; set; } = new();
+        public List<MyWorkoutScheduleItemViewModel> PastClasses { get; set; } = new();
+    }
+
+    public class MyWorkoutScheduleItemViewModel : WorkoutClassCardViewModel
+    {
+        public int EnrollmentId { get; set; }
+        public DateTime EnrollmentDate { get; set; }
+        public string EnrollmentStatus { get; set; } = string.Empty;
+        public bool CanCancel { get; set; }
+        public bool CanCheckIn { get; set; }
     }
 
     public class AdminScheduleIndexViewModel
@@ -76,7 +95,32 @@ namespace doanweb.Models
         [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn phòng.")]
         public int TrainingRoomId { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập số lượng người tối đa.")]
+        [Range(1, 500, ErrorMessage = "Số lượng tối đa phải từ 1 đến 500.")]
+        public int MaxCapacity { get; set; } = 20;
+
         [StringLength(50)]
         public string Status { get; set; } = "Scheduled";
+    }
+
+    public class AdminScheduleDetailsViewModel
+    {
+        public WorkoutClassCardViewModel ClassInfo { get; set; } = new();
+        public string Description { get; set; } = string.Empty;
+        public List<AdminScheduleEnrollmentViewModel> Enrollments { get; set; } = new();
+        public int CheckedInCount => Enrollments.Count(e => e.HasCheckedIn);
+    }
+
+    public class AdminScheduleEnrollmentViewModel
+    {
+        public int EnrollmentId { get; set; }
+        public string MemberName { get; set; } = string.Empty;
+        public string MemberPhone { get; set; } = string.Empty;
+        public string MemberEmail { get; set; } = string.Empty;
+        public DateTime EnrollmentDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public bool HasCheckedIn { get; set; }
+        public DateTime? CheckInDate { get; set; }
+        public TimeSpan? CheckInTime { get; set; }
     }
 }

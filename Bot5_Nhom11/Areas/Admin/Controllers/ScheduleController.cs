@@ -55,6 +55,73 @@ namespace doanweb.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer" });
+            }
+
+            var classItem = await _dbContext.Classes
+                .Include(c => c.TrainingRoom)
+                .Include(c => c.Enrollments)
+                    .ThenInclude(e => e.User)
+                .FirstOrDefaultAsync(c => c.ClassId == id);
+
+            if (classItem == null)
+            {
+                return NotFound();
+            }
+
+            var attendances = await _dbContext.Attendances
+                .Include(a => a.Subscription)
+                    .ThenInclude(s => s.User)
+                .Where(a => a.ClassId == id)
+                .ToListAsync();
+
+            var model = new AdminScheduleDetailsViewModel
+            {
+                ClassInfo = MapClass(classItem),
+                Description = classItem.Description ?? string.Empty,
+                Enrollments = (classItem.Enrollments ?? new List<ClassEnrollment>())
+                    .OrderBy(e => e.EnrollmentDate)
+                    .Select(e =>
+                    {
+                        var attendance = attendances.FirstOrDefault(a => a.Subscription.UserId == e.UserId);
+                        return new AdminScheduleEnrollmentViewModel
+                        {
+                            EnrollmentId = e.EnrollmentId,
+                            MemberName = e.User?.FullName ?? "Chưa có hội viên",
+                            MemberPhone = e.User?.PhoneNumber ?? "Chưa có SĐT",
+                            MemberEmail = e.User?.Email ?? string.Empty,
+                            EnrollmentDate = e.EnrollmentDate,
+                            Status = e.Status,
+                            HasCheckedIn = attendance != null,
+                            CheckInDate = attendance?.AttendanceDate,
+                            CheckInTime = attendance?.CheckInTime
+                        };
+                    })
+                    .ToList()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Book(int classId, DateTime date, int? roomId, string? trainer)
+        {
+            var returnUrl = BuildPublicScheduleReturnUrl(date, roomId, trainer);
+
+            if (!HttpContext.Session.GetInt32("UserId").HasValue)
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl });
+            }
+
+            return Redirect(returnUrl);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             if (!IsAdmin())
@@ -94,7 +161,7 @@ namespace doanweb.Areas.Admin.Controllers
                 StartTime = model.StartTime,
                 EndTime = model.EndTime,
                 Location = room!.RoomName,
-                MaxCapacity = room.Capacity,
+                MaxCapacity = model.MaxCapacity,
                 CurrentEnrollment = 0,
                 Status = model.Status,
                 CreatedDate = DateTime.Now
@@ -132,6 +199,7 @@ namespace doanweb.Areas.Admin.Controllers
                 StartTime = classItem.StartTime,
                 EndTime = classItem.EndTime,
                 TrainingRoomId = classItem.TrainingRoomId ?? 0,
+                MaxCapacity = classItem.MaxCapacity,
                 Status = classItem.Status
             });
         }
@@ -166,9 +234,9 @@ namespace doanweb.Areas.Admin.Controllers
             }
 
             var registeredCount = classItem.Enrollments?.Count(e => e.Status != "Cancelled") ?? classItem.CurrentEnrollment;
-            if (room!.Capacity < registeredCount)
+            if (model.MaxCapacity < registeredCount)
             {
-                ModelState.AddModelError(nameof(model.TrainingRoomId), $"Phòng mới chỉ có {room.Capacity} chỗ, nhỏ hơn {registeredCount} khách đã đăng ký.");
+                ModelState.AddModelError(nameof(model.MaxCapacity), $"Số lượng tối đa không được nhỏ hơn {registeredCount} khách đã đăng ký.");
                 await LoadRoomsAsync(model.TrainingRoomId);
                 return View(model);
             }
@@ -183,7 +251,7 @@ namespace doanweb.Areas.Admin.Controllers
             classItem.StartTime = model.StartTime;
             classItem.EndTime = model.EndTime;
             classItem.Location = room.RoomName;
-            classItem.MaxCapacity = room.Capacity;
+            classItem.MaxCapacity = model.MaxCapacity;
             classItem.Status = model.Status;
 
             await _dbContext.SaveChangesAsync();
@@ -212,12 +280,47 @@ namespace doanweb.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id, DateTime date)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer" });
+            }
+
+            var classItem = await _dbContext.Classes
+                .Include(c => c.Enrollments)
+                .Include(c => c.Attendances)
+                .FirstOrDefaultAsync(c => c.ClassId == id);
+            if (classItem == null)
+            {
+                return NotFound();
+            }
+
+            if ((classItem.Enrollments?.Any() ?? false) || (classItem.Attendances?.Any() ?? false))
+            {
+                TempData["ErrorMessage"] = "Giờ tập đã có dữ liệu đăng ký/check-in, chỉ có thể hủy để giữ lịch sử.";
+                return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
+            }
+
+            _dbContext.Classes.Remove(classItem);
+            await _dbContext.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã xóa giờ tập.";
+            return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
+        }
+
         private async Task<TrainingRoom?> ValidateScheduleAsync(AdminScheduleFormViewModel model, int? currentClassId = null)
         {
             var room = await _dbContext.TrainingRooms.FindAsync(model.TrainingRoomId);
             if (room == null || room.Status != "Active")
             {
                 ModelState.AddModelError(nameof(model.TrainingRoomId), "Phòng tập không tồn tại hoặc đã bị ẩn.");
+            }
+
+            if (room != null && room.Status == "Active" && model.MaxCapacity > room.Capacity)
+            {
+                ModelState.AddModelError(nameof(model.MaxCapacity), $"Số lượng tối đa không được vượt sức chứa phòng ({room.Capacity}).");
             }
 
             if (model.EndTime <= model.StartTime)
@@ -269,6 +372,24 @@ namespace doanweb.Areas.Admin.Controllers
                 RegisteredCount = registeredCount,
                 Status = classItem.Status
             };
+        }
+
+        private static string BuildPublicScheduleReturnUrl(DateTime date, int? roomId, string? trainer)
+        {
+            var selectedDate = date == default ? DateTime.Today : date.Date;
+            var returnUrl = $"/Schedule?date={selectedDate:yyyy-MM-dd}";
+
+            if (roomId.HasValue)
+            {
+                returnUrl += $"&roomId={roomId.Value}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(trainer))
+            {
+                returnUrl += $"&trainer={Uri.EscapeDataString(trainer)}";
+            }
+
+            return returnUrl;
         }
 
         private async Task EnsureDefaultSchedulesAsync()

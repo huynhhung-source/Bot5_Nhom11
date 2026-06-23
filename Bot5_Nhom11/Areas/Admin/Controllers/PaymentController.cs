@@ -24,6 +24,38 @@ namespace doanweb.Areas.Admin.Controllers
             return !string.IsNullOrEmpty(userRole) && userRole == "Admin";
         }
 
+        [HttpGet]
+        public IActionResult ClassCheckout(int classId)
+        {
+            return RedirectToAction("ClassCheckout", "Payment", new { area = "", classId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClassCheckout(int classId, string? paymentMethod, string? transactionId, string? notes)
+        {
+            return RedirectToAction("ClassCheckout", "Payment", new { area = "", classId });
+        }
+
+        [HttpGet]
+        public IActionResult Checkout(int packageId, int? gymId = null)
+        {
+            return RedirectToAction("Checkout", "Payment", new { area = "", packageId, gymId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Checkout(int packageId, int? gymId = null, string? paymentMethod = null)
+        {
+            return RedirectToAction("Checkout", "Payment", new { area = "", packageId, gymId });
+        }
+
+        [HttpGet]
+        public IActionResult Success(int paymentId)
+        {
+            return RedirectToAction("Success", "Payment", new { area = "", paymentId });
+        }
+
         // Danh sách thanh toán
         [HttpGet]
         public async Task<IActionResult> Index(string status = "", DateTime? startDate = null, DateTime? endDate = null)

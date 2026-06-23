@@ -82,12 +82,17 @@
                             <p>
                                 <i class="fa fa-users"></i> @item.InstructorName
                                 <i class="fa fa-map-marker"></i> @item.RoomName
+                                <i class="fa fa-tag"></i> @(string.IsNullOrWhiteSpace(item.ClassType) ? "Chưa phân loại" : item.ClassType)
                                 <i class="fa fa-clock-o"></i> @item.DurationMinutes phút
+                                <i class="fa fa-info-circle"></i> @item.Status
                             </p>
                             <div class="admin-schedule-progress"><span style="width: @percent%"></span></div>
                         </div>
                         <div class="admin-schedule-count">@item.RegisteredCount/@item.Capacity</div>
                         <div class="admin-schedule-actions">
+                            <a asp-area="Admin" asp-controller="Schedule" asp-action="Details" asp-route-id="@item.ClassId" title="Danh sách khách">
+                                <i class="fa fa-list"></i>
+                            </a>
                             <a asp-area="Admin" asp-controller="Schedule" asp-action="Edit" asp-route-id="@item.ClassId" title="Sửa">
                                 <i class="fa fa-edit"></i>
                             </a>
@@ -95,6 +100,12 @@
                                 @Html.AntiForgeryToken()
                                 <button type="submit" title="Hủy">
                                     <i class="fa fa-times"></i>
+                                </button>
+                            </form>
+                            <form method="post" asp-area="Admin" asp-controller="Schedule" asp-action="Delete" asp-route-id="@item.ClassId" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" onsubmit="return confirm('Xóa giờ tập này? Chỉ xóa được khi chưa có dữ liệu đăng ký/check-in.');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Xóa">
+                                    <i class="fa fa-trash-o"></i>
                                 </button>
                             </form>
                         </div>

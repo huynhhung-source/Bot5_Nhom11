@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace doanweb.Models;
 
@@ -26,6 +27,8 @@ public sealed class AdminTrainingRoomViewModel
     public int RegisteredCount { get; init; }
     public int AvailableSlots { get; init; }
     public bool IsAvailable { get; init; }
+    public int FullClassCount { get; init; }
+    public bool IsDeletable { get; init; }
     public IReadOnlyList<AdminRoomScheduleViewModel> UpcomingClasses { get; init; } = [];
 
     public string StatusLabel => Status == "Active" ? "Đang sử dụng" : "Đã ẩn";
@@ -64,6 +67,11 @@ public sealed class TrainingRoomFormViewModel
 
     [StringLength(500)]
     public string? Description { get; set; }
+
+    [StringLength(500)]
+    public string? ExistingImageUrl { get; set; }
+
+    public IFormFile? ImageFile { get; set; }
 }
 
 public sealed class RoomScheduleFormViewModel

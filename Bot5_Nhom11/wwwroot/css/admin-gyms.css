@@ -337,7 +337,7 @@ main.main-content {
 .gym-admin-table td {
     padding: 18px;
     border-bottom: 1px solid #252527;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .gym-admin-table th {
@@ -514,6 +514,15 @@ main.main-content {
     font-weight: 700;
 }
 
+.gym-admin-schedule .gym-admin-schedule-more {
+    width: max-content;
+    margin-top: 2px;
+    padding: 5px 8px;
+    border: 1px solid #343438;
+    background: #202023;
+    color: #9aa6bd;
+}
+
 .gym-admin-featured {
     margin-top: 8px;
     background: rgba(47, 141, 246, 0.12);
@@ -549,6 +558,14 @@ main.main-content {
     background: #ff6a13;
     color: #ffffff;
     text-decoration: none;
+}
+
+.gym-admin-actions button:disabled,
+.gym-admin-actions button:disabled:hover {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: #242528;
+    color: #5f6878;
 }
 
 .gym-admin-empty {

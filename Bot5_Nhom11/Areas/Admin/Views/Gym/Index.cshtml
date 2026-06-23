@@ -31,6 +31,12 @@
             <i class="fa fa-check-circle"></i> @TempData["SuccessMessage"]
         </div>
     }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fa fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
 
     <div class="gym-admin-stats">
         <article class="gym-admin-stat">
@@ -145,6 +151,12 @@
                                                     <em>@item.RegisteredCount/@item.Capacity đăng ký, còn @item.AvailableSlots chỗ</em>
                                                 </div>
                                             }
+                                            @if (room.ClassCount > room.UpcomingClasses.Count)
+                                            {
+                                                <span class="gym-admin-schedule-more">
+                                                    +@(room.ClassCount - room.UpcomingClasses.Count) lịch học khác
+                                                </span>
+                                            }
                                         }
                                         else
                                         {
@@ -156,6 +168,10 @@
                                     <div class="gym-admin-contact">
                                         <strong>@room.RegisteredCount khách</strong>
                                         <span>@room.AvailableSlots chỗ còn lại</span>
+                                        @if (room.FullClassCount > 0)
+                                        {
+                                            <span>@room.FullClassCount lịch hết chỗ</span>
+                                        }
                                     </div>
                                 </td>
                                 <td>
@@ -173,9 +189,12 @@
                                         <a asp-area="Admin" asp-controller="Gym" asp-action="Edit" asp-route-id="@room.TrainingRoomId" title="Sửa phòng">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <a asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule" asp-route-roomId="@room.TrainingRoomId" title="Thêm lịch học">
-                                            <i class="fa fa-calendar-plus-o"></i>
-                                        </a>
+                                        @if (room.Status == "Active")
+                                        {
+                                            <a asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule" asp-route-roomId="@room.TrainingRoomId" title="Thêm lịch học">
+                                                <i class="fa fa-calendar-plus-o"></i>
+                                            </a>
+                                        }
                                         @if (room.Status == "Active")
                                         {
                                             <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Hide" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Ẩn phòng này khỏi danh sách sử dụng?');">
@@ -185,6 +204,22 @@
                                                 </button>
                                             </form>
                                         }
+                                        else
+                                        {
+                                            <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Activate" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Kích hoạt lại phòng này?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" title="Kích hoạt phòng">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Delete" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Xóa phòng tập này? Các lịch chưa có khách đăng ký trong phòng cũng sẽ bị xóa.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    title="@(room.IsDeletable ? "Xóa phòng" : "Không thể xóa phòng đã có khách đăng ký hoặc điểm danh")">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

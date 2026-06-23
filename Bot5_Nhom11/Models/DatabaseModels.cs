@@ -126,6 +126,9 @@ namespace doanweb.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
+        [StringLength(500)]
+        public string? ImageUrl { get; set; }
+
         [DataType(DataType.Date)]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

@@ -13,7 +13,7 @@
                     <h5 style="margin: 0;">Cập nhật phòng: <strong>@Model.RoomName</strong></h5>
                 </div>
                 <div class="card-body">
-                    <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Edit" asp-route-id="@Model.TrainingRoomId">
+                    <form method="post" enctype="multipart/form-data" asp-area="Admin" asp-controller="Gym" asp-action="Edit" asp-route-id="@Model.TrainingRoomId">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="TrainingRoomId" />
                         <partial name="_RoomForm" model="Model" />
@@ -34,4 +34,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('roomImageFile')?.addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('roomImagePreview').src = URL.createObjectURL(file);
+            document.getElementById('roomImagePreviewContainer').style.display = 'block';
+        });
+    </script>
 }

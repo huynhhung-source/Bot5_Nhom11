@@ -20,7 +20,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="mb-3">
             <label asp-for="TrainingRoomId" class="form-label">Phòng tập *</label>
             <select asp-for="TrainingRoomId" asp-items="ViewBag.Rooms" class="form-control">
@@ -29,13 +29,20 @@
             <span asp-validation-for="TrainingRoomId" class="text-danger small"></span>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="mb-3">
+            <label asp-for="MaxCapacity" class="form-label">Số lượng tối đa *</label>
+            <input asp-for="MaxCapacity" type="number" min="1" class="form-control" />
+            <span asp-validation-for="MaxCapacity" class="text-danger small"></span>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="mb-3">
             <label asp-for="ClassType" class="form-label">Loại lớp</label>
             <input asp-for="ClassType" class="form-control" placeholder="Yoga, Boxing, Gym..." />
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="mb-3">
             <label asp-for="Level" class="form-label">Cấp độ</label>
             <input asp-for="Level" class="form-control" placeholder="Beginner, Advanced..." />

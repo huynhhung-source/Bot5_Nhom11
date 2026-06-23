@@ -1,0 +1,106 @@
+@model AdminScheduleDetailsViewModel
+
+@{
+    ViewData["Title"] = "Chi Tiết Giờ Tập";
+    ViewData["AdminPageTitle"] = "Chi Tiết Giờ Tập";
+    var item = Model.ClassInfo;
+}
+
+<section class="admin-schedule-page">
+    <div class="admin-schedule-header">
+        <div>
+            <h1>@item.ClassName</h1>
+            <p style="margin: 6px 0 0; color: #8190aa;">
+                @item.ClassDate.ToString("dd/MM/yyyy") · @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+            </p>
+        </div>
+        <a asp-area="Admin" asp-controller="Schedule" asp-action="Index" asp-route-date="@item.ClassDate.ToString("yyyy-MM-dd")" class="admin-schedule-add">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    <div class="admin-schedule-stats">
+        <article><strong>@item.RegisteredCount</strong><span>Khách đăng ký</span></article>
+        <article><strong>@item.AvailableSlots</strong><span>Chỗ còn lại</span></article>
+        <article><strong>@item.Capacity</strong><span>Số lượng tối đa</span></article>
+        <article><strong>@Model.CheckedInCount</strong><span>Đã check-in</span></article>
+    </div>
+
+    <div class="admin-schedule-panel">
+        <div class="admin-schedule-current">
+            <h2>Thông tin giờ tập</h2>
+            <span>@item.Status</span>
+        </div>
+        <div style="padding: 22px 28px; color: #d7deec;">
+            <p><strong>Phòng tập:</strong> @item.RoomName</p>
+            <p><strong>Loại hình tập:</strong> @(string.IsNullOrWhiteSpace(item.ClassType) ? "Chưa phân loại" : item.ClassType)</p>
+            <p><strong>Huấn luyện viên:</strong> @item.InstructorName</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p><strong>Mô tả:</strong> @Model.Description</p>
+            }
+        </div>
+    </div>
+
+    <div class="admin-schedule-panel" style="margin-top: 22px;">
+        <div class="admin-schedule-current">
+            <h2>Danh sách khách đã đặt lịch</h2>
+            <span>@Model.Enrollments.Count khách</span>
+        </div>
+
+        @if (!Model.Enrollments.Any())
+        {
+            <div class="admin-schedule-empty">Chưa có khách đăng ký giờ tập này.</div>
+        }
+        else
+        {
+            <div class="admin-schedule-list">
+                @foreach (var booking in Model.Enrollments)
+                {
+                    <article class="admin-schedule-row" style="grid-template-columns: minmax(0, 1fr) 160px 150px 130px;">
+                        <div class="admin-schedule-info">
+                            <h3>@booking.MemberName</h3>
+                            <p>
+                                <i class="fa fa-phone"></i> @booking.MemberPhone
+                                <i class="fa fa-envelope"></i> @booking.MemberEmail
+                            </p>
+                        </div>
+                        <div class="admin-schedule-count">@booking.EnrollmentDate.ToString("dd/MM/yyyy HH:mm")</div>
+                        <div class="admin-schedule-count">@booking.Status</div>
+                        <div class="admin-schedule-count">
+                            @if (booking.HasCheckedIn)
+                            {
+                                <span>Đã check-in</span>
+                            }
+                            else
+                            {
+                                <span>Chưa check-in</span>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    .admin-schedule-page { padding: 28px; min-height: calc(100vh - 70px); background: #0b0b0c; color: #fff; }
+    .admin-schedule-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 18px; }
+    .admin-schedule-header h1 { margin: 0; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 30px; }
+    .admin-schedule-add { background: #f36100; color: #fff; padding: 12px 18px; font-weight: 800; text-decoration: none; }
+    .admin-schedule-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .admin-schedule-stats article { background: #181819; border: 1px solid #29292c; padding: 22px; }
+    .admin-schedule-stats strong { display: block; color: #f36100; font-family: Oswald, sans-serif; font-size: 30px; }
+    .admin-schedule-stats span, .admin-schedule-count { color: #8190aa; }
+    .admin-schedule-panel { background: #171718; border: 1px solid #29292c; }
+    .admin-schedule-current { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid #29292c; }
+    .admin-schedule-current h2 { margin: 0; font-family: Oswald, sans-serif; font-size: 24px; }
+    .admin-schedule-current span { margin-left: auto; color: #8996ad; }
+    .admin-schedule-row { display: grid; gap: 18px; align-items: center; padding: 20px 28px; border-bottom: 1px solid #29292c; }
+    .admin-schedule-info h3 { margin: 0 0 8px; font-size: 19px; }
+    .admin-schedule-info p { color: #8190aa; margin: 0; }
+    .admin-schedule-info i { margin-left: 10px; margin-right: 4px; color: #f36100; }
+    .admin-schedule-empty { padding: 80px 28px; color: #8190aa; text-align: center; }
+    @@media (max-width: 900px) { .admin-schedule-stats, .admin-schedule-row { grid-template-columns: 1fr !important; } .admin-schedule-header { align-items: flex-start; flex-direction: column; } }
+</style>

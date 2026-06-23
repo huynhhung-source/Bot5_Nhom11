@@ -51,4 +51,36 @@ namespace doanweb.Models
 
         public bool IsGymCheckout => GymId.HasValue;
     }
+
+    public class ClassPaymentViewModel
+    {
+        public int ClassId { get; set; }
+        public string ClassName { get; set; } = string.Empty;
+        public string ClassType { get; set; } = string.Empty;
+        public DateTime ClassDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public string RoomName { get; set; } = string.Empty;
+        public string InstructorName { get; set; } = string.Empty;
+        public int Capacity { get; set; }
+        public int RegisteredCount { get; set; }
+        public int AvailableSlots => Math.Max(0, Capacity - RegisteredCount);
+        public string Status { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+
+        public int UserId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
+        [StringLength(50)]
+        public string PaymentMethod { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? TransactionId { get; set; }
+
+        [StringLength(500)]
+        public string? Notes { get; set; }
+    }
 }

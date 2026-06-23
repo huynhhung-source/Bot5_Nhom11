@@ -30,7 +30,7 @@ namespace doanweb.Controllers
                 if (package == null || package.Status != "Active")
                 {
                     TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc không hợp lệ";
-                    return RedirectToAction("Detail", "Packages", new { id = packageId });
+                    return RedirectToAction("Detail", "Packages", new { area = "", id = packageId });
                 }
 
                 var model = new PaymentViewModel
@@ -49,8 +49,123 @@ namespace doanweb.Controllers
             {
                 _logger.LogError($"Error in Checkout GET: {ex.Message}\n{ex.StackTrace}");
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi tải trang thanh toán";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ClassCheckout(int classId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = await BuildClassScheduleReturnUrlAsync(classId) });
+            }
+
+            var validationResult = await ValidateClassCheckoutAsync(userId.Value, classId);
+            if (!validationResult.IsValid)
+            {
+                TempData["ErrorMessage"] = validationResult.Message;
+                return RedirectToAction("Index", "Schedule", new { area = "", date = validationResult.ClassDate?.ToString("yyyy-MM-dd") });
+            }
+
+            return View(await BuildClassPaymentViewModelAsync(validationResult.ClassItem!, userId.Value));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClassCheckout(int classId, string paymentMethod, string? transactionId, string? notes)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = await BuildClassScheduleReturnUrlAsync(classId) });
+            }
+
+            if (string.IsNullOrWhiteSpace(paymentMethod))
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn phương thức thanh toán.";
+                return RedirectToAction(nameof(ClassCheckout), new { area = "", classId });
+            }
+
+            var validationResult = await ValidateClassCheckoutAsync(userId.Value, classId);
+            if (!validationResult.IsValid)
+            {
+                TempData["ErrorMessage"] = validationResult.Message;
+                return RedirectToAction("Index", "Schedule", new { area = "", date = validationResult.ClassDate?.ToString("yyyy-MM-dd") });
+            }
+
+            var classItem = validationResult.ClassItem!;
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                var registeredCount = classItem.Enrollments?.Count(e => e.Status != "Cancelled") ?? classItem.CurrentEnrollment;
+                if (registeredCount >= classItem.MaxCapacity)
+                {
+                    TempData["ErrorMessage"] = "Giờ tập vừa hết chỗ, vui lòng chọn giờ khác.";
+                    return RedirectToAction("Index", "Schedule", new { area = "", date = classItem.ClassDate.ToString("yyyy-MM-dd") });
+                }
+
+                var price = CalculateClassPrice(classItem);
+                var payment = new Payment
+                {
+                    UserId = userId.Value,
+                    Amount = price,
+                    PaymentDate = DateTime.Now,
+                    PaymentMethod = paymentMethod.Trim(),
+                    TransactionId = TrimTo(transactionId, 100),
+                    Status = "Success",
+                    Description = TrimTo($"Thanh toán giờ tập {classItem.ClassName} ngày {classItem.ClassDate:dd/MM/yyyy}", 500),
+                    Notes = TrimTo(notes, 255)
+                };
+
+                _dbContext.Payments.Add(payment);
+
+                _dbContext.ClassEnrollments.Add(new ClassEnrollment
+                {
+                    UserId = userId.Value,
+                    ClassId = classId,
+                    EnrollmentDate = DateTime.Now,
+                    Status = "Enrolled"
+                });
+
+                classItem.CurrentEnrollment = registeredCount + 1;
+
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return RedirectToAction(nameof(ClassPaymentSuccess), new { area = "", paymentId = payment.PaymentId });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Class checkout failed: classId={ClassId}, userId={UserId}", classId, userId.Value);
+                TempData["ErrorMessage"] = "Thanh toán thất bại, vui lòng thử lại.";
+                return RedirectToAction(nameof(ClassCheckout), new { area = "", classId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ClassPaymentSuccess(int paymentId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account", new { area = "Customer" });
+            }
+
+            var payment = await _dbContext.Payments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.UserId == userId.Value);
+            if (payment == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy thông tin thanh toán.";
+                return RedirectToAction("Index", "Schedule", new { area = "" });
+            }
+
+            ViewBag.Payment = payment;
+            return View();
         }
 
         // POST: Xử lý thanh toán
@@ -90,14 +205,14 @@ namespace doanweb.Controllers
                 {
                     _logger.LogWarning($"Package {packageId} not found or inactive");
                     TempData["ErrorMessage"] = "Gói tập không tồn tại hoặc không khả dụng";
-                    return RedirectToAction("Detail", "Packages", new { id = packageId });
+                    return RedirectToAction("Detail", "Packages", new { area = "", id = packageId });
                 }
 
                 if (string.IsNullOrEmpty(paymentMethod))
                 {
                     _logger.LogWarning("No payment method selected");
                     TempData["ErrorMessage"] = "Vui lòng chọn phương thức thanh toán";
-                    return RedirectToAction("Checkout", new { packageId, gymId });
+                    return RedirectToAction("Checkout", new { area = "", packageId, gymId });
                 }
 
                 var gymContext = ResolveGymContext(gymId, gymName, className, instructorName, gymAddress, gymHours);
@@ -150,14 +265,125 @@ namespace doanweb.Controllers
             {
                 _logger.LogError($"Database error in Checkout POST: {dbEx.Message}\n{dbEx.InnerException?.Message}");
                 TempData["ErrorMessage"] = "Lỗi cơ sở dữ liệu khi xử lý thanh toán";
-                return RedirectToAction("Checkout", new { packageId, gymId });
+                return RedirectToAction("Checkout", new { area = "", packageId, gymId });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error in Checkout POST: {ex.Message}\n{ex.StackTrace}");
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xử lý thanh toán: " + ex.Message;
-                return RedirectToAction("Checkout", new { packageId, gymId });
+                return RedirectToAction("Checkout", new { area = "", packageId, gymId });
             }
+        }
+
+        private async Task<(bool IsValid, string Message, Class? ClassItem, DateTime? ClassDate)> ValidateClassCheckoutAsync(int userId, int classId)
+        {
+            var classItem = await _dbContext.Classes
+                .Include(c => c.TrainingRoom)
+                .Include(c => c.Enrollments)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
+            if (classItem == null)
+            {
+                return (false, "Giờ tập không tồn tại.", null, null);
+            }
+
+            if (classItem.TrainingRoom == null || classItem.TrainingRoom.Status != "Active")
+            {
+                return (false, "Phòng tập của giờ tập này hiện không hoạt động.", classItem, classItem.ClassDate);
+            }
+
+            if (!IsClassRegistrationOpen(classItem))
+            {
+                return (false, "Giờ tập hiện không mở đăng ký.", classItem, classItem.ClassDate);
+            }
+
+            var registeredCount = classItem.Enrollments?.Count(e => e.Status != "Cancelled") ?? classItem.CurrentEnrollment;
+            if (registeredCount >= classItem.MaxCapacity)
+            {
+                return (false, "Giờ tập đã đủ chỗ.", classItem, classItem.ClassDate);
+            }
+
+            var existingBooking = await _dbContext.ClassEnrollments
+                .AnyAsync(e => e.UserId == userId && e.ClassId == classId && e.Status != "Cancelled");
+            if (existingBooking)
+            {
+                return (false, "Bạn đã đặt giờ tập này rồi.", classItem, classItem.ClassDate);
+            }
+
+            var hasConflict = await _dbContext.ClassEnrollments
+                .Include(e => e.Class)
+                .AnyAsync(e =>
+                    e.UserId == userId &&
+                    e.Status != "Cancelled" &&
+                    e.ClassId != classId &&
+                    e.Class.ClassDate.Date == classItem.ClassDate.Date &&
+                    classItem.StartTime < e.Class.EndTime &&
+                    classItem.EndTime > e.Class.StartTime);
+            if (hasConflict)
+            {
+                return (false, "Bạn đã có giờ tập khác trùng thời gian.", classItem, classItem.ClassDate);
+            }
+
+            return (true, string.Empty, classItem, classItem.ClassDate);
+        }
+
+        private async Task<string> BuildClassScheduleReturnUrlAsync(int classId)
+        {
+            var classDate = await _dbContext.Classes
+                .AsNoTracking()
+                .Where(c => c.ClassId == classId)
+                .Select(c => (DateTime?)c.ClassDate)
+                .FirstOrDefaultAsync();
+
+            return classDate.HasValue
+                ? $"/Schedule?date={classDate.Value:yyyy-MM-dd}"
+                : "/Schedule";
+        }
+
+        private async Task<ClassPaymentViewModel> BuildClassPaymentViewModelAsync(Class classItem, int userId)
+        {
+            var user = await _dbContext.Users.AsNoTracking().FirstAsync(u => u.UserId == userId);
+            var registeredCount = classItem.Enrollments?.Count(e => e.Status != "Cancelled") ?? classItem.CurrentEnrollment;
+
+            return new ClassPaymentViewModel
+            {
+                ClassId = classItem.ClassId,
+                ClassName = classItem.ClassName,
+                ClassType = classItem.ClassType ?? string.Empty,
+                ClassDate = classItem.ClassDate,
+                StartTime = classItem.StartTime,
+                EndTime = classItem.EndTime,
+                RoomName = classItem.TrainingRoom?.RoomName ?? classItem.Location ?? "Chưa có phòng",
+                InstructorName = classItem.InstructorName,
+                Capacity = classItem.MaxCapacity,
+                RegisteredCount = registeredCount,
+                Status = classItem.Status,
+                Price = CalculateClassPrice(classItem),
+                UserId = user.UserId,
+                CustomerName = user.FullName,
+                CustomerEmail = user.Email,
+                CustomerPhone = user.PhoneNumber
+            };
+        }
+
+        private static bool IsClassRegistrationOpen(Class classItem)
+        {
+            return classItem.Status == "Scheduled" &&
+                (classItem.ClassDate.Date > DateTime.Today ||
+                    (classItem.ClassDate.Date == DateTime.Today && classItem.EndTime > DateTime.Now.TimeOfDay));
+        }
+
+        private static decimal CalculateClassPrice(Class classItem)
+        {
+            return (classItem.ClassType ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
+                "personal training" => 250000,
+                "boxing" => 150000,
+                "yoga" => 120000,
+                "pilates" => 120000,
+                "zumba" => 100000,
+                _ => 100000
+            };
         }
 
         private void AddGymContext(PaymentViewModel model, int? gymId)

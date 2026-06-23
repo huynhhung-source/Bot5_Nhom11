@@ -33,3 +33,26 @@
     <textarea asp-for="Description" rows="4" class="form-control" placeholder="Nhập mô tả phòng, thiết bị hoặc lưu ý vận hành"></textarea>
     <span asp-validation-for="Description" class="text-danger small"></span>
 </div>
+
+<div class="mb-3">
+    <label asp-for="ImageFile" class="form-label">
+        Ảnh phòng tập @(Model.TrainingRoomId == 0 ? "*" : "")
+    </label>
+    <input asp-for="ImageFile"
+           id="roomImageFile"
+           type="file"
+           class="form-control"
+           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+    <span asp-validation-for="ImageFile" class="text-danger small"></span>
+    <small class="form-text text-muted">Chấp nhận JPG, PNG hoặc WebP, tối đa 5MB.</small>
+</div>
+
+<div class="mb-3" id="roomImagePreviewContainer" style="@(string.IsNullOrWhiteSpace(Model.ExistingImageUrl) ? "display:none;" : "")">
+    <label class="form-label">Xem trước ảnh</label>
+    <div>
+        <img id="roomImagePreview"
+             src="@(Model.ExistingImageUrl ?? "")"
+             alt="Ảnh phòng tập"
+             style="width: 100%; max-width: 520px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid #f36100;" />
+    </div>
+</div>

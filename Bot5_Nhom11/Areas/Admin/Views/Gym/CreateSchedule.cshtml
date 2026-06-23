@@ -13,6 +13,13 @@
                     <h5 style="margin: 0;">Thêm lịch học trong phòng</h5>
                 </div>
                 <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle"></i> @TempData["SuccessMessage"]
+                        </div>
+                    }
+
                     <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
