@@ -15,4 +15,4 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://0.0.0.0:10000
 EXPOSE 10000
 
-ENTRYPOINT ["dotnet", "Bot5_Nhom11.dll"]
+ENTRYPOINT ["dotnet", "doanweb.dll"]
