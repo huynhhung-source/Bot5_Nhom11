@@ -17,6 +17,19 @@ namespace doanweb.Models
         public IReadOnlyList<string> Skills { get; set; } = Array.Empty<string>();
         public IReadOnlyList<string> Certificates { get; set; } = Array.Empty<string>();
         public IReadOnlyList<TrainerScheduleViewModel> Schedule { get; set; } = Array.Empty<TrainerScheduleViewModel>();
+        public IReadOnlyList<TrainerBookableClassViewModel> BookableClasses { get; set; } = Array.Empty<TrainerBookableClassViewModel>();
+    }
+
+    public class TrainerBookableClassViewModel
+    {
+        public int ClassId { get; set; }
+        public int RoomId { get; set; }
+        public string RoomName { get; set; } = "";
+        public string ClassName { get; set; } = "";
+        public DateTime ClassDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public int AvailableSlots { get; set; }
     }
 
     public class TrainerScheduleViewModel

@@ -42,14 +42,18 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label asp-for="InstructorName" class="form-label">Huấn luyện viên *</label>
-                                    <input asp-for="InstructorName" class="form-control" />
+                                    <select asp-for="InstructorName" asp-items="ViewBag.Trainers" class="form-control">
+                                        <option value="">-- Chọn huấn luyện viên --</option>
+                                    </select>
                                     <span asp-validation-for="InstructorName" class="text-danger small"></span>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label asp-for="ClassType" class="form-label">Loại lớp</label>
-                                    <input asp-for="ClassType" class="form-control" placeholder="Gym, Yoga, Boxing..." />
+                                    <select asp-for="ClassType" asp-items="ViewBag.ClassTypes" class="form-control">
+                                        <option value="">-- Chọn loại lớp --</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -58,13 +62,15 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label asp-for="ClassDate" class="form-label">Ngày học *</label>
-                                    <input asp-for="ClassDate" type="date" class="form-control" />
+                                    <input asp-for="ClassDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" />
+                                    <span asp-validation-for="ClassDate" class="text-danger small"></span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label asp-for="StartTime" class="form-label">Giờ bắt đầu *</label>
                                     <input asp-for="StartTime" type="time" class="form-control" />
+                                    <span asp-validation-for="StartTime" class="text-danger small"></span>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -78,7 +84,9 @@
 
                         <div class="mb-3">
                             <label asp-for="Level" class="form-label">Cấp độ</label>
-                            <input asp-for="Level" class="form-control" placeholder="Beginner, Intermediate, Advanced" />
+                            <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control">
+                                <option value="">-- Chọn cấp độ --</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">

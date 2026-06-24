@@ -40,7 +40,50 @@ namespace doanweb.Controllers
         public async Task<IActionResult> TrainerDetail(int id)
         {
             var trainer = await _staffDirectoryService.GetTrainerViewModelAsync(id);
-            return trainer is null ? NotFound() : View(trainer);
+            if (trainer is null)
+            {
+                return NotFound();
+            }
+
+            var now = DateTime.Now;
+            var bookableClasses = await _dbContext.Classes
+                .AsNoTracking()
+                .Include(c => c.TrainingRoom)
+                .Include(c => c.Enrollments)
+                .Where(c =>
+                    c.InstructorName == trainer.Name &&
+                    c.TrainingRoom != null &&
+                    c.TrainingRoom.Status == "Active" &&
+                    c.Status != "Cancelled" &&
+                    c.Status != "Completed" &&
+                    (c.ClassDate.Date > now.Date ||
+                        (c.ClassDate.Date == now.Date && c.StartTime > now.TimeOfDay)))
+                .OrderBy(c => c.ClassDate)
+                .ThenBy(c => c.StartTime)
+                .ToListAsync();
+
+            trainer.BookableClasses = bookableClasses
+                .Select(c =>
+                {
+                    var registeredCount = c.Enrollments?.Count(e => e.Status != "Cancelled")
+                        ?? c.CurrentEnrollment;
+
+                    return new TrainerBookableClassViewModel
+                    {
+                        ClassId = c.ClassId,
+                        RoomId = c.TrainingRoomId!.Value,
+                        RoomName = c.TrainingRoom!.RoomName,
+                        ClassName = c.ClassName,
+                        ClassDate = c.ClassDate,
+                        StartTime = c.StartTime,
+                        EndTime = c.EndTime,
+                        AvailableSlots = Math.Max(0, c.MaxCapacity - registeredCount)
+                    };
+                })
+                .Where(c => c.AvailableSlots > 0)
+                .ToList();
+
+            return View(trainer);
         }
 
         public IActionResult OnlinePackages()
@@ -75,9 +118,10 @@ namespace doanweb.Controllers
                     .ToList();
 
                 var bookableClass = displayedClasses.FirstOrDefault(classItem =>
-                    classItem.Status == "Scheduled" &&
+                    classItem.Status != "Cancelled" &&
+                    classItem.Status != "Completed" &&
                     (classItem.ClassDate.Date > DateTime.Today ||
-                        (classItem.ClassDate.Date == DateTime.Today && classItem.EndTime > DateTime.Now.TimeOfDay)));
+                        (classItem.ClassDate.Date == DateTime.Today && classItem.StartTime > DateTime.Now.TimeOfDay)));
                 var displayedClass = bookableClass ?? displayedClasses.FirstOrDefault();
 
                 var availableSlots = displayedClasses.Count > 0

@@ -59,7 +59,7 @@ namespace doanweb.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
             {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = await BuildClassScheduleReturnUrlAsync(classId) });
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = BuildClassCheckoutReturnUrl(classId) });
             }
 
             var validationResult = await ValidateClassCheckoutAsync(userId.Value, classId);
@@ -79,7 +79,7 @@ namespace doanweb.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
             {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = await BuildClassScheduleReturnUrlAsync(classId) });
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = BuildClassCheckoutReturnUrl(classId) });
             }
 
             if (string.IsNullOrWhiteSpace(paymentMethod))
@@ -108,13 +108,17 @@ namespace doanweb.Controllers
                 }
 
                 var price = CalculateClassPrice(classItem);
+                var paymentTransactionId = BuildClassTransactionId(
+                    transactionId,
+                    classId,
+                    userId.Value);
                 var payment = new Payment
                 {
                     UserId = userId.Value,
                     Amount = price,
                     PaymentDate = DateTime.Now,
                     PaymentMethod = paymentMethod.Trim(),
-                    TransactionId = TrimTo(transactionId, 100),
+                    TransactionId = paymentTransactionId,
                     Status = "Success",
                     Description = TrimTo($"Thanh toán giờ tập {classItem.ClassName} ngày {classItem.ClassDate:dd/MM/yyyy}", 500),
                     Notes = TrimTo(notes, 255)
@@ -135,13 +139,27 @@ namespace doanweb.Controllers
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return RedirectToAction(nameof(ClassPaymentSuccess), new { area = "", paymentId = payment.PaymentId });
+                TempData["SuccessMessage"] = $"Thanh toán và đặt lịch {classItem.ClassName} thành công.";
+                return RedirectToAction("MySchedule", "Schedule", new { area = "" });
+            }
+            catch (DbUpdateException ex)
+            {
+                await transaction.RollbackAsync();
+                var databaseMessage = ex.GetBaseException().Message;
+                _logger.LogError(
+                    ex,
+                    "Class checkout database error: classId={ClassId}, userId={UserId}, error={DatabaseError}",
+                    classId,
+                    userId.Value,
+                    databaseMessage);
+                TempData["ErrorMessage"] = BuildClassPaymentErrorMessage(databaseMessage);
+                return RedirectToAction(nameof(ClassCheckout), new { area = "", classId });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Class checkout failed: classId={ClassId}, userId={UserId}", classId, userId.Value);
-                TempData["ErrorMessage"] = "Thanh toán thất bại, vui lòng thử lại.";
+                TempData["ErrorMessage"] = $"Thanh toán thất bại: {ex.GetBaseException().Message}";
                 return RedirectToAction(nameof(ClassCheckout), new { area = "", classId });
             }
         }
@@ -327,17 +345,9 @@ namespace doanweb.Controllers
             return (true, string.Empty, classItem, classItem.ClassDate);
         }
 
-        private async Task<string> BuildClassScheduleReturnUrlAsync(int classId)
+        private static string BuildClassCheckoutReturnUrl(int classId)
         {
-            var classDate = await _dbContext.Classes
-                .AsNoTracking()
-                .Where(c => c.ClassId == classId)
-                .Select(c => (DateTime?)c.ClassDate)
-                .FirstOrDefaultAsync();
-
-            return classDate.HasValue
-                ? $"/Schedule?date={classDate.Value:yyyy-MM-dd}"
-                : "/Schedule";
+            return $"/Payment/ClassCheckout?classId={classId}";
         }
 
         private async Task<ClassPaymentViewModel> BuildClassPaymentViewModelAsync(Class classItem, int userId)
@@ -368,9 +378,10 @@ namespace doanweb.Controllers
 
         private static bool IsClassRegistrationOpen(Class classItem)
         {
-            return classItem.Status == "Scheduled" &&
+            return classItem.Status != "Cancelled" &&
+                classItem.Status != "Completed" &&
                 (classItem.ClassDate.Date > DateTime.Today ||
-                    (classItem.ClassDate.Date == DateTime.Today && classItem.EndTime > DateTime.Now.TimeOfDay));
+                    (classItem.ClassDate.Date == DateTime.Today && classItem.StartTime > DateTime.Now.TimeOfDay));
         }
 
         private static decimal CalculateClassPrice(Class classItem)
@@ -384,6 +395,40 @@ namespace doanweb.Controllers
                 "zumba" => 100000,
                 _ => 100000
             };
+        }
+
+        private static string BuildClassTransactionId(string? transactionId, int classId, int userId)
+        {
+            var suppliedId = TrimTo(transactionId, 100);
+            if (!string.IsNullOrWhiteSpace(suppliedId))
+            {
+                return suppliedId;
+            }
+
+            var generatedId = $"CLASS-{classId}-{userId}-{DateTime.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}";
+            return generatedId.Length <= 100 ? generatedId : generatedId[..100];
+        }
+
+        private static string BuildClassPaymentErrorMessage(string databaseMessage)
+        {
+            if (databaseMessage.Contains("IX_Payments_TransactionId", StringComparison.OrdinalIgnoreCase) ||
+                databaseMessage.Contains("duplicate key", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Mã giao dịch đã được sử dụng. Vui lòng nhập mã khác hoặc để trống để hệ thống tự tạo.";
+            }
+
+            if (databaseMessage.Contains("SubscriptionId", StringComparison.OrdinalIgnoreCase) &&
+                databaseMessage.Contains("Invalid column", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Cơ sở dữ liệu thanh toán chưa được cập nhật. Vui lòng chạy migration mới nhất.";
+            }
+
+            if (databaseMessage.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Dữ liệu khách hàng hoặc giờ tập không còn hợp lệ. Vui lòng tải lại trang và thử lại.";
+            }
+
+            return $"Không thể lưu thanh toán: {databaseMessage}";
         }
 
         private void AddGymContext(PaymentViewModel model, int? gymId)

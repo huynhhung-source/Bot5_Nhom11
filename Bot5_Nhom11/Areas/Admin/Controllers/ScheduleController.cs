@@ -1,5 +1,6 @@
 using doanweb.Data;
 using doanweb.Models;
+using doanweb.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,43 @@ namespace doanweb.Areas.Admin.Controllers
     [Area("Admin")]
     public class ScheduleController : Controller
     {
-        private readonly GymDbContext _dbContext;
+        private static readonly string[] DefaultTrainerNames =
+        [
+            "Nguyễn Thị Mai",
+            "Trần Văn Hùng",
+            "Phạm Văn Đức",
+            "Lê Thị Hoa",
+            "Hoang Minh"
+        ];
 
-        public ScheduleController(GymDbContext dbContext)
+        private static readonly string[] ClassTypes =
+        [
+            "Gym",
+            "Yoga",
+            "Boxing",
+            "Pilates",
+            "Zumba",
+            "Cardio",
+            "Strength",
+            "HIIT",
+            "Personal Training"
+        ];
+
+        private static readonly string[] ClassLevels =
+        [
+            "Beginner",
+            "Intermediate",
+            "Advanced",
+            "All levels"
+        ];
+
+        private readonly GymDbContext _dbContext;
+        private readonly IStaffDirectoryService _staffDirectoryService;
+
+        public ScheduleController(GymDbContext dbContext, IStaffDirectoryService staffDirectoryService)
         {
             _dbContext = dbContext;
+            _staffDirectoryService = staffDirectoryService;
         }
 
         private bool IsAdmin()
@@ -129,8 +162,15 @@ namespace doanweb.Areas.Admin.Controllers
                 return RedirectToAction("Login", "Account", new { area = "Customer" });
             }
 
+            var suggestedStart = GetSuggestedScheduleStart();
             await LoadRoomsAsync();
-            return View(new AdminScheduleFormViewModel());
+            await LoadScheduleOptionsAsync();
+            return View(new AdminScheduleFormViewModel
+            {
+                ClassDate = suggestedStart.Date,
+                StartTime = suggestedStart.TimeOfDay,
+                EndTime = suggestedStart.AddHours(1).TimeOfDay
+            });
         }
 
         [HttpPost]
@@ -146,6 +186,7 @@ namespace doanweb.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadRoomsAsync(model.TrainingRoomId);
+                await LoadScheduleOptionsAsync(model.InstructorName, model.ClassType, model.Level);
                 return View(model);
             }
 
@@ -163,7 +204,7 @@ namespace doanweb.Areas.Admin.Controllers
                 Location = room!.RoomName,
                 MaxCapacity = model.MaxCapacity,
                 CurrentEnrollment = 0,
-                Status = model.Status,
+                Status = "Scheduled",
                 CreatedDate = DateTime.Now
             });
 
@@ -187,6 +228,7 @@ namespace doanweb.Areas.Admin.Controllers
             }
 
             await LoadRoomsAsync(classItem.TrainingRoomId);
+            await LoadScheduleOptionsAsync(classItem.InstructorName, classItem.ClassType, classItem.Level);
             return View(new AdminScheduleFormViewModel
             {
                 ClassId = classItem.ClassId,
@@ -222,6 +264,7 @@ namespace doanweb.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadRoomsAsync(model.TrainingRoomId);
+                await LoadScheduleOptionsAsync(model.InstructorName, model.ClassType, model.Level);
                 return View(model);
             }
 
@@ -238,6 +281,7 @@ namespace doanweb.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(nameof(model.MaxCapacity), $"Số lượng tối đa không được nhỏ hơn {registeredCount} khách đã đăng ký.");
                 await LoadRoomsAsync(model.TrainingRoomId);
+                await LoadScheduleOptionsAsync(model.InstructorName, model.ClassType, model.Level);
                 return View(model);
             }
 
@@ -252,7 +296,12 @@ namespace doanweb.Areas.Admin.Controllers
             classItem.EndTime = model.EndTime;
             classItem.Location = room.RoomName;
             classItem.MaxCapacity = model.MaxCapacity;
-            classItem.Status = model.Status;
+            var scheduledStart = model.ClassDate.Date.Add(model.StartTime);
+            classItem.Status = model.Status == "Cancelled"
+                ? "Cancelled"
+                : scheduledStart > DateTime.Now
+                    ? "Scheduled"
+                    : model.Status;
 
             await _dbContext.SaveChangesAsync();
             TempData["SuccessMessage"] = "Đã cập nhật giờ tập.";
@@ -328,6 +377,12 @@ namespace doanweb.Areas.Admin.Controllers
                 ModelState.AddModelError(nameof(model.EndTime), "Giờ kết thúc phải sau giờ bắt đầu.");
             }
 
+            var scheduledStart = model.ClassDate.Date.Add(model.StartTime);
+            if (scheduledStart <= DateTime.Now)
+            {
+                ModelState.AddModelError(nameof(model.StartTime), "Giờ bắt đầu phải lớn hơn thời điểm hiện tại.");
+            }
+
             var isBusy = await _dbContext.Classes.AnyAsync(c =>
                 c.ClassId != currentClassId &&
                 c.TrainingRoomId == model.TrainingRoomId &&
@@ -344,6 +399,15 @@ namespace doanweb.Areas.Admin.Controllers
             return room;
         }
 
+        private static DateTime GetSuggestedScheduleStart()
+        {
+            var now = DateTime.Now;
+            var nextHour = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
+            return nextHour.Hour >= 22
+                ? nextHour.Date.AddDays(1).AddHours(7)
+                : nextHour;
+        }
+
         private async Task LoadRoomsAsync(int? selectedRoomId = null)
         {
             var rooms = await _dbContext.TrainingRooms
@@ -353,6 +417,44 @@ namespace doanweb.Areas.Admin.Controllers
                 .ToListAsync();
 
             ViewBag.Rooms = new SelectList(rooms, "TrainingRoomId", "RoomName", selectedRoomId);
+        }
+
+        private async Task LoadScheduleOptionsAsync(string? selectedTrainer = null, string? selectedClassType = null, string? selectedLevel = null)
+        {
+            var trainerNames = (await _staffDirectoryService.GetStaffMembersAsync())
+                .Where(s => s.PositionKind == "trainer" && s.StatusKind == "active")
+                .Select(s => s.FullName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name)
+                .ToList();
+
+            if (!trainerNames.Any())
+            {
+                trainerNames.AddRange(DefaultTrainerNames);
+            }
+
+            AddSelectedOption(trainerNames, selectedTrainer);
+
+            ViewBag.Trainers = new SelectList(trainerNames, selectedTrainer);
+            ViewBag.ClassTypes = new SelectList(WithSelectedOption(ClassTypes, selectedClassType), selectedClassType);
+            ViewBag.Levels = new SelectList(WithSelectedOption(ClassLevels, selectedLevel), selectedLevel);
+        }
+
+        private static List<string> WithSelectedOption(IEnumerable<string> options, string? selectedValue)
+        {
+            var list = options.ToList();
+            AddSelectedOption(list, selectedValue);
+            return list;
+        }
+
+        private static void AddSelectedOption(ICollection<string> options, string? selectedValue)
+        {
+            if (!string.IsNullOrWhiteSpace(selectedValue) &&
+                !options.Any(option => option.Equals(selectedValue, StringComparison.OrdinalIgnoreCase)))
+            {
+                options.Add(selectedValue);
+            }
         }
 
         private static WorkoutClassCardViewModel MapClass(Class classItem)

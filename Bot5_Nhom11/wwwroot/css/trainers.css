@@ -1081,6 +1081,28 @@ body.booking-modal-open {
     display: block;
 }
 
+.booking-room-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 0 14px;
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+}
+
+.booking-room-field i {
+    color: #f36100;
+}
+
+.booking-room-field select {
+    width: 100%;
+    min-height: 50px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+}
+
 .booking-confirm-table {
     border: 1px solid #303030;
 }

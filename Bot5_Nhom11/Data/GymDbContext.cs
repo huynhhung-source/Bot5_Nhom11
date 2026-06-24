@@ -134,7 +134,8 @@ namespace doanweb.Data
 
             modelBuilder.Entity<Payment>()
                 .HasIndex(p => p.TransactionId)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[TransactionId] IS NOT NULL");
 
             modelBuilder.Entity<Class>()
                 .HasIndex(c => c.ClassDate);

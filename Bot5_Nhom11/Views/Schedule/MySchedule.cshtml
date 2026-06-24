@@ -11,7 +11,7 @@
                 <span>GymPro</span>
                 <h1>Lịch tập cá nhân</h1>
             </div>
-            <a asp-controller="Schedule" asp-action="Index">
+            <a href="/Schedule">
                 <i class="fa fa-calendar-plus-o"></i> Xem giờ tập
             </a>
         </div>
@@ -29,7 +29,7 @@
     .my-schedule-shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
     .my-schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
     .my-schedule-heading span { color: #f36100; font-weight: 800; text-transform: uppercase; }
-    .my-schedule-heading h1, .my-schedule-shell h2 { margin: 4px 0 0; font-family: Oswald, sans-serif; text-transform: uppercase; }
+    .my-schedule-heading h1, .my-schedule-shell h2 { margin: 4px 0 0; color: #fff !important; font-family: Oswald, sans-serif; text-transform: uppercase; }
     .my-schedule-heading a { background: #f36100; color: #fff; padding: 12px 16px; font-weight: 800; text-decoration: none; }
     .my-schedule-shell h2 { font-size: 24px; margin: 26px 0 14px; }
     .my-schedule-list { display: grid; gap: 14px; }
@@ -42,7 +42,8 @@
     .my-schedule-status { margin-top: 8px; }
     .my-schedule-actions { display: grid; gap: 8px; }
     .my-schedule-actions form { margin: 0; }
-    .my-schedule-actions button { width: 100%; min-height: 40px; border: 0; background: #f36100; color: #fff; font-family: Oswald, sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+    .my-schedule-actions button, .my-schedule-actions a { width: 100%; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #f36100; color: #fff; font-family: Oswald, sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; text-decoration: none; }
+    .my-schedule-actions a { background: #242528; }
     .my-schedule-actions button.secondary { background: #30343c; }
     .my-schedule-actions button:disabled { background: #555; cursor: not-allowed; }
     .my-schedule-empty { padding: 36px 20px; text-align: center; color: #9eacc4; border: 1px solid #29292c; background: #111; }

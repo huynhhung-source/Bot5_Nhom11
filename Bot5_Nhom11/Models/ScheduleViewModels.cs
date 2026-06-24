@@ -30,9 +30,10 @@ namespace doanweb.Models
         public int AvailableSlots => Math.Max(0, Capacity - RegisteredCount);
         public int DurationMinutes => Math.Max(1, (int)(EndTime - StartTime).TotalMinutes);
         public bool IsFull => AvailableSlots <= 0;
-        public bool IsRegistrationOpen => Status == "Scheduled" &&
+        public bool IsRegistrationOpen => Status != "Cancelled" &&
+            Status != "Completed" &&
             (ClassDate.Date > DateTime.Today ||
-                (ClassDate.Date == DateTime.Today && EndTime > DateTime.Now.TimeOfDay));
+                (ClassDate.Date == DateTime.Today && StartTime > DateTime.Now.TimeOfDay));
     }
 
     public class MyWorkoutScheduleViewModel
@@ -48,6 +49,12 @@ namespace doanweb.Models
         public string EnrollmentStatus { get; set; } = string.Empty;
         public bool CanCancel { get; set; }
         public bool CanCheckIn { get; set; }
+    }
+
+    public class WorkoutScheduleDetailsViewModel
+    {
+        public MyWorkoutScheduleItemViewModel Schedule { get; set; } = new();
+        public string Description { get; set; } = string.Empty;
     }
 
     public class AdminScheduleIndexViewModel

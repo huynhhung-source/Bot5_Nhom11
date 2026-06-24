@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Danh sách phòng tập";
     const string bookingButtonText = "Đặt lịch ngay";
-    var isLoggedIn = Context.Session.GetInt32("UserId").HasValue;
 }
 
 <link rel="stylesheet" href="~/css/gyms.css" asp-append-version="true" />
@@ -85,38 +84,14 @@
                                 }
                             </div>
                             <div class="gym-card__actions">
-                                @if (!isLoggedIn)
-                                {
-                                    <a class="gym-btn gym-btn--primary"
-                                       asp-area="Customer"
-                                       asp-controller="Account"
-                                       asp-action="Login"
-                                       asp-route-returnUrl="@roomReturnUrl">
-                                        @bookingButtonText
-                                    </a>
-                                }
-                                else if (room.NextClassId.HasValue)
-                                {
-                                    <form method="post" action="/Schedule/Book">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="classId" value="@room.NextClassId.Value" />
-                                        <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                                        <input type="hidden" name="roomId" value="@room.TrainingRoomId" />
-                                        <input type="hidden" name="returnUrl" value="@roomReturnUrl" />
-                                        <button class="gym-btn gym-btn--primary" type="submit">
-                                            @bookingButtonText
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <a class="gym-btn gym-btn--primary"
-                                       asp-controller="Schedule"
-                                       asp-action="Index"
-                                       asp-route-roomId="@room.TrainingRoomId">
-                                        @bookingButtonText
-                                    </a>
-                                }
+                                <a class="gym-btn gym-btn--primary"
+                                   asp-area=""
+                                   asp-controller="Schedule"
+                                   asp-action="BookRoom"
+                                   asp-route-roomId="@room.TrainingRoomId"
+                                   asp-route-returnUrl="@roomReturnUrl">
+                                    @bookingButtonText
+                                </a>
                             </div>
                         </div>
                     </article>

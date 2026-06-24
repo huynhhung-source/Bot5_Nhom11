@@ -74,7 +74,7 @@ namespace doanweb.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
             {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = Url.Action(nameof(MySchedule)) });
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Schedule/MySchedule" });
             }
 
             var enrollments = await _dbContext.ClassEnrollments
@@ -96,7 +96,9 @@ namespace doanweb.Controllers
                 .ToListAsync();
 
             var items = enrollments
-                .Select(e => MapMyScheduleItem(e, checkedInClassIds.Contains(e.ClassId)))
+                .Select(e => MapMyScheduleItem(
+                    e,
+                    e.Status == "CheckedIn" || checkedInClassIds.Contains(e.ClassId)))
                 .ToList();
 
             var now = DateTime.Now;
@@ -115,6 +117,110 @@ namespace doanweb.Controllers
             };
 
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account", new
+                {
+                    area = "Customer",
+                    returnUrl = Url.Action(nameof(Details), new { id })
+                });
+            }
+
+            var enrollment = await _dbContext.ClassEnrollments
+                .Include(e => e.Class)
+                    .ThenInclude(c => c.TrainingRoom)
+                .Include(e => e.Class)
+                    .ThenInclude(c => c.Enrollments)
+                .FirstOrDefaultAsync(e =>
+                    e.UserId == userId.Value &&
+                    e.ClassId == id &&
+                    e.Status != "Cancelled");
+
+            if (enrollment == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy giờ tập đã đăng ký.";
+                return Redirect("/Schedule/MySchedule");
+            }
+
+            var hasLegacyAttendance = await _dbContext.Attendances
+                .AnyAsync(a => a.ClassId == id && a.Subscription.UserId == userId.Value);
+            var hasCheckedIn = enrollment.Status == "CheckedIn" || hasLegacyAttendance;
+
+            return View(new WorkoutScheduleDetailsViewModel
+            {
+                Schedule = MapMyScheduleItem(enrollment, hasCheckedIn),
+                Description = enrollment.Class.Description ?? "Chưa có mô tả cho giờ tập này."
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BookRoom(int roomId, string? returnUrl)
+        {
+            var safeReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
+                ? returnUrl
+                : $"/Home/Gyms#gym-room-{roomId}";
+            var resumeUrl = Url.Action(nameof(BookRoom), "Schedule", new
+            {
+                area = "",
+                roomId,
+                returnUrl = safeReturnUrl
+            }) ?? safeReturnUrl;
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account", new
+                {
+                    area = "Customer",
+                    returnUrl = resumeUrl
+                });
+            }
+
+            var roomExists = await _dbContext.TrainingRooms
+                .AsNoTracking()
+                .AnyAsync(room => room.TrainingRoomId == roomId && room.Status == "Active");
+            if (!roomExists)
+            {
+                TempData["ErrorMessage"] = "Phòng tập không tồn tại hoặc hiện không hoạt động.";
+                return Redirect(safeReturnUrl);
+            }
+
+            var now = DateTime.Now;
+            var classId = await _dbContext.Classes
+                .AsNoTracking()
+                .Where(classItem =>
+                    classItem.TrainingRoomId == roomId &&
+                    classItem.Status != "Cancelled" &&
+                    classItem.Status != "Completed" &&
+                    (classItem.ClassDate.Date > now.Date ||
+                        (classItem.ClassDate.Date == now.Date && classItem.StartTime > now.TimeOfDay)))
+                .OrderBy(classItem => classItem.ClassDate)
+                .ThenBy(classItem => classItem.StartTime)
+                .Select(classItem => (int?)classItem.ClassId)
+                .FirstOrDefaultAsync();
+
+            if (!classId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Phòng tập này chưa có lịch mở đăng ký. Vui lòng chọn lịch khác hoặc liên hệ quản trị viên.";
+                return RedirectToAction(nameof(Index), new
+                {
+                    area = "",
+                    roomId,
+                    date = DateTime.Today.ToString("yyyy-MM-dd")
+                });
+            }
+
+            return RedirectToAction("ClassCheckout", "Payment", new
+            {
+                area = "",
+                classId = classId.Value
+            });
         }
 
         [HttpPost]
@@ -237,27 +343,35 @@ namespace doanweb.Controllers
             if (booking == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy lịch đã đặt.";
-                return RedirectToAction(nameof(Index), new { date, roomId, trainer });
+                return returnTo == nameof(MySchedule)
+                    ? Redirect("/Schedule/MySchedule")
+                    : RedirectToAction(nameof(Index), new { date, roomId, trainer });
             }
 
-            var subscription = await GetValidSubscriptionAsync(userId.Value, booking.Class.ClassType, requireRemainingSession: false);
+            if (booking.Status == "CheckedIn")
+            {
+                TempData["ErrorMessage"] = "Giờ tập đã check-in nên không thể hủy.";
+                return Redirect("/Schedule/MySchedule");
+            }
+
+            var classStart = booking.Class.ClassDate.Date.Add(booking.Class.StartTime);
+            if (classStart <= DateTime.Now)
+            {
+                TempData["ErrorMessage"] = "Đã đến giờ tập nên không thể hủy lịch.";
+                return Redirect("/Schedule/MySchedule");
+            }
+
             booking.Status = "Cancelled";
             if (booking.Class.CurrentEnrollment > 0)
             {
                 booking.Class.CurrentEnrollment -= 1;
             }
 
-            if (subscription != null && subscription.SessionsUsed > 0)
-            {
-                subscription.SessionsUsed -= 1;
-                subscription.UpdatedDate = DateTime.Now;
-            }
-
             await _dbContext.SaveChangesAsync();
             TempData["SuccessMessage"] = "Đã hủy lịch tập.";
             if (returnTo == nameof(MySchedule))
             {
-                return RedirectToAction(nameof(MySchedule));
+                return Redirect("/Schedule/MySchedule");
             }
 
             return RedirectToAction(nameof(Index), new { date, roomId, trainer });
@@ -270,7 +384,7 @@ namespace doanweb.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
             {
-                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = Url.Action(nameof(MySchedule)) });
+                return RedirectToAction("Login", "Account", new { area = "Customer", returnUrl = "/Schedule/MySchedule" });
             }
 
             var booking = await _dbContext.ClassEnrollments
@@ -280,48 +394,48 @@ namespace doanweb.Controllers
             if (booking == null)
             {
                 TempData["ErrorMessage"] = "Bạn chưa đăng ký giờ tập này.";
-                return RedirectToAction(nameof(MySchedule));
+                return Redirect("/Schedule/MySchedule");
             }
 
             if (booking.Class.Status == "Cancelled")
             {
                 TempData["ErrorMessage"] = "Giờ tập đã bị hủy, không thể check-in.";
-                return RedirectToAction(nameof(MySchedule));
+                return Redirect("/Schedule/MySchedule");
+            }
+
+            if (booking.Class.ClassDate.Date > DateTime.Today)
+            {
+                booking.Status = "CheckedIn";
+                await _dbContext.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Check-in {booking.Class.ClassName} thành công.";
+                return Redirect("/Schedule/MySchedule");
             }
 
             if (booking.Class.ClassDate.Date != DateTime.Today)
             {
                 TempData["ErrorMessage"] = "Bạn chỉ có thể check-in trong đúng ngày tập.";
-                return RedirectToAction(nameof(MySchedule));
+                return Redirect("/Schedule/MySchedule");
             }
 
-            var subscription = await GetValidSubscriptionAsync(userId.Value, booking.Class.ClassType, requireRemainingSession: false);
-            if (subscription == null)
-            {
-                TempData["ErrorMessage"] = "Không tìm thấy gói tập còn hiệu lực để check-in.";
-                return RedirectToAction(nameof(MySchedule));
-            }
-
-            var alreadyCheckedIn = await _dbContext.Attendances
-                .AnyAsync(a => a.ClassId == classId && a.Subscription.UserId == userId.Value);
-            if (alreadyCheckedIn)
+            if (booking.Status == "CheckedIn")
             {
                 TempData["ErrorMessage"] = "Bạn đã check-in giờ tập này rồi.";
-                return RedirectToAction(nameof(MySchedule));
+                return Redirect("/Schedule/MySchedule");
             }
 
-            _dbContext.Attendances.Add(new Attendance
+            var classStart = booking.Class.ClassDate.Date.Add(booking.Class.StartTime);
+            var classEnd = booking.Class.ClassDate.Date.Add(booking.Class.EndTime);
+            var checkInOpens = classStart.AddMinutes(-30);
+            if (DateTime.Now < checkInOpens || DateTime.Now > classEnd)
             {
-                ClassId = classId,
-                SubscriptionId = subscription.SubscriptionId,
-                AttendanceDate = DateTime.Now,
-                CheckInTime = DateTime.Now.TimeOfDay,
-                Status = "Present"
-            });
+                TempData["ErrorMessage"] = $"Bạn chỉ có thể check-in từ {checkInOpens:HH:mm} đến {classEnd:HH:mm}.";
+                return Redirect("/Schedule/MySchedule");
+            }
 
+            booking.Status = "CheckedIn";
             await _dbContext.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Check-in {booking.Class.ClassName} thành công.";
-            return RedirectToAction(nameof(MySchedule));
+            return Redirect("/Schedule/MySchedule");
         }
 
         [HttpPost]
@@ -426,8 +540,12 @@ namespace doanweb.Controllers
                 HasCheckedIn = hasCheckedIn,
                 EnrollmentDate = enrollment.EnrollmentDate,
                 EnrollmentStatus = enrollment.Status,
-                CanCancel = !hasCheckedIn && classItem.ClassDate.Date >= now.Date && classItem.Status != "Cancelled",
-                CanCheckIn = !hasCheckedIn && classItem.ClassDate.Date == now.Date && classItem.Status != "Cancelled"
+                CanCancel = !hasCheckedIn &&
+                    classItem.ClassDate.Date.Add(classItem.StartTime) > now &&
+                    classItem.Status != "Cancelled",
+                CanCheckIn = !hasCheckedIn &&
+                    now <= classItem.ClassDate.Date.Add(classItem.EndTime) &&
+                    classItem.Status != "Cancelled"
             };
         }
 
@@ -446,9 +564,10 @@ namespace doanweb.Controllers
 
         internal static bool IsClassRegistrationOpen(Class classItem)
         {
-            return classItem.Status == "Scheduled" &&
+            return classItem.Status != "Cancelled" &&
+                classItem.Status != "Completed" &&
                 (classItem.ClassDate.Date > DateTime.Today ||
-                    (classItem.ClassDate.Date == DateTime.Today && classItem.EndTime > DateTime.Now.TimeOfDay));
+                    (classItem.ClassDate.Date == DateTime.Today && classItem.StartTime > DateTime.Now.TimeOfDay));
         }
 
         private async Task<Subscription?> GetValidSubscriptionAsync(int userId, string? classType, bool requireRemainingSession = true)
