@@ -1,4 +1,4 @@
-﻿@model List<doanweb.Models.Package>
+@model List<doanweb.Models.Package>
 
 @{
     ViewData["Title"] = "Quản lý Gói Tập";
@@ -12,96 +12,116 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-    <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card package-management-card">
         <div class="card-header bg-dark text-white">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h5 style="margin: 0;">Danh sách Gói Tập</h5>
+            <div class="row align-items-center gy-2">
+                <div class="col-md-4">
+                    <h5 class="mb-0">Quản lý Gói Tập</h5>
                 </div>
-                <div class="col-md-4 text-end">
-                    <a href="/admin/package/create" class="btn btn-primary btn-sm" style="background: #f36100; border: none;">
+                <div class="col-md-5">
+                    <div class="package-search">
+                        <i class="fa fa-search"></i>
+                        <input id="packageSearchInput"
+                               type="search"
+                               class="form-control form-control-sm"
+                               placeholder="Tìm tên gói, mô tả, giá, thời hạn, số lượng..."
+                               autocomplete="off" />
+                    </div>
+                </div>
+                <div class="col-md-3 text-end">
+                    <a href="/admin/package/create" class="btn btn-primary btn-sm package-create-btn">
                         <i class="fa fa-plus"></i> Thêm Gói Tập Mới
                     </a>
                 </div>
             </div>
         </div>
+
         <div class="card-body">
-            @if (Model.Count == 0)
-            {
-                <div class="alert alert-info">
-                    <i class="fa fa-info-circle"></i> Chưa có gói tập nào. <a href="/admin/package/create">Thêm gói tập</a>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th style="width: 5%;">ID</th>
-                                <th style="width: 20%;">Tên Gói</th>
-                                <th style="width: 12%;">Giá (₫)</th>
-                                <th style="width: 10%;">Thời Hạn (tháng)</th>
-                                <th style="width: 25%;">Mô Tả</th>
-                                <th style="width: 10%;">Trạng Thái</th>
-                                <th style="width: 18%;">Hành Động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var package in Model)
-                            {
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-secondary">@package.PackageId</span>
-                                    </td>
-                                    <td>
-                                        <strong>@package.PackageName</strong>
-                                    </td>
-                                    <td>
-                                        <span style="color: #f36100; font-weight: 600;">@package.Price.ToString("N0")</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">@(package.DurationDays > 0 ? (package.DurationDays / 30) : 0) tháng</span>
-                                    </td>
-                                    <td>
-                                        <span title="@package.Description">
-                                            @(package.Description?.Length > 40 ? package.Description.Substring(0, 40) + "..." : package.Description)
-                                        </span>
-                                    </td>
-                                    <td>
+            <div class="table-responsive">
+                <table id="packageManagementTable" class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 20%;">Tên gói</th>
+                            <th style="width: 24%;">Mô tả</th>
+                            <th style="width: 14%;">Giá tiền</th>
+                            <th style="width: 12%;">Thời hạn</th>
+                            <th style="width: 10%;">Số lượng</th>
+                            <th style="width: 10%;">Số buổi tập</th>
+                            <th style="width: 10%;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var package in Model)
+                        {
+                            <tr data-search="@($"{package.PackageName} {package.Description} {package.Price:N0} {package.DurationDays} {package.StockQuantity} {package.MaxSessions} {package.Status}").ToLowerInvariant()">
+                                <td>
+                                    <strong>@package.PackageName</strong>
+                                    <div class="mt-1">
                                         @if (package.Status == "Active")
                                         {
-                                            <span class="badge bg-success">
-                                                <i class="fa fa-check-circle"></i> Hoạt động
-                                            </span>
+                                            <span class="badge bg-success">Đang bán</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">
-                                                <i class="fa fa-times-circle"></i> Không hoạt động
-                                            </span>
+                                            <span class="badge bg-secondary">Đã ẩn</span>
                                         }
-                                    </td>
-                                    <td>
-                                        <a href="/admin/package/edit/@package.PackageId" class="btn btn-sm btn-warning" title="Chỉnh sửa">
-                                            <i class="fa fa-edit"></i> Sửa
+                                    </div>
+                                </td>
+                                <td>@(string.IsNullOrWhiteSpace(package.Description) ? "Chưa có mô tả" : package.Description)</td>
+                                <td>@package.Price.ToString("N0") đ</td>
+                                <td>@package.DurationDays ngày</td>
+                                <td>@package.StockQuantity</td>
+                                <td>@package.MaxSessions buổi</td>
+                                <td>
+                                    <div class="package-actions">
+                                        <a href="/admin/package/edit/@package.PackageId" class="btn btn-sm btn-warning" title="Sửa gói tập">
+                                            <i class="fa fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="deletePackage(@package.PackageId, '@package.PackageName')" title="Xóa">
-                                            <i class="fa fa-trash"></i> Xóa
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger js-delete-package"
+                                                data-package-id="@package.PackageId"
+                                                data-package-name="@package.PackageName"
+                                                title="Xóa hoặc ẩn gói tập">
+                                            <i class="fa fa-trash"></i>
                                         </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info mt-3">
+                    <i class="fa fa-info-circle"></i> Chưa có gói tập nào trong hệ thống.
                 </div>
             }
+
+            <div id="packageNoResults" class="alert alert-info d-none mt-3">
+                <i class="fa fa-info-circle"></i> Không tìm thấy gói tập phù hợp.
+            </div>
         </div>
     </div>
+
+   
 </div>
 
 <style>
+    .package-management-card,
+    .package-workflow-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .table-hover tbody tr:hover {
         background-color: #f5f5f5;
         transition: background-color 0.3s;
@@ -116,31 +136,94 @@
         padding: 0.5rem 0.75rem;
         font-size: 0.85rem;
     }
+
+    .package-create-btn {
+        background: #f36100;
+        border: none;
+    }
+
+    .package-search {
+        position: relative;
+    }
+
+    .package-search i {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        color: #6c757d;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .package-search input {
+        padding-left: 32px;
+    }
+
+    .package-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .package-workflow {
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+
+    .package-workflow li {
+        margin-bottom: 0.5rem;
+    }
 </style>
 
 @section Scripts {
     <script>
+        const packageSearchInput = document.getElementById('packageSearchInput');
+        const packageRows = Array.from(document.querySelectorAll('#packageManagementTable tbody tr'));
+        const noResults = document.getElementById('packageNoResults');
+
+        if (packageSearchInput) {
+            packageSearchInput.addEventListener('input', function () {
+                const keyword = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                packageRows.forEach(row => {
+                    const searchableText = row.dataset.search || row.innerText.toLowerCase();
+                    const isVisible = searchableText.includes(keyword);
+                    row.style.display = isVisible ? '' : 'none';
+
+                    if (isVisible) {
+                        visibleCount++;
+                    }
+                });
+
+                if (noResults) {
+                    noResults.classList.toggle('d-none', visibleCount > 0);
+                }
+            });
+        }
+
+        document.querySelectorAll('.js-delete-package').forEach(button => {
+            button.addEventListener('click', function () {
+                deletePackage(this.dataset.packageId, this.dataset.packageName);
+            });
+        });
+
         function deletePackage(packageId, packageName) {
             if (confirm(`Bạn có chắc chắn muốn xóa gói tập "${packageName}"?`)) {
-                var deleteUrl = `/admin/package/delete`;
-                console.log('Deleting package ID:', packageId);
-                
-                fetch(deleteUrl, {
+                fetch('/admin/package/delete', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ id: packageId })
+                    body: JSON.stringify({ id: Number(packageId) })
                 })
                 .then(response => {
-                    console.log('Response status:', response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
+
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Response data:', data);
                     if (data.success) {
                         alert(data.message);
                         location.reload();
@@ -149,7 +232,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Fetch error:', error);
                     alert('Lỗi khi gửi yêu cầu xóa: ' + error.message);
                 });
             }

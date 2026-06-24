@@ -82,6 +82,14 @@
                                     <span style="color: #666; font-weight: 600; display: block;">Ngày Thanh Toán:</span>
                                     <span style="color: #f36100; font-weight: 700; font-size: 16px;">@payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
                                 </div>
+
+                                @if (!string.IsNullOrWhiteSpace(payment?.Description))
+                                {
+                                    <div style="grid-column: 1 / -1;">
+                                        <span style="color: #666; font-weight: 600; display: block;">Nội Dung:</span>
+                                        <span style="color: #333; font-weight: 700; font-size: 16px;">@payment.Description</span>
+                                    </div>
+                                }
                             </div>
                         </div>
 

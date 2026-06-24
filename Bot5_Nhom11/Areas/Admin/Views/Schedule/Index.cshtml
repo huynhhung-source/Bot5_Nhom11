@@ -1,0 +1,152 @@
+@model AdminScheduleIndexViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Giờ Tập";
+    ViewData["AdminPageTitle"] = "Quản Lý Giờ Tập";
+    var weekStart = Model.SelectedDate.AddDays(-((int)Model.SelectedDate.DayOfWeek + 6) % 7);
+    var dayLabels = new[] { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+}
+
+<section class="admin-schedule-page">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="admin-schedule-alert success">
+            <i class="fa fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="admin-schedule-alert error">
+            <i class="fa fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="admin-schedule-header">
+        <h1>Quản lý giờ tập</h1>
+        <a asp-area="Admin" asp-controller="Schedule" asp-action="Create" class="admin-schedule-add">
+            <i class="fa fa-plus"></i> Thêm giờ tập
+        </a>
+    </div>
+
+    <div class="admin-schedule-stats">
+        <article><strong>@Model.TotalClasses</strong><span>Tổng lớp / ngày</span></article>
+        <article><strong>@Model.TotalRegistrations</strong><span>Lượt đăng ký</span></article>
+        <article><strong>@Model.TotalCapacity</strong><span>Tổng sức chứa</span></article>
+        <article><strong>@Model.FullClasses</strong><span>Lớp đầy chỗ</span></article>
+    </div>
+
+    <div class="admin-schedule-panel">
+        <nav class="admin-schedule-days">
+            @for (var i = 0; i < 7; i++)
+            {
+                var day = weekStart.AddDays(i);
+                <a class="@(day.Date == Model.SelectedDate.Date ? "active" : "")"
+                   asp-area="Admin"
+                   asp-controller="Schedule"
+                   asp-action="Index"
+                   asp-route-date="@day.ToString("yyyy-MM-dd")">
+                    <strong>@dayLabels[i]</strong>
+                    <span>@day.ToString("dd")</span>
+                </a>
+            }
+        </nav>
+
+        <div class="admin-schedule-current">
+            <a asp-area="Admin" asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.SelectedDate.AddDays(-1).ToString("yyyy-MM-dd")">
+                <i class="fa fa-chevron-left"></i>
+            </a>
+            <h2>@Model.SelectedDate.ToString("dddd, dd/MM/yyyy")</h2>
+            <a asp-area="Admin" asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.SelectedDate.AddDays(1).ToString("yyyy-MM-dd")">
+                <i class="fa fa-chevron-right"></i>
+            </a>
+            <span>@Model.Classes.Count lớp học</span>
+        </div>
+
+        @if (!Model.Classes.Any())
+        {
+            <div class="admin-schedule-empty">Chưa có giờ tập trong ngày này.</div>
+        }
+        else
+        {
+            <div class="admin-schedule-list">
+                @foreach (var item in Model.Classes)
+                {
+                    var percent = item.Capacity > 0 ? Math.Min(100, item.RegisteredCount * 100 / item.Capacity) : 0;
+                    <article class="admin-schedule-row">
+                        <div class="admin-schedule-time">
+                            <strong>@item.StartTime.ToString(@"hh\:mm")</strong>
+                            <span>- @item.EndTime.ToString(@"hh\:mm")</span>
+                        </div>
+                        <div class="admin-schedule-info">
+                            <h3>@item.ClassName</h3>
+                            <p>
+                                <i class="fa fa-users"></i> @item.InstructorName
+                                <i class="fa fa-map-marker"></i> @item.RoomName
+                                <i class="fa fa-tag"></i> @(string.IsNullOrWhiteSpace(item.ClassType) ? "Chưa phân loại" : item.ClassType)
+                                <i class="fa fa-clock-o"></i> @item.DurationMinutes phút
+                                <i class="fa fa-info-circle"></i> @item.Status
+                            </p>
+                            <div class="admin-schedule-progress"><span style="width: @percent%"></span></div>
+                        </div>
+                        <div class="admin-schedule-count">@item.RegisteredCount/@item.Capacity</div>
+                        <div class="admin-schedule-actions">
+                            <a asp-area="Admin" asp-controller="Schedule" asp-action="Details" asp-route-id="@item.ClassId" title="Danh sách khách">
+                                <i class="fa fa-list"></i>
+                            </a>
+                            <a asp-area="Admin" asp-controller="Schedule" asp-action="Edit" asp-route-id="@item.ClassId" title="Sửa">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                            <form method="post" asp-area="Admin" asp-controller="Schedule" asp-action="Cancel" asp-route-id="@item.ClassId" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" onsubmit="return confirm('Hủy giờ tập này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Hủy">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </form>
+                            <form method="post" asp-area="Admin" asp-controller="Schedule" asp-action="Delete" asp-route-id="@item.ClassId" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" onsubmit="return confirm('Xóa giờ tập này? Chỉ xóa được khi chưa có dữ liệu đăng ký/check-in.');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Xóa">
+                                    <i class="fa fa-trash-o"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    .admin-schedule-page { padding: 28px; min-height: calc(100vh - 70px); background: #0b0b0c; color: #fff; }
+    .admin-schedule-alert { margin-bottom: 16px; padding: 12px 14px; border: 1px solid; font-weight: 700; }
+    .admin-schedule-alert.success { background: rgba(34, 197, 94, .12); border-color: #22c55e; color: #bbf7d0; }
+    .admin-schedule-alert.error { background: rgba(239, 68, 68, .12); border-color: #ef4444; color: #fecaca; }
+    .admin-schedule-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .admin-schedule-header h1 { margin: 0; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 30px; }
+    .admin-schedule-add { background: #f36100; color: #fff; padding: 12px 18px; font-weight: 800; text-decoration: none; }
+    .admin-schedule-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .admin-schedule-stats article { background: #181819; border: 1px solid #29292c; padding: 22px; }
+    .admin-schedule-stats strong { display: block; color: #f36100; font-family: Oswald, sans-serif; font-size: 30px; }
+    .admin-schedule-stats span { color: #78849b; }
+    .admin-schedule-panel { background: #171718; border: 1px solid #29292c; }
+    .admin-schedule-days { display: flex; border-bottom: 1px solid #29292c; overflow-x: auto; }
+    .admin-schedule-days a { min-width: 66px; padding: 14px 18px; color: #8390a8; text-align: center; text-decoration: none; border-bottom: 2px solid transparent; }
+    .admin-schedule-days a.active { color: #f36100; background: #24170f; border-bottom-color: #f36100; }
+    .admin-schedule-days strong, .admin-schedule-days span { display: block; }
+    .admin-schedule-current { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid #29292c; }
+    .admin-schedule-current a { color: #8996ad; text-decoration: none; }
+    .admin-schedule-current h2 { margin: 0; font-family: Oswald, sans-serif; font-size: 24px; }
+    .admin-schedule-current span { margin-left: auto; color: #8996ad; }
+    .admin-schedule-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) 80px 82px; gap: 18px; align-items: center; padding: 20px 28px; border-bottom: 1px solid #29292c; }
+    .admin-schedule-time strong { display: block; font-size: 18px; }
+    .admin-schedule-time span, .admin-schedule-info p, .admin-schedule-count { color: #8190aa; }
+    .admin-schedule-info h3 { margin: 0 0 8px; font-size: 19px; }
+    .admin-schedule-info i { margin-left: 10px; margin-right: 4px; color: #f36100; }
+    .admin-schedule-progress { height: 5px; background: #28282a; }
+    .admin-schedule-progress span { display: block; height: 100%; background: #f36100; }
+    .admin-schedule-actions { display: flex; gap: 8px; }
+    .admin-schedule-actions a, .admin-schedule-actions button { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #242528; color: #fff; cursor: pointer; text-decoration: none; }
+    .admin-schedule-actions form { margin: 0; }
+    .admin-schedule-empty { padding: 80px 28px; color: #8190aa; text-align: center; }
+    @@media (max-width: 900px) { .admin-schedule-stats { grid-template-columns: repeat(2, 1fr); } .admin-schedule-row { grid-template-columns: 1fr; } }
+</style>

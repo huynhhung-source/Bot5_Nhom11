@@ -127,6 +127,13 @@ namespace doanweb.Areas.Customer.Controllers
                     if (roleName == "Admin")
                         return RedirectToAction("Index", "Home", new { area = "Admin" });
 
+                    var returnUrl = HttpContext.Session.GetString("ReturnUrl");
+                    HttpContext.Session.Remove("ReturnUrl");
+                    if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+
                     return RedirectToAction("Index", "Home", new { area = "" });
                 }
             }

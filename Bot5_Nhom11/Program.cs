@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using doanweb.Data;
 using doanweb.Services;
 using System.Text;
@@ -14,6 +15,10 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 // MVC
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
@@ -24,6 +29,12 @@ builder.Services.AddDbContext<GymDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // Session
+var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, ".aspnet-data-protection-keys");
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+    .SetApplicationName("Bot5_Nhom11");
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(24);
@@ -51,6 +62,7 @@ builder.Services.AddAuthentication(options =>
 // Service
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IStaffDirectoryService, StaffDirectoryService>();
 builder.Services.AddSingleton<IGymService, GymService>();
 
 var app = builder.Build();

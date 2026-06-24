@@ -2,9 +2,12 @@
 <!-- Admin Sidebar Navigation -->
 <nav class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-header">
-        <h5 style="margin: 0; color: #f36100; font-weight: 700;">
-            <i class="fa fa-shield"></i> Admin Panel
-        </h5>
+        <div class="admin-brand">
+            <span class="admin-brand-mark">
+                <i class="fa fa-chain-broken"></i>
+            </span>
+            <strong class="admin-brand-text">Gym<span>Pro</span><small>Admin</small></strong>
+        </div>
         <button class="btn btn-sm btn-link text-white d-md-none" onclick="toggleSidebar()" style="float: right;">
             <i class="fa fa-times"></i>
         </button>
@@ -32,6 +35,34 @@
             </a>
         </li>
 
+        <!-- Quản lý Đặt Lịch -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/booking/index">
+                <i class="fa fa-calendar-check-o"></i> Quản lý Đặt Lịch
+            </a>
+        </li>
+
+        <!-- Quản lý Giờ Tập -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/schedule/index">
+                <i class="fa fa-calendar"></i> Quản lý Giờ Tập
+            </a>
+        </li>
+
+        <!-- Quản lý Phòng tập -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/gym/index">
+                <i class="fa fa-map-marker"></i> Quản lý Phòng tập
+            </a>
+        </li>
+
+        <!-- Quản lý Nhân Viên / HLV -->
+        <li class="nav-item">
+            <a class="nav-link" href="/admin/staff/index">
+                <i class="fa fa-user-plus"></i> Nhân Viên / HLV
+            </a>
+        </li>
+
         <!-- Quản lý Sản Phẩm -->
         <li class="nav-item">
             <a class="nav-link" href="/admin/product/index">
@@ -46,15 +77,8 @@
             </a>
         </li>
 
-        <!-- Thêm mục quản lý khác -->
         <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="fa fa-calendar"></i> Quản lý Lớp Tập
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="/admin/payment/index">
                 <i class="fa fa-credit-card"></i> Quản lý Thanh toán
             </a>
         </li>
@@ -63,7 +87,7 @@
 
         <!-- Báo cáo -->
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="/admin/report/index">
                 <i class="fa fa-bar-chart"></i> Báo cáo
             </a>
         </li>
@@ -107,6 +131,41 @@
         margin-bottom: 20px;
     }
 
+    .admin-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .admin-brand-mark {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f36100;
+        color: #fff;
+    }
+
+    .admin-brand-text {
+        color: #fff;
+        font-family: "Oswald", sans-serif;
+        font-size: 18px;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .admin-brand-text span {
+        color: #f36100;
+    }
+
+    .admin-brand-text small {
+        margin-left: 7px;
+        color: rgba(255,255,255,0.55);
+        font-size: 11px;
+    }
+
     .admin-sidebar .nav-link {
         color: rgba(255, 255, 255, 0.8);
         padding: 12px 20px;
@@ -122,9 +181,9 @@
     }
 
     .admin-sidebar .nav-link.active {
-        /* color: #f36100;
+        color: #f36100;
         background-color: rgba(243, 97, 0, 0.1);
-        border-left-color: #f36100; */
+        border-left-color: #f36100;
         font-weight: 600;
     }
 

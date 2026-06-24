@@ -89,6 +89,9 @@ namespace doanweb.Models
 
         public int MaxSessions { get; set; } // Số buổi tối đa trong gói
 
+        [StringLength(255)]
+        public string? AllowedClassTypes { get; set; } // Danh sách loại lớp được phép: Gym,Yoga,Boxing
+
         public int StockQuantity { get; set; } = 0; // Số lượng tồn kho gói tập
 
         [DataType(DataType.Date)]
@@ -99,6 +102,40 @@ namespace doanweb.Models
 
         // Navigation properties
         public virtual ICollection<Subscription>? Subscriptions { get; set; }
+    }
+
+    /// <summary>
+    /// Model đại diện cho phòng tập trong chi nhánh.
+    /// </summary>
+    [Table("TrainingRooms")]
+    public class TrainingRoom
+    {
+        [Key]
+        public int TrainingRoomId { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string RoomName { get; set; }
+
+        [Required]
+        public int Capacity { get; set; }
+
+        [StringLength(20)]
+        public string Status { get; set; } = "Active"; // Active, Inactive
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+
+        [StringLength(500)]
+        public string? ImageUrl { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [DataType(DataType.Date)]
+        public DateTime? UpdatedDate { get; set; }
+
+        public virtual ICollection<Class>? Classes { get; set; }
     }
 
     /// <summary>
@@ -164,6 +201,9 @@ namespace doanweb.Models
         [Key]
         public int ClassId { get; set; }
 
+        [ForeignKey("TrainingRoom")]
+        public int? TrainingRoomId { get; set; }
+
         [Required]
         [StringLength(100)]
         public string ClassName { get; set; }
@@ -204,6 +244,9 @@ namespace doanweb.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // Navigation properties
+        [ForeignKey("TrainingRoomId")]
+        public virtual TrainingRoom? TrainingRoom { get; set; }
+
         public virtual ICollection<ClassEnrollment>? Enrollments { get; set; }
         public virtual ICollection<Attendance>? Attendances { get; set; }
     }

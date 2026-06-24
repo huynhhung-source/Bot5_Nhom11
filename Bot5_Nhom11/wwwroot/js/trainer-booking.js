@@ -2,12 +2,14 @@
     const modal = document.getElementById("trainerBookingModal");
     if (!modal) return;
 
+    const classes = JSON.parse(modal.querySelector("[data-trainer-classes]")?.textContent || "[]");
     const state = {
         step: 1,
+        roomId: "",
         packageName: "",
         packagePrice: 0,
         date: null,
-        time: "",
+        classId: null,
         calendarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     };
 
@@ -19,6 +21,7 @@
     const nextButton = modal.querySelector("[data-booking-next]");
     const nextText = nextButton.querySelector("span");
     const backButton = modal.querySelector("[data-booking-back]");
+    const roomSelect = modal.querySelector("[data-booking-room]");
     const calendarTitle = modal.querySelector("[data-calendar-title]");
     const calendarDays = modal.querySelector("[data-calendar-days]");
     const timeList = modal.querySelector("[data-time-list]");
@@ -28,16 +31,25 @@
     const studentNote = modal.querySelector("[data-student-note]");
     const formError = modal.querySelector("[data-form-error]");
 
-    const timeSlots = ["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
-    const bookedSlots = new Set(["08:00", "17:00", "19:00"]);
+    const selectedClass = () => classes.find(item => item.classId === state.classId);
+    const roomClasses = () => classes.filter(item => String(item.roomId) === String(state.roomId));
+    const dateClasses = () => roomClasses().filter(item => item.date === toDateKey(state.date));
 
-    const formatDate = (date) => new Intl.DateTimeFormat("vi-VN", {
+    const toDateKey = date => {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const formatDate = date => new Intl.DateTimeFormat("vi-VN", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric"
     }).format(date);
 
-    const formatPrice = (price) => `${new Intl.NumberFormat("vi-VN").format(price)}đ`;
+    const formatPrice = price => `${new Intl.NumberFormat("vi-VN").format(price)}đ`;
 
     function openModal() {
         modal.classList.add("open");
@@ -54,26 +66,25 @@
 
     function resetBooking() {
         state.step = 1;
+        state.roomId = "";
         state.packageName = "";
         state.packagePrice = 0;
         state.date = null;
-        state.time = "";
+        state.classId = null;
         state.calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (roomSelect) roomSelect.value = "";
         studentName.value = "";
         studentPhone.value = "";
         studentEmail.value = "";
         studentNote.value = "";
-        formError.classList.remove("show");
+        formError?.classList.remove("show");
         modal.querySelectorAll(".booking-package.selected").forEach(item => item.classList.remove("selected"));
         renderCalendar();
         renderStep();
     }
 
     function renderStep() {
-        steps.forEach(step => {
-            step.classList.toggle("active", Number(step.dataset.bookingStep) === state.step);
-        });
-
+        steps.forEach(step => step.classList.toggle("active", Number(step.dataset.bookingStep) === state.step));
         progressItems.forEach(item => {
             const itemStep = Number(item.dataset.progressStep);
             item.classList.toggle("active", itemStep === state.step);
@@ -82,8 +93,7 @@
         });
 
         backButton.hidden = state.step === 1;
-        nextText.textContent = state.step === 4 ? "Xác nhận đặt lịch" : "Tiếp tục";
-        updateNextState();
+        nextText.textContent = state.step === 4 ? "Thanh toán" : "Tiếp tục";
 
         if (state.step === 2) {
             modal.querySelector("[data-date-summary]").textContent =
@@ -92,22 +102,21 @@
         }
 
         if (state.step === 3) {
+            const item = selectedClass();
             modal.querySelector("[data-session-summary]").textContent =
-                `${formatDate(state.date)} lúc ${state.time} — ${state.packageName}`;
+                `${formatDate(state.date)} lúc ${item.startTime} — ${item.roomName}`;
         }
 
-        if (state.step === 4) {
-            fillConfirmation();
-        }
-
+        if (state.step === 4) fillConfirmation();
+        updateNextState();
         modal.querySelector(".booking-modal-body").scrollTop = 0;
     }
 
     function updateNextState() {
         if (state.step === 1) {
-            nextButton.disabled = !(state.packageName && state.date);
+            nextButton.disabled = !(state.roomId && state.packageName && state.date);
         } else if (state.step === 2) {
-            nextButton.disabled = !state.time;
+            nextButton.disabled = !state.classId;
         } else {
             nextButton.disabled = false;
         }
@@ -120,9 +129,9 @@
         calendarDays.innerHTML = "";
 
         const previousButton = modal.querySelector("[data-calendar-prev]");
-        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        previousButton.disabled = state.calendarMonth <= currentMonth;
+        previousButton.disabled = state.calendarMonth <= new Date(today.getFullYear(), today.getMonth(), 1);
 
+        const availableDates = new Set(roomClasses().map(item => item.date));
         const firstWeekday = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -138,14 +147,11 @@
             button.type = "button";
             button.className = "booking-day";
             button.textContent = String(day);
-            button.disabled = date < today;
-
-            if (date.getTime() === today.getTime()) button.classList.add("today");
-            if (state.date && date.getTime() === state.date.getTime()) button.classList.add("selected");
-
+            button.disabled = date < today || !availableDates.has(toDateKey(date));
+            if (state.date && toDateKey(date) === toDateKey(state.date)) button.classList.add("selected");
             button.addEventListener("click", () => {
                 state.date = date;
-                state.time = "";
+                state.classId = null;
                 renderCalendar();
                 updateNextState();
             });
@@ -155,15 +161,14 @@
 
     function renderTimes() {
         timeList.innerHTML = "";
-        timeSlots.forEach(time => {
+        dateClasses().forEach(item => {
             const button = document.createElement("button");
             button.type = "button";
             button.className = "booking-time";
-            button.innerHTML = bookedSlots.has(time) ? `${time}<small>Đã đặt</small>` : time;
-            button.disabled = bookedSlots.has(time);
-            button.classList.toggle("selected", state.time === time);
+            button.innerHTML = `${item.startTime} - ${item.endTime}<small>${item.className} · Còn ${item.availableSlots} chỗ</small>`;
+            button.classList.toggle("selected", state.classId === item.classId);
             button.addEventListener("click", () => {
-                state.time = time;
+                state.classId = item.classId;
                 renderTimes();
                 updateNextState();
             });
@@ -175,40 +180,43 @@
         const name = studentName.value.trim();
         const phone = studentPhone.value.trim();
         const phonePattern = /^[0-9+\s.-]{9,15}$/;
-
         let message = "";
         if (!name) message = "Vui lòng nhập họ và tên.";
         else if (!phone) message = "Vui lòng nhập số điện thoại.";
         else if (!phonePattern.test(phone)) message = "Số điện thoại chưa đúng định dạng.";
         else if (studentEmail.value.trim() && !studentEmail.checkValidity()) message = "Email chưa đúng định dạng.";
-
         formError.textContent = message;
         formError.classList.toggle("show", Boolean(message));
         return !message;
     }
 
     function fillConfirmation() {
+        const item = selectedClass();
         modal.querySelector("[data-confirm-date]").textContent = formatDate(state.date);
-        modal.querySelector("[data-confirm-time]").textContent = state.time;
+        modal.querySelector("[data-confirm-time]").textContent = `${item.startTime} - ${item.endTime}`;
+        modal.querySelector("[data-confirm-room]").textContent = item.roomName;
+        modal.querySelector("[data-confirm-class]").textContent = item.className;
         modal.querySelector("[data-confirm-package]").textContent = state.packageName;
         modal.querySelector("[data-confirm-price]").textContent = formatPrice(state.packagePrice);
         modal.querySelector("[data-confirm-name]").textContent = studentName.value.trim();
         modal.querySelector("[data-confirm-phone]").textContent = studentPhone.value.trim();
     }
 
-    function completeBooking() {
-        closeModal();
-        if (window.Swal) {
-            Swal.fire({
-                icon: "success",
-                title: "Đặt lịch thành công",
-                html: `Lịch tập với <strong>${modal.dataset.trainerName}</strong><br>${formatDate(state.date)} lúc ${state.time}`,
-                confirmButtonColor: "#f36100"
-            });
-        } else {
-            alert("Đặt lịch thành công. Huấn luyện viên sẽ sớm liên hệ với bạn.");
+    function goToPayment() {
+        if (modal.dataset.isLoggedIn !== "true") {
+            window.location.href = `${modal.dataset.loginUrl}?returnUrl=${encodeURIComponent(`/Payment/ClassCheckout?classId=${state.classId}`)}`;
+            return;
         }
+        window.location.href = `/Payment/ClassCheckout?classId=${state.classId}`;
     }
+
+    roomSelect?.addEventListener("change", () => {
+        state.roomId = roomSelect.value;
+        state.date = null;
+        state.classId = null;
+        renderCalendar();
+        updateNextState();
+    });
 
     modal.querySelectorAll(".booking-package").forEach(button => {
         button.addEventListener("click", () => {
@@ -221,30 +229,17 @@
     });
 
     modal.querySelector("[data-calendar-prev]").addEventListener("click", () => {
-        state.calendarMonth = new Date(
-            state.calendarMonth.getFullYear(),
-            state.calendarMonth.getMonth() - 1,
-            1
-        );
+        state.calendarMonth = new Date(state.calendarMonth.getFullYear(), state.calendarMonth.getMonth() - 1, 1);
         renderCalendar();
     });
-
     modal.querySelector("[data-calendar-next]").addEventListener("click", () => {
-        state.calendarMonth = new Date(
-            state.calendarMonth.getFullYear(),
-            state.calendarMonth.getMonth() + 1,
-            1
-        );
+        state.calendarMonth = new Date(state.calendarMonth.getFullYear(), state.calendarMonth.getMonth() + 1, 1);
         renderCalendar();
     });
 
     nextButton.addEventListener("click", () => {
         if (state.step === 3 && !validateStudent()) return;
-        if (state.step === 4) {
-            completeBooking();
-            return;
-        }
-
+        if (state.step === 4) return goToPayment();
         state.step += 1;
         renderStep();
     });
@@ -256,14 +251,8 @@
         }
     });
 
-    document.querySelectorAll(".js-open-trainer-booking").forEach(button => {
-        button.addEventListener("click", openModal);
-    });
-
-    modal.querySelectorAll("[data-booking-close]").forEach(button => {
-        button.addEventListener("click", closeModal);
-    });
-
+    document.querySelectorAll(".js-open-trainer-booking").forEach(button => button.addEventListener("click", openModal));
+    modal.querySelectorAll("[data-booking-close]").forEach(button => button.addEventListener("click", closeModal));
     document.addEventListener("keydown", event => {
         if (event.key === "Escape" && modal.classList.contains("open")) closeModal();
     });

@@ -1,0 +1,188 @@
+@model ClassPaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh Toán Giờ Tập";
+}
+
+<section class="class-checkout-page">
+    <div class="class-checkout-shell">
+        <div class="class-checkout-card">
+            <div class="class-checkout-heading">
+                <span>GymPro</span>
+                <h1>Thanh toán giờ tập</h1>
+            </div>
+
+            <div class="class-checkout-grid">
+                <section>
+                    <h2>Thông tin giờ tập</h2>
+                    <dl>
+                        <dt>Tên giờ tập</dt>
+                        <dd>@Model.ClassName</dd>
+                        <dt>Ngày tập</dt>
+                        <dd>@Model.ClassDate.ToString("dd/MM/yyyy")</dd>
+                        <dt>Thời gian</dt>
+                        <dd>@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</dd>
+                        <dt>Phòng tập</dt>
+                        <dd>@Model.RoomName</dd>
+                        <dt>Loại hình tập</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.ClassType) ? "Chưa phân loại" : Model.ClassType)</dd>
+                        <dt>Huấn luyện viên</dt>
+                        <dd>@Model.InstructorName</dd>
+                        <dt>Số chỗ</dt>
+                        <dd>Còn @Model.AvailableSlots / @Model.Capacity chỗ</dd>
+                        <dt>Trạng thái</dt>
+                        <dd>@Model.Status</dd>
+                    </dl>
+                </section>
+
+                <section>
+                    <h2>Thông tin khách hàng</h2>
+                    <dl>
+                        <dt>Họ tên</dt>
+                        <dd>@Model.CustomerName</dd>
+                        <dt>Email</dt>
+                        <dd>@Model.CustomerEmail</dd>
+                        <dt>Số điện thoại</dt>
+                        <dd>@Model.CustomerPhone</dd>
+                    </dl>
+
+                    <div class="class-checkout-price">
+                        <span>Giá giờ tập</span>
+                        <strong>@Model.Price.ToString("N0")₫</strong>
+                    </div>
+                </section>
+            </div>
+
+            <form id="classPaymentForm" method="post" asp-area="" asp-controller="Payment" asp-action="ClassCheckout">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="classId" value="@Model.ClassId" />
+                <input type="hidden" id="paymentMethod" name="paymentMethod" value="" />
+                <input type="hidden" id="transactionId" name="transactionId" value="" />
+                <input type="hidden" id="notes" name="notes" value="" />
+
+                <div class="class-payment-box">
+                    <h2>Phương thức thanh toán</h2>
+                    <div class="class-payment-methods">
+                        <label>
+                            <input type="radio" name="paymentMethodRadio" value="BankTransfer" />
+                            <span><i class="fa fa-university"></i> Chuyển khoản ngân hàng</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="paymentMethodRadio" value="Cash" />
+                            <span><i class="fa fa-money"></i> Tiền mặt</span>
+                        </label>
+                    </div>
+
+                    <label class="class-field">
+                        <span>Mã giao dịch</span>
+                        <input id="inputTransactionId" type="text" placeholder="Nhập mã giao dịch nếu có" />
+                    </label>
+
+                    <label class="class-field">
+                        <span>Ghi chú</span>
+                        <textarea id="inputNotes" rows="3" placeholder="Ghi chú thêm nếu cần"></textarea>
+                    </label>
+
+                    <div class="class-payment-actions">
+                        <button type="button" onclick="handleClassPayment()">
+                            <i class="fa fa-credit-card"></i> Thanh toán ngay
+                        </button>
+                        <a asp-area="" asp-controller="Schedule" asp-action="Index" asp-route-date="@Model.ClassDate.ToString("yyyy-MM-dd")">Quay lại giờ tập</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div id="classQrModal" class="class-qr-modal">
+    <div>
+        <h3>Thanh toán qua QR</h3>
+        <img id="classQrImage" src="" alt="VietQR Code" />
+        <p>Số tiền: <strong>@Model.Price.ToString("N0")₫</strong></p>
+        <p>Nội dung: <strong>GIO TAP @Model.ClassId</strong></p>
+        <div class="class-qr-actions">
+            <button type="button" onclick="closeClassQrModal()">Quay lại</button>
+            <button type="button" onclick="submitClassPaymentForm()">Đã thanh toán</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .class-checkout-page { min-height: 100vh; background: #080808; padding: 58px 0 86px; color: #fff; }
+    .class-checkout-shell { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+    .class-checkout-card { background: #151515; border: 1px solid #29292c; padding: 30px; }
+    .class-checkout-heading span { color: #f36100; font-weight: 800; text-transform: uppercase; }
+    .class-checkout-heading h1, .class-checkout-card h2 { font-family: Oswald, sans-serif; text-transform: uppercase; margin: 6px 0 22px; }
+    .class-checkout-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; margin-top: 24px; }
+    .class-checkout-grid section, .class-payment-box { background: #101011; border: 1px solid #29292c; padding: 22px; }
+    .class-checkout-card dl { display: grid; grid-template-columns: 150px 1fr; gap: 10px 16px; margin: 0; }
+    .class-checkout-card dt { color: #8c98ad; }
+    .class-checkout-card dd { margin: 0; color: #fff; font-weight: 700; }
+    .class-checkout-price { margin-top: 22px; padding: 18px; background: #23170f; border-left: 4px solid #f36100; }
+    .class-checkout-price span { display: block; color: #b8c4d8; }
+    .class-checkout-price strong { color: #f36100; font-size: 30px; font-family: Oswald, sans-serif; }
+    .class-payment-box { margin-top: 22px; }
+    .class-payment-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .class-payment-methods label { border: 1px solid #3a3a3f; padding: 14px; cursor: pointer; }
+    .class-payment-methods span { margin-left: 8px; font-weight: 800; }
+    .class-payment-methods i { color: #f36100; }
+    .class-field { display: block; margin-top: 16px; }
+    .class-field span { display: block; color: #b8c4d8; margin-bottom: 8px; }
+    .class-field input, .class-field textarea { width: 100%; background: #0b0b0c; color: #fff; border: 1px solid #3a3a3f; padding: 12px; }
+    .class-payment-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    .class-payment-actions button, .class-payment-actions a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #f36100; color: #fff; font-weight: 800; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+    .class-payment-actions a { background: transparent; border: 2px solid #f36100; color: #f36100; }
+    .class-qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .class-qr-modal.show { display: flex; }
+    .class-qr-modal > div { width: min(460px, 100%); background: #fff; color: #111; padding: 28px; text-align: center; }
+    .class-qr-modal img { width: 280px; height: 280px; border: 2px solid #f36100; }
+    .class-qr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .class-qr-actions button { border: 0; padding: 12px; background: #30343c; color: #fff; font-weight: 800; cursor: pointer; }
+    .class-qr-actions button:last-child { background: #28a745; }
+    @@media (max-width: 800px) { .class-checkout-grid, .class-payment-methods, .class-payment-actions, .class-qr-actions { grid-template-columns: 1fr; } .class-checkout-card dl { grid-template-columns: 1fr; } }
+</style>
+
+@section Scripts {
+    <script>
+        function generateClassVietQRUrl() {
+            const amount = '@Math.Round(Model.Price)';
+            const description = encodeURIComponent('GIO TAP @Model.ClassId');
+            return `https://img.vietqr.io/image/MB-1234567890-compact.png?amount=${amount}&addInfo=${description}`;
+        }
+
+        function handleClassPayment() {
+            const selected = document.querySelector('input[name="paymentMethodRadio"]:checked');
+            if (!selected) {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn phương thức thanh toán', confirmButtonColor: '#f36100' });
+                return;
+            }
+
+            if (selected.value === 'BankTransfer') {
+                document.getElementById('classQrImage').src = generateClassVietQRUrl();
+                document.getElementById('classQrModal').classList.add('show');
+                return;
+            }
+
+            submitClassPaymentForm();
+        }
+
+        function closeClassQrModal() {
+            document.getElementById('classQrModal').classList.remove('show');
+        }
+
+        function submitClassPaymentForm() {
+            const selected = document.querySelector('input[name="paymentMethodRadio"]:checked');
+            if (!selected) {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn phương thức thanh toán', confirmButtonColor: '#f36100' });
+                return;
+            }
+
+            document.getElementById('paymentMethod').value = selected.value;
+            document.getElementById('transactionId').value = document.getElementById('inputTransactionId').value || '';
+            document.getElementById('notes').value = document.getElementById('inputNotes').value || '';
+            closeClassQrModal();
+            document.getElementById('classPaymentForm').submit();
+        }
+    </script>
+}

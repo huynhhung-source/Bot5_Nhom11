@@ -127,7 +127,22 @@
      aria-hidden="true"
      data-trainer-name="@Model.Name"
      data-trainer-role="@Model.Role"
-     data-trainer-image="@Model.Image">
+     data-trainer-image="@Model.Image"
+     data-login-url="@Url.Action("Login", "Account", new { area = "Customer" })"
+     data-is-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+    <script type="application/json" data-trainer-classes>
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BookableClasses.Select(item => new
+        {
+            classId = item.ClassId,
+            roomId = item.RoomId,
+            roomName = item.RoomName,
+            className = item.ClassName,
+            date = item.ClassDate.ToString("yyyy-MM-dd"),
+            startTime = item.StartTime.ToString(@"hh\:mm"),
+            endTime = item.EndTime.ToString(@"hh\:mm"),
+            availableSlots = item.AvailableSlots
+        })))
+    </script>
     <div class="trainer-booking-backdrop" data-booking-close></div>
     <div class="trainer-booking-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
         <header class="booking-modal-header">
@@ -161,6 +176,24 @@
 
         <div class="booking-modal-body">
             <section class="booking-step active" data-booking-step="1">
+                <h3>Chọn phòng tập</h3>
+                <label class="booking-room-field">
+                    <i class="fa fa-map-marker"></i>
+                    <select data-booking-room>
+                        <option value="">-- Chọn phòng tập --</option>
+                        @foreach (var room in Model.BookableClasses
+                            .GroupBy(item => new { item.RoomId, item.RoomName })
+                            .Select(group => group.Key))
+                        {
+                            <option value="@room.RoomId">@room.RoomName</option>
+                        }
+                    </select>
+                </label>
+                @if (!Model.BookableClasses.Any())
+                {
+                    <p class="booking-form-error show">HLV này hiện chưa có giờ tập nào mở đăng ký.</p>
+                }
+
                 <h3>Loại buổi tập</h3>
                 <div class="booking-packages">
                     <button type="button" class="booking-package" data-package-name="Buổi lẻ (60 phút)" data-package-price="250000">
@@ -242,6 +275,8 @@
                 <div class="booking-confirm-table">
                     <div><span>Huấn luyện viên</span><strong>@Model.Name</strong></div>
                     <div><span>Chuyên môn</span><strong>@Model.Role</strong></div>
+                    <div><span>Phòng tập</span><strong data-confirm-room></strong></div>
+                    <div><span>Giờ tập</span><strong data-confirm-class></strong></div>
                     <div><span>Ngày tập</span><strong data-confirm-date></strong></div>
                     <div><span>Giờ tập</span><strong data-confirm-time></strong></div>
                     <div><span>Loại gói</span><strong data-confirm-package></strong></div>

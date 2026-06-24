@@ -4,7 +4,7 @@ using doanweb.Models;
 namespace doanweb.Data
 {
     /// <summary>
-    /// DbContext cho h? th?ng qu?n l˝ gym
+    /// DbContext cho h? th?ng qu?n lÔøΩ gym
     /// </summary>
     public class GymDbContext : DbContext
     {
@@ -16,6 +16,7 @@ namespace doanweb.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<TrainingRoom> TrainingRooms { get; set; }
         public DbSet<Class> Classes { get; set; }
         public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
@@ -60,6 +61,13 @@ namespace doanweb.Data
                 .WithMany(c => c.Enrollments)
                 .HasForeignKey(ce => ce.ClassId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: TrainingRoom -> Classes (One-to-Many)
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.TrainingRoom)
+                .WithMany(r => r.Classes)
+                .HasForeignKey(c => c.TrainingRoomId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Relationship: Subscription -> Attendances (One-to-Many)
             modelBuilder.Entity<Attendance>()
@@ -126,10 +134,14 @@ namespace doanweb.Data
 
             modelBuilder.Entity<Payment>()
                 .HasIndex(p => p.TransactionId)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[TransactionId] IS NOT NULL");
 
             modelBuilder.Entity<Class>()
                 .HasIndex(c => c.ClassDate);
+
+            modelBuilder.Entity<Class>()
+                .HasIndex(c => c.TrainingRoomId);
 
             // Seed initial data
             SeedInitialData(modelBuilder);
@@ -143,7 +155,7 @@ namespace doanweb.Data
                 {
                     RoleId = 1,
                     RoleName = "Admin",
-                    Description = "Qu?n tr? viÍn h? th?ng",
+                    Description = "Qu?n tr? viÔøΩn h? th?ng",
                     Status = "Active",
                     CreatedDate = DateTime.Now
                 },
@@ -151,7 +163,7 @@ namespace doanweb.Data
                 {
                     RoleId = 2,
                     RoleName = "Customer",
-                    Description = "Kh·ch h‡ng",
+                    Description = "KhÔøΩch hÔøΩng",
                     Status = "Active",
                     CreatedDate = DateTime.Now
                 }
@@ -192,11 +204,12 @@ namespace doanweb.Data
                 {
                     PackageId = 1,
                     PackageName = "Body Recomposition",
-                    Description = "Ch??ng tr?nh t?p luy?n c? nh‚n v?i h??ng d?n dinh d??ng chi ti?t",
+                    Description = "Ch??ng tr?nh t?p luy?n c? nhÔøΩn v?i h??ng d?n dinh d??ng chi ti?t",
                     Price = 1990000,
                     DurationDays = 84,
                     PackageType = "Online",
                     Category = "Muscle",
+                    AllowedClassTypes = "Gym,Strength",
                     Features = "C? nh?n h?a, Video HD 1080p, Email support 24/7",
                     MaxSessions = 12,
                     CreatedDate = DateTime.Now,
@@ -211,6 +224,7 @@ namespace doanweb.Data
                     DurationDays = 84,
                     PackageType = "Online",
                     Category = "FatLoss",
+                    AllowedClassTypes = "Gym,Cardio",
                     Features = "Cardio, T?p t?, ?n u?ng, Support h?ng tu?n",
                     MaxSessions = 12,
                     CreatedDate = DateTime.Now,
@@ -225,6 +239,7 @@ namespace doanweb.Data
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Gym",
+                    AllowedClassTypes = "Gym,Strength",
                     Features = "T?t c? thi?t b?, Hu?n luy?n vi?n 2x/tu?n, Steam room",
                     MaxSessions = 24,
                     CreatedDate = DateTime.Now,
@@ -239,6 +254,7 @@ namespace doanweb.Data
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Gym",
+                    AllowedClassTypes = "Gym,Personal Training",
                     Features = "Hu?n luy?n vi?n ri?ng, C? nh?n h?a, Theo d?i chi ti?t",
                     MaxSessions = 16,
                     CreatedDate = DateTime.Now,
@@ -253,10 +269,42 @@ namespace doanweb.Data
                     DurationDays = 30,
                     PackageType = "Offline",
                     Category = "Yoga",
+                    AllowedClassTypes = "Yoga,Pilates,Zumba",
                     Features = "Yoga h?ng ng?y, Pilates, Zumba, C?ng ??ng",
                     MaxSessions = 20,
                     CreatedDate = DateTime.Now,
                     Status = "Active"
+                }
+            );
+
+            // Seed Training Rooms
+            modelBuilder.Entity<TrainingRoom>().HasData(
+                new TrainingRoom
+                {
+                    TrainingRoomId = 1,
+                    RoomName = "Ph√≤ng Gym 1",
+                    Capacity = 30,
+                    Status = "Active",
+                    Description = "Ph√≤ng t·∫≠p ch√≠nh cho Gym, Strength v√† PT.",
+                    CreatedDate = DateTime.Now
+                },
+                new TrainingRoom
+                {
+                    TrainingRoomId = 2,
+                    RoomName = "Ph√≤ng Yoga",
+                    Capacity = 20,
+                    Status = "Active",
+                    Description = "Kh√¥ng gian y√™n tƒ©nh cho Yoga, Pilates v√† Zumba.",
+                    CreatedDate = DateTime.Now
+                },
+                new TrainingRoom
+                {
+                    TrainingRoomId = 3,
+                    RoomName = "Ph√≤ng Boxing",
+                    Capacity = 18,
+                    Status = "Active",
+                    Description = "Ph√≤ng chuy√™n d·ª•ng cho Boxing v√† cardio c∆∞·ªùng ƒë·ªô cao.",
+                    CreatedDate = DateTime.Now
                 }
             );
 
@@ -266,7 +314,7 @@ namespace doanweb.Data
                 {
                     ProductId = 1,
                     ProductName = "Whey Protein Isolate",
-                    Description = "B?t Whey Protein ch?t l??ng cao, ???c cÙ l?p t? 90% ngu?n s?a t? nhiÍn. Gi‡u amino axit, h? tr? ph?c h?i c? b?p sau t?p luy?n.",
+                    Description = "B?t Whey Protein ch?t l??ng cao, ???c cÔøΩ l?p t? 90% ngu?n s?a t? nhiÔøΩn. GiÔøΩu amino axit, h? tr? ph?c h?i c? b?p sau t?p luy?n.",
                     Price = 890000,
                     Category = "Whey",
                     Brand = "Optimum Nutrition",
@@ -279,7 +327,7 @@ namespace doanweb.Data
                 {
                     ProductId = 2,
                     ProductName = "Creatine Monohydrate",
-                    Description = "Creatine Monohydrate tinh khi?t 100%, t?ng c??ng s?c m?nh v‡ kh? n?ng ph?c h?i c? b?p. H? tr? t?ng kh?i l??ng c? hi?u qu?.",
+                    Description = "Creatine Monohydrate tinh khi?t 100%, t?ng c??ng s?c m?nh vÔøΩ kh? n?ng ph?c h?i c? b?p. H? tr? t?ng kh?i l??ng c? hi?u qu?.",
                     Price = 450000,
                     Category = "Creatine",
                     Brand = "Muscletech",
@@ -292,7 +340,7 @@ namespace doanweb.Data
                 {
                     ProductId = 3,
                     ProductName = "Protein Bar Chocolate",
-                    Description = "B·nh Protein Bar v? socola ngon mi?ng, ch?a 20g protein, Ìt ???ng, l˝ t??ng cho b?a ?n nh? tr??c/sau t?p luy?n.",
+                    Description = "BÔøΩnh Protein Bar v? socola ngon mi?ng, ch?a 20g protein, ÔøΩt ???ng, lÔøΩ t??ng cho b?a ?n nh? tr??c/sau t?p luy?n.",
                     Price = 65000,
                     Category = "Protein Bar",
                     Brand = "Quest Nutrition",
@@ -305,7 +353,7 @@ namespace doanweb.Data
                 {
                     ProductId = 4,
                     ProductName = "Whey Protein Concentrate",
-                    Description = "B?t Whey Protein n?ng ?? cao, h? tr? x‚y d?ng kh?i c?, gi‡u BCAA t? nhiÍn. V? ngon, d? hÚa tan.",
+                    Description = "B?t Whey Protein n?ng ?? cao, h? tr? xÔøΩy d?ng kh?i c?, giÔøΩu BCAA t? nhiÔøΩn. V? ngon, d? hÔøΩa tan.",
                     Price = 650000,
                     Category = "Whey",
                     Brand = "Gold Standard",
@@ -318,7 +366,7 @@ namespace doanweb.Data
                 {
                     ProductId = 5,
                     ProductName = "Creatine + Beta-Alanine Mix",
-                    Description = "H?n h?p Creatine v‡ Beta-Alanine, t?ng c??ng hi?u su?t t?p luy?n, gi?m m?t m?i c?, c?i thi?n s?c b?n.",
+                    Description = "H?n h?p Creatine vÔøΩ Beta-Alanine, t?ng c??ng hi?u su?t t?p luy?n, gi?m m?t m?i c?, c?i thi?n s?c b?n.",
                     Price = 520000,
                     Category = "Creatine",
                     Brand = "MuscleTech",
@@ -331,7 +379,7 @@ namespace doanweb.Data
                 {
                     ProductId = 6,
                     ProductName = "Protein Bar Peanut Butter",
-                    Description = "B·nh Protein Bar v? b? ??u phong v?, 25g protein, khÙng ch?a ???ng, b? sung n?ng l??ng cho ng‡y d‡i.",
+                    Description = "BÔøΩnh Protein Bar v? b? ??u phong v?, 25g protein, khÔøΩng ch?a ???ng, b? sung n?ng l??ng cho ngÔøΩy dÔøΩi.",
                     Price = 70000,
                     Category = "Protein Bar",
                     Brand = "Quest Nutrition",

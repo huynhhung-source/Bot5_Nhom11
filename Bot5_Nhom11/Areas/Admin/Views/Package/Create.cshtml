@@ -199,6 +199,15 @@
                                    value="@Model?.MaxSessions" min="0" />
                         </div>
 
+                        <!-- Loại lớp được phép -->
+                        <div class="mb-3">
+                            <label class="form-label" for="AllowedClassTypes">Loại Lớp Được Phép Đăng Ký</label>
+                            <input type="text" class="form-control" id="AllowedClassTypes" name="AllowedClassTypes"
+                                   placeholder="Ví dụ: Gym,Yoga,Boxing hoặc Yoga,Pilates,Zumba"
+                                   value="@Model?.AllowedClassTypes" />
+                            <small class="text-muted">Nhập các loại lớp cách nhau bằng dấu phẩy.</small>
+                        </div>
+
                         <!-- Trạng thái -->
                         <div class="mb-3">
                             <label class="form-label" for="Status">Trạng Thái *</label>
