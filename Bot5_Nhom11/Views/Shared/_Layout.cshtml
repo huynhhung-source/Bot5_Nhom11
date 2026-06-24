@@ -82,19 +82,19 @@
     <!-- Offcanvas Menu Section End -->
 
     <!-- Header Section Begin -->
-    <header class="header-section" style="background-color: #151515; padding-top: 35px; padding-bottom: 35px">
+    <header class="header-section">
         <div class="container-fluid">
-            <div class="row" style="flex-wrap: nowrap; align-items: center;">
-                <div class="col-lg-3">
+            <div class="header-row">
+                <div class="header-logo">
                     <div class="logo">
                         <a href="/">
                             <img src="~/img/logo.png" alt="">
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-6" >
+                <div class="header-nav">
                     <nav class="nav-menu">
-                        <ul style="margin-left: -200px">
+                        <ul>
                             <li><a href="/">Trang chủ</a></li>
                             <li class="dropdown">
                                 <a href="/Packages/Online">Gói Tập</a>
@@ -107,11 +107,11 @@
                             <li><a href="/Home/Gyms">Phòng tập</a></li>
                             <li><a href="/Products">Sản phẩm</a></li>
                             <li><a asp-controller="Home" asp-action="Trainers">Đội ngũ</a></li>
-                            <li><a href="/#contact">Liên hệ</a></li>
+                          
                         </ul>
                     </nav>
                 </div>
-                <div class="col-lg-3" style="display: flex; justify-content: flex-end; gap: 10px; align-items: center; flex-wrap: nowrap; white-space: nowrap;">
+                <div class="header-actions">
                     @{
                         string userEmail = null;
                         if (Context.Session.TryGetValue("UserEmail", out byte[] userEmailBytes))
