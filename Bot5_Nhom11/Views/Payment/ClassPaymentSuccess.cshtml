@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Thanh Toán Giờ Tập Thành Công";
+    var payment = ViewBag.Payment as doanweb.Models.Payment;
+}
+
+<section class="class-success-page">
+    <div class="class-success-card">
+        <div class="class-success-icon"><i class="fa fa-check-circle"></i></div>
+        <h1>Thanh toán thành công</h1>
+        <p>Giờ tập đã được thêm vào lịch tập cá nhân của bạn.</p>
+
+        @if (payment != null)
+        {
+            <div class="class-success-info">
+                <div><span>Mã thanh toán</span><strong>@payment.PaymentId</strong></div>
+                <div><span>Số tiền</span><strong>@payment.Amount.ToString("N0")₫</strong></div>
+                <div><span>Phương thức</span><strong>@payment.PaymentMethod</strong></div>
+                <div><span>Ngày thanh toán</span><strong>@payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                <div class="wide"><span>Nội dung</span><strong>@payment.Description</strong></div>
+            </div>
+        }
+
+        <div class="class-success-actions">
+            <a asp-controller="Schedule" asp-action="MySchedule">Xem lịch cá nhân</a>
+            <a asp-controller="Schedule" asp-action="Index">Đặt giờ tập khác</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .class-success-page { min-height: 100vh; background: #080808; color: #fff; display: grid; place-items: center; padding: 50px 20px; }
+    .class-success-card { width: min(760px, 100%); background: #151515; border: 1px solid #29292c; padding: 38px; text-align: center; }
+    .class-success-icon { color: #28a745; font-size: 64px; }
+    .class-success-card h1 { font-family: Oswald, sans-serif; text-transform: uppercase; margin: 10px 0; }
+    .class-success-card p { color: #b8c4d8; }
+    .class-success-info { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 26px 0; text-align: left; }
+    .class-success-info div { background: #101011; border: 1px solid #29292c; padding: 14px; }
+    .class-success-info .wide { grid-column: 1 / -1; }
+    .class-success-info span { display: block; color: #8c98ad; margin-bottom: 5px; }
+    .class-success-info strong { color: #f36100; }
+    .class-success-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .class-success-actions a { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; background: #f36100; color: #fff; font-weight: 800; text-transform: uppercase; text-decoration: none; }
+    .class-success-actions a:last-child { background: transparent; color: #f36100; border: 2px solid #f36100; }
+    @@media (max-width: 640px) { .class-success-info, .class-success-actions { grid-template-columns: 1fr; } }
+</style>

@@ -354,6 +354,10 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# ASP.NET Core local data protection keys
+.aspnet-data-protection-keys/
+**/.aspnet-data-protection-keys/
+
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 

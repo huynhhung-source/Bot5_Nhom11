@@ -1,0 +1,114 @@
+@model RoomScheduleFormViewModel
+
+@{
+    ViewData["Title"] = "Thêm Lịch Học";
+    ViewData["AdminPageTitle"] = "Thêm Lịch Học";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;">Thêm lịch học trong phòng</h5>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle"></i> @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="TrainingRoomId" class="form-label">Phòng tập *</label>
+                            <select asp-for="TrainingRoomId" asp-items="ViewBag.Rooms" class="form-control">
+                                <option value="">-- Chọn phòng --</option>
+                            </select>
+                            <span asp-validation-for="TrainingRoomId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ClassName" class="form-label">Tên lớp *</label>
+                            <input asp-for="ClassName" class="form-control" placeholder="Ví dụ: Yoga Flow, Boxing Fitness" />
+                            <span asp-validation-for="ClassName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InstructorName" class="form-label">Huấn luyện viên *</label>
+                                    <select asp-for="InstructorName" asp-items="ViewBag.Trainers" class="form-control">
+                                        <option value="">-- Chọn huấn luyện viên --</option>
+                                    </select>
+                                    <span asp-validation-for="InstructorName" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ClassType" class="form-label">Loại lớp</label>
+                                    <select asp-for="ClassType" asp-items="ViewBag.ClassTypes" class="form-control">
+                                        <option value="">-- Chọn loại lớp --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="ClassDate" class="form-label">Ngày học *</label>
+                                    <input asp-for="ClassDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" />
+                                    <span asp-validation-for="ClassDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="StartTime" class="form-label">Giờ bắt đầu *</label>
+                                    <input asp-for="StartTime" type="time" class="form-control" />
+                                    <span asp-validation-for="StartTime" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="EndTime" class="form-label">Giờ kết thúc *</label>
+                                    <input asp-for="EndTime" type="time" class="form-control" />
+                                    <span asp-validation-for="EndTime" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Level" class="form-label">Cấp độ</label>
+                            <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control">
+                                <option value="">-- Chọn cấp độ --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary" style="background: #f36100; border: none;">
+                                <i class="fa fa-save"></i> Thêm lịch
+                            </button>
+                            <a asp-area="Admin" asp-controller="Gym" asp-action="Index" class="btn btn-secondary">
+                                <i class="fa fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

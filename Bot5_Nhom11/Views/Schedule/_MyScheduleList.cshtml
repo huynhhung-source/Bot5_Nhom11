@@ -1,0 +1,55 @@
+@model List<MyWorkoutScheduleItemViewModel>
+
+@if (!Model.Any())
+{
+    <div class="my-schedule-empty">Chưa có giờ tập phù hợp.</div>
+}
+else
+{
+    <div class="my-schedule-list">
+        @foreach (var item in Model)
+        {
+            <article class="my-schedule-card">
+                <div class="my-schedule-time">
+                    <strong>@item.StartTime.ToString(@"hh\:mm")</strong>
+                    <span>@item.EndTime.ToString(@"hh\:mm")</span>
+                </div>
+                <div class="my-schedule-info">
+                    <h3>@item.ClassName</h3>
+                    <div class="my-schedule-meta">
+                        <span><i class="fa fa-calendar"></i>@item.ClassDate.ToString("dd/MM/yyyy")</span>
+                        <span><i class="fa fa-tag"></i>@(string.IsNullOrWhiteSpace(item.ClassType) ? "Chưa phân loại" : item.ClassType)</span>
+                        <span><i class="fa fa-user"></i>@item.InstructorName</span>
+                        <span><i class="fa fa-map-marker"></i>@item.RoomName</span>
+                    </div>
+                    <div class="my-schedule-status">
+                        @item.RegisteredCount/@item.Capacity khách đăng ký
+                        @if (item.HasCheckedIn)
+                        {
+                            <span> · Đã check-in</span>
+                        }
+                    </div>
+                </div>
+                <div class="my-schedule-actions">
+                    <a href="/Schedule/Details/@item.ClassId">
+                        Xem giờ tập
+                    </a>
+                    <form method="post" action="/Schedule/CheckIn">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="classId" value="@item.ClassId" />
+                        <button type="submit" disabled="@(!item.CanCheckIn)">
+                            @(item.HasCheckedIn ? "Đã check-in" : "Check-in")
+                        </button>
+                    </form>
+                    <form method="post" action="/Schedule/Cancel" onsubmit="return confirm('Bạn chắc chắn muốn hủy lịch này?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="classId" value="@item.ClassId" />
+                        <input type="hidden" name="date" value="@item.ClassDate.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="returnTo" value="MySchedule" />
+                        <button class="secondary" type="submit" disabled="@(!item.CanCancel)">Hủy lịch</button>
+                    </form>
+                </div>
+            </article>
+        }
+    </div>
+}

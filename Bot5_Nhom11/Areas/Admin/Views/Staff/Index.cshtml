@@ -1,0 +1,317 @@
+@model doanweb.Models.AdminStaffIndexViewModel
+
+@{
+    ViewData["Title"] = "Nhân Viên / HLV";
+    ViewData["AdminPageTitle"] = "Nhân Viên / HLV";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-staff.css" asp-append-version="true" />
+}
+
+<section class="staff-admin-page">
+    <div class="staff-header">
+        <div>
+            <span class="staff-kicker">GymPro Admin</span>
+            <h1>Nhân viên & huấn luyện viên (@Model.TotalCount)</h1>
+            <div class="staff-stats">
+                <span><i class="fa fa-check-circle"></i> @Model.ActiveCount đang làm</span>
+                <span><i class="fa fa-user"></i> @Model.TrainerCount HLV</span>
+            </div>
+        </div>
+        <button type="button" class="staff-add-button" data-staff-open>
+            <i class="fa fa-plus"></i>
+            <span>Thêm nhân viên</span>
+        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="staff-alert">
+            <i class="fa fa-check-circle"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <div class="staff-grid">
+        @foreach (var staff in Model.StaffMembers)
+        {
+            <article class="staff-card">
+                <div class="staff-card-media">
+                    @if (!string.IsNullOrWhiteSpace(staff.ImageUrl))
+                    {
+                        <img src="@staff.ImageUrl" alt="@staff.FullName" />
+                    }
+                    else
+                    {
+                        <span>@staff.Initial</span>
+                    }
+                </div>
+
+                <header class="staff-card-header">
+                    <div class="staff-identity">
+                        @if (string.IsNullOrWhiteSpace(staff.ImageUrl))
+                        {
+                            <span class="staff-avatar">@staff.Initial</span>
+                        }
+                        <div>
+                            <h2>@staff.FullName</h2>
+                            <small>@staff.StaffCode</small>
+                        </div>
+                    </div>
+                    <span class="staff-status staff-status-@staff.StatusKind">@staff.StatusLabel</span>
+                </header>
+
+                <div class="staff-tags">
+                    <span class="staff-position staff-position-@staff.PositionKind">@staff.Position</span>
+                    @if (!string.IsNullOrWhiteSpace(staff.Specialty))
+                    {
+                        <span>@staff.Specialty</span>
+                    }
+                </div>
+
+                <div class="staff-contact">
+                    <span><i class="fa fa-phone"></i> @staff.PhoneNumber</span>
+                    @if (!string.IsNullOrWhiteSpace(staff.Email))
+                    {
+                        <span><i class="fa fa-envelope-o"></i> @staff.Email</span>
+                    }
+                </div>
+
+                <footer class="staff-card-footer">
+                    <div class="staff-meta">
+                        <span class="staff-rating"><i class="fa fa-star"></i> @staff.Rating.ToString("0.0")</span>
+                        @if (staff.MonthlyClasses > 0)
+                        {
+                            <span><i class="fa fa-female"></i> @staff.MonthlyClasses lớp/tháng</span>
+                        }
+                        <strong>@staff.Salary.ToString("N0")đ</strong>
+                    </div>
+
+                    <div class="staff-card-actions">
+                        <a asp-area="Admin"
+                           asp-controller="Staff"
+                           asp-action="Details"
+                           asp-route-id="@staff.StaffMemberId"
+                           class="staff-detail-button"
+                           title="Xem chi tiết">
+                            <i class="fa fa-id-card-o"></i>
+                        </a>
+
+                        @if (staff.PositionKind == "trainer")
+                        {
+                            <a asp-area=""
+                               asp-controller="Home"
+                               asp-action="TrainerDetail"
+                               asp-route-id="@staff.StaffMemberId"
+                              >
+                              
+                            </a>
+                        }
+
+                        <a asp-area="Admin"
+                           asp-controller="Staff"
+                           asp-action="Edit"
+                           asp-route-id="@staff.StaffMemberId"
+                           class="staff-edit-button"
+                           title="Cập nhật">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <form method="post"
+                              asp-area="Admin"
+                              asp-controller="Staff"
+                              asp-action="Delete"
+                              asp-route-id="@staff.StaffMemberId"
+                              onsubmit="return confirm('Xóa nhân viên @staff.FullName?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="staff-delete-button" title="Xóa">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </footer>
+            </article>
+        }
+    </div>
+</section>
+
+<div class="staff-modal @(Model.ShowCreateModal ? "is-open" : "")" id="staffCreateModal" aria-hidden="@(Model.ShowCreateModal ? "false" : "true")">
+    <div class="staff-modal-backdrop" data-staff-close></div>
+    <div class="staff-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="staffCreateTitle">
+        <button type="button" class="staff-modal-close" data-staff-close aria-label="Đóng">
+            <i class="fa fa-times"></i>
+        </button>
+
+        <h2 id="staffCreateTitle">Thêm nhân viên</h2>
+
+        <form method="post" asp-area="Admin" asp-controller="Staff" asp-action="Create" enctype="multipart/form-data" class="staff-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="staff-validation-summary"></div>
+
+            <label>
+                <span>Họ và tên *</span>
+                <input asp-for="NewStaff.FullName" placeholder="Họ và tên *" />
+                <span asp-validation-for="NewStaff.FullName" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Chuyên môn</span>
+                <input asp-for="NewStaff.Specialty" placeholder="Chuyên môn" />
+                <span asp-validation-for="NewStaff.Specialty" class="staff-field-error"></span>
+            </label>
+
+            <div class="staff-form-grid">
+                <label>
+                    <span>Ảnh đại diện</span>
+                    <input asp-for="NewStaff.PhotoFile" type="file" accept=".jpg,.jpeg,.png,.webp" />
+                    <span asp-validation-for="NewStaff.PhotoFile" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Hoặc đường dẫn ảnh</span>
+                    <input asp-for="NewStaff.ImageUrl" placeholder="/img/team/team-1.jpg" />
+                    <span asp-validation-for="NewStaff.ImageUrl" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <label>
+                <span>Số điện thoại *</span>
+                <input asp-for="NewStaff.PhoneNumber" placeholder="Số điện thoại *" />
+                <span asp-validation-for="NewStaff.PhoneNumber" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Email</span>
+                <input asp-for="NewStaff.Email" placeholder="Email" />
+                <span asp-validation-for="NewStaff.Email" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Lương (VND)</span>
+                <input asp-for="NewStaff.Salary" type="number" min="0" step="100000" placeholder="Lương (VND)" />
+                <span asp-validation-for="NewStaff.Salary" class="staff-field-error"></span>
+            </label>
+
+            <div class="staff-form-grid staff-form-grid-three">
+                <label>
+                    <span>Vị trí</span>
+                    <select asp-for="NewStaff.Position">
+                        <option value="Huấn Luyện Viên">Huấn Luyện Viên</option>
+                        <option value="Lễ Tân">Lễ Tân</option>
+                        <option value="Kỹ Thuật">Kỹ Thuật</option>
+                        <option value="Quản Lý">Quản Lý</option>
+                    </select>
+                    <span asp-validation-for="NewStaff.Position" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Trạng thái</span>
+                    <select asp-for="NewStaff.Status">
+                        <option value="Active">Đang làm</option>
+                        <option value="OnLeave">Nghỉ phép</option>
+                        <option value="Inactive">Tạm nghỉ</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Kinh nghiệm</span>
+                    <input asp-for="NewStaff.ExperienceYears" type="number" min="0" max="50" />
+                    <span asp-validation-for="NewStaff.ExperienceYears" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <div class="staff-form-grid staff-form-grid-three">
+                <label>
+                    <span>Đánh giá</span>
+                    <input asp-for="NewStaff.Rating" type="number" min="0" max="5" step="0.1" />
+                    <span asp-validation-for="NewStaff.Rating" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Lớp/tháng</span>
+                    <input asp-for="NewStaff.MonthlyClasses" type="number" min="0" />
+                    <span asp-validation-for="NewStaff.MonthlyClasses" class="staff-field-error"></span>
+                </label>
+
+                <label>
+                    <span>Địa điểm</span>
+                    <input asp-for="NewStaff.Location" placeholder="Gym Center..." />
+                    <span asp-validation-for="NewStaff.Location" class="staff-field-error"></span>
+                </label>
+            </div>
+
+            <label>
+                <span>Giới thiệu trên trang đội ngũ</span>
+                <textarea asp-for="NewStaff.Introduction" rows="3" placeholder="Mô tả ngắn về HLV/nhân viên"></textarea>
+                <span asp-validation-for="NewStaff.Introduction" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Triết lý huấn luyện</span>
+                <textarea asp-for="NewStaff.Philosophy" rows="2" placeholder="Dùng cho trang chi tiết HLV"></textarea>
+                <span asp-validation-for="NewStaff.Philosophy" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Chứng chỉ</span>
+                <input asp-for="NewStaff.Certificates" placeholder="VD: CPT, Yoga Alliance, CPR" />
+                <span asp-validation-for="NewStaff.Certificates" class="staff-field-error"></span>
+            </label>
+
+            <label>
+                <span>Lịch làm việc</span>
+                <input asp-for="NewStaff.ScheduleText" placeholder="Thứ 2 - Thứ 6|06:00 - 11:00;Thứ 7|08:00 - 12:00" />
+                <span asp-validation-for="NewStaff.ScheduleText" class="staff-field-error"></span>
+            </label>
+
+            <div class="staff-modal-actions">
+                <button type="button" class="staff-cancel-button" data-staff-close>Hủy</button>
+                <button type="submit" class="staff-save-button">
+                    <i class="fa fa-check"></i>
+                    <span>Lưu nhân viên</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const modal = document.getElementById("staffCreateModal");
+            if (!modal) return;
+
+            const openButtons = document.querySelectorAll("[data-staff-open]");
+            const closeButtons = modal.querySelectorAll("[data-staff-close]");
+
+            function openModal() {
+                modal.classList.add("is-open");
+                modal.setAttribute("aria-hidden", "false");
+                document.body.classList.add("staff-modal-open");
+                const firstInput = modal.querySelector("input");
+                if (firstInput) firstInput.focus();
+            }
+
+            function closeModal() {
+                modal.classList.remove("is-open");
+                modal.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("staff-modal-open");
+            }
+
+            openButtons.forEach(button => button.addEventListener("click", openModal));
+            closeButtons.forEach(button => button.addEventListener("click", closeModal));
+
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape" && modal.classList.contains("is-open")) {
+                    closeModal();
+                }
+            });
+
+            if (modal.classList.contains("is-open")) {
+                document.body.classList.add("staff-modal-open");
+            }
+        })();
+    </script>
+}

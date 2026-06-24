@@ -1,0 +1,240 @@
+@model AdminGymIndexViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Phòng Tập";
+    ViewData["AdminPageTitle"] = "Quản Lý Phòng Tập";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-gyms.css" asp-append-version="true" />
+}
+
+<section class="gym-admin-page">
+    <div class="gym-admin-header">
+        <div>
+            <span class="gym-admin-kicker">GymPro Admin</span>
+            <h1>Quản lý phòng tập</h1>
+        </div>
+        <a class="gym-admin-public-link" asp-area="Admin" asp-controller="Gym" asp-action="Create">
+            <i class="fa fa-plus"></i>
+            Thêm phòng tập
+        </a>
+        <a class="gym-admin-public-link" asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule">
+            <i class="fa fa-calendar-plus-o"></i>
+            Thêm lịch học
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fa fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="gym-admin-stats">
+        <article class="gym-admin-stat">
+            <i class="fa fa-building"></i>
+            <div>
+                <span>Tổng phòng</span>
+                <strong>@Model.TotalCount</strong>
+            </div>
+        </article>
+        <article class="gym-admin-stat gym-admin-stat-success">
+            <i class="fa fa-check-circle"></i>
+            <div>
+                <span>Đang sử dụng</span>
+                <strong>@Model.ActiveCount</strong>
+            </div>
+        </article>
+        <article class="gym-admin-stat gym-admin-stat-info">
+            <i class="fa fa-users"></i>
+            <div>
+                <span>Sức chứa</span>
+                <strong>@Model.TotalCapacity</strong>
+            </div>
+        </article>
+        <article class="gym-admin-stat gym-admin-stat-warning">
+            <i class="fa fa-ticket"></i>
+            <div>
+                <span>Chỗ còn lại</span>
+                <strong>@Model.TotalAvailableSlots</strong>
+            </div>
+        </article>
+    </div>
+
+    <div class="gym-admin-toolbar">
+        <form class="gym-admin-search" method="get" asp-area="Admin" asp-controller="Gym" asp-action="Index">
+            <input type="hidden" name="status" value="@Model.StatusFilter" />
+            <i class="fa fa-search"></i>
+            <input type="search"
+                   name="search"
+                   value="@Model.SearchTerm"
+                   placeholder="Tìm theo tên phòng, mô tả, lịch học..."
+                   autocomplete="off" />
+            <button type="submit" title="Tìm kiếm" aria-label="Tìm kiếm">
+                <i class="fa fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <nav class="gym-admin-filters" aria-label="Lọc trạng thái phòng">
+            <a class="gym-admin-filter @(Model.StatusFilter == "all" ? "is-active" : "")"
+               asp-area="Admin" asp-controller="Gym" asp-action="Index"
+               asp-route-search="@Model.SearchTerm" asp-route-status="all">
+                Tất cả <span>@Model.TotalCount</span>
+            </a>
+            <a class="gym-admin-filter @(Model.StatusFilter == "Active" ? "is-active" : "")"
+               asp-area="Admin" asp-controller="Gym" asp-action="Index"
+               asp-route-search="@Model.SearchTerm" asp-route-status="Active">
+                Hoạt động <span>@Model.ActiveCount</span>
+            </a>
+            <a class="gym-admin-filter @(Model.StatusFilter == "Inactive" ? "is-active" : "")"
+               asp-area="Admin" asp-controller="Gym" asp-action="Index"
+               asp-route-search="@Model.SearchTerm" asp-route-status="Inactive">
+                Đã ẩn <span>@Model.HiddenCount</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="gym-admin-summary">
+        <span>@Model.Rooms.Count phòng phù hợp</span>
+        <span>@Model.TotalRegistered khách đã đăng ký lịch sắp tới</span>
+        <span>@Model.TotalAvailableSlots chỗ còn lại</span>
+    </div>
+
+    <div class="gym-admin-table-shell">
+        @if (Model.Rooms.Any())
+        {
+            <div class="gym-admin-table-scroll">
+                <table class="gym-admin-table">
+                    <thead>
+                        <tr>
+                            <th>Phòng tập</th>
+                            <th>Sức chứa</th>
+                            <th>Lịch học trong phòng</th>
+                            <th>Đăng ký</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var room in Model.Rooms)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="gym-admin-area">
+                                        <strong>@room.RoomName</strong>
+                                        <span>@(string.IsNullOrWhiteSpace(room.Description) ? "Chưa có mô tả" : room.Description)</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gym-admin-slots gym-admin-slots-success">
+                                        <strong>@room.Capacity</strong>
+                                        <span>khách</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gym-admin-schedule">
+                                        @if (room.UpcomingClasses.Any())
+                                        {
+                                            @foreach (var item in room.UpcomingClasses)
+                                            {
+                                                <div>
+                                                    <strong>@item.ClassName</strong>
+                                                    <span>@item.ClassDate.ToString("dd/MM/yyyy") @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</span>
+                                                    <em>@item.RegisteredCount/@item.Capacity đăng ký, còn @item.AvailableSlots chỗ</em>
+                                                </div>
+                                            }
+                                            @if (room.ClassCount > room.UpcomingClasses.Count)
+                                            {
+                                                <span class="gym-admin-schedule-more">
+                                                    +@(room.ClassCount - room.UpcomingClasses.Count) lịch học khác
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span>Chưa có lịch học sắp tới</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gym-admin-contact">
+                                        <strong>@room.RegisteredCount khách</strong>
+                                        <span>@room.AvailableSlots chỗ còn lại</span>
+                                        @if (room.FullClassCount > 0)
+                                        {
+                                            <span>@room.FullClassCount lịch hết chỗ</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gym-admin-status gym-admin-status-@room.StatusKind">
+                                        <i class="fa @(room.Status == "Active" ? "fa-check-circle" : "fa-eye-slash")"></i>
+                                        @room.StatusLabel
+                                    </div>
+                                    <div class="gym-admin-status gym-admin-status-@room.AvailabilityKind">
+                                        <i class="fa @(room.IsAvailable ? "fa-unlock" : "fa-lock")"></i>
+                                        @room.AvailabilityLabel
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="gym-admin-actions">
+                                        <a asp-area="Admin" asp-controller="Gym" asp-action="Edit" asp-route-id="@room.TrainingRoomId" title="Sửa phòng">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        @if (room.Status == "Active")
+                                        {
+                                            <a asp-area="Admin" asp-controller="Gym" asp-action="CreateSchedule" asp-route-roomId="@room.TrainingRoomId" title="Thêm lịch học">
+                                                <i class="fa fa-calendar-plus-o"></i>
+                                            </a>
+                                        }
+                                        @if (room.Status == "Active")
+                                        {
+                                            <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Hide" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Ẩn phòng này khỏi danh sách sử dụng?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" title="Ẩn phòng">
+                                                    <i class="fa fa-eye-slash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Activate" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Kích hoạt lại phòng này?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" title="Kích hoạt phòng">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <form method="post" asp-area="Admin" asp-controller="Gym" asp-action="Delete" asp-route-id="@room.TrainingRoomId" onsubmit="return confirm('Xóa phòng tập này? Các lịch chưa có khách đăng ký trong phòng cũng sẽ bị xóa.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    title="@(room.IsDeletable ? "Xóa phòng" : "Không thể xóa phòng đã có khách đăng ký hoặc điểm danh")">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="gym-admin-empty">
+                <i class="fa fa-map-o"></i>
+                <strong>Không có phòng tập phù hợp</strong>
+                <span>Thử đổi từ khóa hoặc bộ lọc trạng thái.</span>
+            </div>
+        }
+    </div>
+</section>

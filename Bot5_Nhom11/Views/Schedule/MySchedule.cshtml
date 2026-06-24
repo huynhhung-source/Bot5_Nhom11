@@ -1,0 +1,51 @@
+@model MyWorkoutScheduleViewModel
+
+@{
+    ViewData["Title"] = "Lịch Tập Cá Nhân";
+}
+
+<section class="my-schedule-page">
+    <div class="my-schedule-shell">
+        <div class="my-schedule-heading">
+            <div>
+                <span>GymPro</span>
+                <h1>Lịch tập cá nhân</h1>
+            </div>
+            <a href="/Schedule">
+                <i class="fa fa-calendar-plus-o"></i> Xem giờ tập
+            </a>
+        </div>
+
+        <h2>Sắp tới</h2>
+        @await Html.PartialAsync("_MyScheduleList", Model.UpcomingClasses)
+
+        <h2>Đã qua</h2>
+        @await Html.PartialAsync("_MyScheduleList", Model.PastClasses)
+    </div>
+</section>
+
+<style>
+    .my-schedule-page { min-height: 100vh; padding: 54px 0 80px; background: #080808; color: #fff; }
+    .my-schedule-shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+    .my-schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+    .my-schedule-heading span { color: #f36100; font-weight: 800; text-transform: uppercase; }
+    .my-schedule-heading h1, .my-schedule-shell h2 { margin: 4px 0 0; color: #fff !important; font-family: Oswald, sans-serif; text-transform: uppercase; }
+    .my-schedule-heading a { background: #f36100; color: #fff; padding: 12px 16px; font-weight: 800; text-decoration: none; }
+    .my-schedule-shell h2 { font-size: 24px; margin: 26px 0 14px; }
+    .my-schedule-list { display: grid; gap: 14px; }
+    .my-schedule-card { display: grid; grid-template-columns: 120px minmax(0, 1fr) 180px; gap: 18px; align-items: center; padding: 20px; background: #151515; border: 1px solid #29292c; }
+    .my-schedule-time strong { display: block; color: #f36100; font-size: 22px; }
+    .my-schedule-time span, .my-schedule-meta, .my-schedule-status { color: #9eacc4; }
+    .my-schedule-info h3 { margin: 0 0 8px; font-size: 21px; }
+    .my-schedule-meta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .my-schedule-meta i { color: #f36100; margin-right: 5px; }
+    .my-schedule-status { margin-top: 8px; }
+    .my-schedule-actions { display: grid; gap: 8px; }
+    .my-schedule-actions form { margin: 0; }
+    .my-schedule-actions button, .my-schedule-actions a { width: 100%; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #f36100; color: #fff; font-family: Oswald, sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; text-decoration: none; }
+    .my-schedule-actions a { background: #242528; }
+    .my-schedule-actions button.secondary { background: #30343c; }
+    .my-schedule-actions button:disabled { background: #555; cursor: not-allowed; }
+    .my-schedule-empty { padding: 36px 20px; text-align: center; color: #9eacc4; border: 1px solid #29292c; background: #111; }
+    @@media (max-width: 760px) { .my-schedule-heading { align-items: stretch; flex-direction: column; } .my-schedule-card { grid-template-columns: 1fr; } }
+</style>

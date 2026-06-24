@@ -1,0 +1,301 @@
+@model doanweb.Models.Payment
+
+@{
+    ViewData["Title"] = "Chi tiết thanh toán";
+    var subscription = ViewBag.Subscription as doanweb.Models.Subscription;
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 style="color: #333;">
+                <i class="fas fa-receipt" style="color: #f36100; margin-right: 10px;"></i>
+                Chi tiết thanh toán #@Model?.PaymentId
+            </h2>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="/admin/payment/index" class="btn btn-secondary">
+                <i class="fa fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Thông tin thanh toán -->
+        <div class="col-md-6">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;"><i class="fa fa-credit-card"></i> Thông tin thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Mã thanh toán:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-secondary">@Model?.PaymentId</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Số tiền:</strong>
+                        </div>
+                        <div class="col-6" style="color: #28a745; font-weight: 700; font-size: 18px;">
+                            @Model?.Amount.ToString("N0")₫
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Phương thức:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-info">@Model?.PaymentMethod</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Mã giao dịch:</strong>
+                        </div>
+                        <div class="col-6">
+                            <code>@Model?.TransactionId</code>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Ngày thanh toán:</strong>
+                        </div>
+                        <div class="col-6">
+                            @Model?.PaymentDate.ToString("dd/MM/yyyy HH:mm:ss")
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Trạng thái:</strong>
+                        </div>
+                        <div class="col-6">
+                            @if (Model?.Status == "Success")
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fa fa-check-circle"></i> Thành công
+                                </span>
+                            }
+                            else if (Model?.Status == "Failed")
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fa fa-times-circle"></i> Thất bại
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning">
+                                    <i class="fa fa-hourglass-half"></i> Chờ xử lý
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Mô tả:</strong>
+                        </div>
+                        <div class="col-6">
+                            @Model?.Description
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model?.Notes))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Ghi Chú:</strong>
+                            </div>
+                            <div class="col-6">
+                                @Model?.Notes
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin khách hàng -->
+        <div class="col-md-6">
+            <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 style="margin: 0;"><i class="fa fa-user"></i> Thông tin khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>ID khách hàng:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-secondary">@Model?.User?.UserId</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Họ tên:</strong>
+                        </div>
+                        <div class="col-6">
+                            @Model?.User?.FullName
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Email:</strong>
+                        </div>
+                        <div class="col-6">
+                            <a href="mailto:@Model?.User?.Email">@Model?.User?.Email</a>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Số điện thoại:</strong>
+                        </div>
+                        <div class="col-6">
+                            <a href="tel:@Model?.User?.PhoneNumber">@Model?.User?.PhoneNumber</a>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Địa chỉ:</strong>
+                        </div>
+                        <div class="col-6">
+                            @Model?.User?.Address
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Trạng thái:</strong>
+                        </div>
+                        <div class="col-6">
+                            @if (Model?.User?.Status == "Active")
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Bị khóa</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Ngày tạo:</strong>
+                        </div>
+                        <div class="col-6">
+                            @Model?.User?.CreatedDate.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin gói tập -->
+    @if (subscription != null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <div class="card-header bg-dark text-white">
+                        <h5 style="margin: 0;"><i class="fa fa-ticket"></i> Thông tin gói tập</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Tên gói:</strong>
+                                <p style="color: #f36100; font-weight: 700;">@subscription?.Package?.PackageName</p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Thời hạn:</strong>
+                                <p>@(subscription?.Package?.DurationDays / 30) tháng (@subscription?.Package?.DurationDays ngày)</p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Ngày bắt đầu:</strong>
+                                <p style="color: #28a745;">@subscription?.StartDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Ngày kết thúc:</strong>
+                                <p style="color: #dc3545;">@subscription?.EndDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Trạng thái:</strong>
+                                <p>
+                                    @if (subscription?.Status == "Active")
+                                    {
+                                        <span class="badge bg-success"><i class="fa fa-check-circle"></i> Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger"><i class="fa fa-times-circle"></i> Hết hạn</span>
+                                    }
+                                </p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Ngày kích hoạt:</strong>
+                                <p>@subscription?.ActivationDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Số buổi sử dụng:</strong>
+                                <p>@subscription?.SessionsUsed / @subscription?.Package?.MaxSessions</p>
+                            </div>
+
+                            <div class="col-md-3">
+                                <strong>Số ngày còn lại:</strong>
+                                <p style="color: #0066cc; font-weight: 700;">@subscription?.RemainingDays ngày</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Nút hành động -->
+    <div class="row">
+        <div class="col-12">
+            <a href="/admin/payment/index" class="btn btn-secondary">
+                <i class="fa fa-arrow-left"></i> Quay lại danh sách
+            </a>
+            <button type="button" class="btn btn-primary" onclick="window.print()" style="background: #333; border: none;">
+                <i class="fa fa-print"></i> In chi tiết
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    @@media print {
+        .btn, .btn-secondary, .btn-primary {
+            display: none;
+        }
+    }
+</style>

@@ -1,0 +1,372 @@
+@model List<doanweb.Models.Product>
+
+@{
+    ViewData["Title"] = "Sản Phẩm";
+}
+
+<!-- Page Title Section -->
+<section class="page-title-section" >
+ 
+</section>
+
+<!-- Product Filters Section -->
+<section class="product-filter-section">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="page-title" style="text-align: center">
+                    <h1>Sản Phẩm Bổ Sung Dinh Dưỡng</h1>
+                    <p>Những sản phẩm chất lượng cao để hỗ trợ mục tiêu tập luyện của bạn</p>
+                </div>
+                <div class="filter-buttons">
+                   
+                    <button class="btn-filter active" onclick="location.href='/Products'">
+                        <i class="fa fa-th"></i> Tất cả sản phẩm
+                    </button>
+                    <button class="btn-filter" onclick="location.href='/Products/Category?categoryName=Whey'">
+                        <i class="fa fa-tint"></i> Whey Protein
+                    </button>
+                    <button class="btn-filter" onclick="location.href='/Products/Category?categoryName=Creatine'">
+                        <i class="fa fa-flask"></i> Creatine
+                    </button>
+                    <button class="btn-filter" onclick="location.href='/Products/Category?categoryName=Protein Bar'">
+                        <i class="fa fa-cube"></i> Protein Bar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="products-section">
+    <div class="container">
+        <div class="row">
+            @if (Model != null && Model.Count > 0)
+            {
+                @foreach (var product in Model)
+                {
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                        <div class="product-card">
+                            <div class="product-image">
+                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                {
+                                    <img src="@product.ImageUrl" alt="@product.ProductName" class="img-fluid">
+                                }
+                                else
+                                {
+                                    <div class="placeholder-image">
+                                        <i class="fa fa-cube"></i>
+                                    </div>
+                                }
+                                <div class="product-badge">@product.Category</div>
+                            </div>
+                            <div class="product-body">
+                                <h5 class="product-name">@product.ProductName</h5>
+                                <p class="product-brand">
+                                    <small>@product.Brand</small>
+                                </p>
+                                <p class="product-description">
+                                    @if (!string.IsNullOrEmpty(product.Description))
+                                    {
+                                        @Html.Raw(product.Description.Length > 80 ? 
+                                            product.Description.Substring(0, 80) + "..." : 
+                                            product.Description)
+                                    }
+                                </p>
+                                <div class="product-stock mb-3">
+                                    @if (product.StockQuantity > 0)
+                                    {
+                                        <span class="badge badge-success">Còn @product.StockQuantity sp</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Hết hàng</span>
+                                    }
+                                </div>
+                                <div class="product-footer">
+                                    <div class="product-price">
+                                        <h4>@product.Price.ToString("N0") <span>đ</span></h4>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="/Products/Detail/@product.ProductId" class="btn-view-detail" title="Xem chi tiết sản phẩm">
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <button class="btn-view-detail" onclick="addToCartQuick(@product.ProductId, '@product.ProductName', @product.Price, '@product.ImageUrl', @product.StockQuantity)" title="Thêm vào giỏ hàng">
+                                                <i class="fa fa-shopping-cart"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-view-detail" disabled title="Hết hàng" style="opacity: 0.5; cursor: not-allowed;">
+                                                <i class="fa fa-ban"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-lg-12 text-center">
+                    <p class="text-muted mt-5 mb-5">Không có sản phẩm nào được tìm thấy.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Page Title Section */
+    .page-title-section {
+        padding: 100px 0;
+        text-align: center;
+        color: white;
+        background-color: black ;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)) ;
+    }
+
+    .page-title h1 {
+        font-size: 44px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: white;
+    }
+
+    .page-title p {
+        font-size: 16px;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Filter Section */
+    .product-filter-section {
+        padding: 40px 0;
+        background-color: #1a1a1a;
+        border-bottom: 3px solid #f36100;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-filter {
+        padding: 12px 28px;
+        border: 2px solid #f36100;
+        background-color: transparent;
+        color: #f36100;
+        cursor: pointer;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-filter:hover {
+        background-color: #f36100;
+        color: white;
+        box-shadow: 0 4px 12px rgba(243, 97, 0, 0.3);
+    }
+
+    .btn-filter.active {
+        background-color: #f36100;
+        color: white;
+        border-color: #f36100;
+        box-shadow: 0 4px 12px rgba(243, 97, 0, 0.3);
+    }
+
+    .btn-filter i {
+        margin-right: 8px;
+    }
+
+    /* Products Section */
+    .products-section {
+        padding: 40px 0;
+        min-height: 600px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.4s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #f0f0f0;
+    }
+
+    .product-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-8px);
+    }
+
+    .product-image {
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.08);
+    }
+
+    .placeholder-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 60px;
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background-color: #f36100;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 5;
+    }
+
+    .product-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .product-name {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #222;
+        line-height: 1.4;
+        min-height: 40px;
+    }
+
+    .product-brand {
+        margin-bottom: 12px;
+        color: #f36100;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .product-description {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 12px;
+        flex-grow: 1;
+        line-height: 1.6;
+    }
+
+    .product-stock {
+        margin-bottom: 12px;
+    }
+
+    .badge-success {
+        background-color: #28a745 !important;
+        color: white !important;
+        font-size: 11px;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        font-weight: 600;
+    }
+
+    .badge-danger {
+        background-color: #dc3545 !important;
+        color: white !important;
+        font-size: 11px;
+        padding: 5px 10px !important;
+        border-radius: 4px !important;
+        font-weight: 600;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .product-price h4 {
+        margin: 0;
+        color: #f36100;
+        font-weight: 700;
+        font-size: 20px;
+    }
+
+    .product-price span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-view-detail {
+        padding: 10px 15px;
+        background-color: #f36100;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        min-width: 45px;
+        height: 45px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-view-detail:hover {
+        background-color: #d94d00;
+        color: white;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(243, 97, 0, 0.3);
+    }
+</style>
+
+<script>
+    function addToCartQuick(productId, productName, price, imageUrl, stockQuantity) {
+        cart.addProduct(productId, productName, price, imageUrl, 1, stockQuantity);
+    }
+</script>

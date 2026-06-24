@@ -1,0 +1,307 @@
+@model doanweb.Models.TrainerViewModel
+
+@{
+    ViewData["Title"] = $"HLV {Model.Name}";
+}
+
+<link rel="stylesheet" href="~/css/trainers.css" asp-append-version="true" />
+
+<section class="trainer-profile">
+    <div class="container">
+        <nav class="trainer-breadcrumb" aria-label="Điều hướng">
+            <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+            <i class="fa fa-angle-right"></i>
+            <a asp-controller="Home" asp-action="Trainers">Đội ngũ HLV</a>
+            <i class="fa fa-angle-right"></i>
+            <span>@Model.Name</span>
+        </nav>
+
+        <div class="trainer-profile-grid">
+            <div class="trainer-profile-photo">
+                <img src="@Model.Image" alt="Huấn luyện viên @Model.Name" />
+                <span class="trainer-status @Model.StatusClass">@Model.Status</span>
+            </div>
+
+            <div class="trainer-profile-info">
+                <span class="trainer-profile-label">Huấn luyện viên chuyên nghiệp</span>
+                <h1>@Model.Name</h1>
+                <p class="trainer-profile-role">@Model.Role</p>
+
+                <div class="trainer-profile-stats">
+                    <div>
+                        <i class="fa fa-star"></i>
+                        <strong>@Model.Rating</strong>
+                        <span>@Model.Reviews</span>
+                    </div>
+                    <div>
+                        <i class="fa fa-trophy"></i>
+                        <strong>@Model.Experience</strong>
+                        <span>Kinh nghiệm thực tế</span>
+                    </div>
+                    <div>
+                        <i class="fa fa-map-marker"></i>
+                        <strong>@Model.Location</strong>
+                        <span>Địa điểm làm việc</span>
+                    </div>
+                </div>
+
+                <p class="trainer-profile-intro">@Model.Introduction</p>
+
+                <div class="trainer-profile-skills">
+                    @foreach (var skill in Model.Skills)
+                    {
+                        <span>@skill</span>
+                    }
+                </div>
+
+                <div class="trainer-profile-actions">
+                    <button type="button" class="trainer-book-button js-open-trainer-booking">Đặt lịch tập</button>
+                    <a asp-controller="Home" asp-action="Trainers" class="trainer-back-button">
+                        <i class="fa fa-long-arrow-left"></i> Xem HLV khác
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="trainer-profile-content">
+    <div class="container">
+        <div class="trainer-content-grid">
+            <div class="trainer-content-main">
+                <article class="trainer-content-card">
+                    <span class="trainer-content-kicker">Phương pháp huấn luyện</span>
+                    <h2>Triết lý tập luyện</h2>
+                    <blockquote>“@Model.Philosophy”</blockquote>
+                    <p>Mỗi chương trình đều bắt đầu bằng việc đánh giá mục tiêu, thể trạng và thói quen sinh hoạt. Sau đó, huấn luyện viên sẽ xây dựng lộ trình phù hợp, theo dõi tiến độ và điều chỉnh định kỳ để đảm bảo hiệu quả lâu dài.</p>
+                </article>
+
+                <article class="trainer-content-card">
+                    <span class="trainer-content-kicker">Năng lực chuyên môn</span>
+                    <h2>Chứng chỉ & chuyên môn</h2>
+                    <div class="trainer-certificates">
+                        @foreach (var certificate in Model.Certificates)
+                        {
+                            <div>
+                                <i class="fa fa-check"></i>
+                                <span>@certificate</span>
+                            </div>
+                        }
+                    </div>
+                </article>
+            </div>
+
+            <aside class="trainer-schedule-card">
+                <span class="trainer-content-kicker">Thời gian làm việc</span>
+                <h2>Lịch huấn luyện</h2>
+                <div class="trainer-schedule-list">
+                    @foreach (var item in Model.Schedule)
+                    {
+                        <div>
+                            <span>@item.Day</span>
+                            <strong>@item.Time</strong>
+                        </div>
+                    }
+                </div>
+                <p><i class="fa fa-info-circle"></i> Lịch có thể thay đổi theo lớp học và lịch đặt trước.</p>
+            </aside>
+        </div>
+    </div>
+</section>
+
+<section id="trainer-booking" class="trainer-booking">
+    <div class="container">
+        <div class="trainer-booking-box">
+            <div>
+                <span>Huấn luyện cùng @Model.Name</span>
+                <h2>Sẵn sàng bắt đầu hành trình của bạn?</h2>
+                <p>Chọn gói, ngày và giờ tập phù hợp chỉ trong vài bước.</p>
+            </div>
+            <button type="button" class="js-open-trainer-booking">Đặt lịch ngay</button>
+        </div>
+    </div>
+</section>
+
+<div id="trainerBookingModal"
+     class="trainer-booking-modal"
+     aria-hidden="true"
+     data-trainer-name="@Model.Name"
+     data-trainer-role="@Model.Role"
+     data-trainer-image="@Model.Image"
+     data-login-url="@Url.Action("Login", "Account", new { area = "Customer" })"
+     data-is-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+    <script type="application/json" data-trainer-classes>
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BookableClasses.Select(item => new
+        {
+            classId = item.ClassId,
+            roomId = item.RoomId,
+            roomName = item.RoomName,
+            className = item.ClassName,
+            date = item.ClassDate.ToString("yyyy-MM-dd"),
+            startTime = item.StartTime.ToString(@"hh\:mm"),
+            endTime = item.EndTime.ToString(@"hh\:mm"),
+            availableSlots = item.AvailableSlots
+        })))
+    </script>
+    <div class="trainer-booking-backdrop" data-booking-close></div>
+    <div class="trainer-booking-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+        <header class="booking-modal-header">
+            <img src="@Model.Image" alt="@Model.Name" />
+            <div>
+                <h2 id="bookingModalTitle">@Model.Name</h2>
+                <p>@Model.Role</p>
+            </div>
+            <button type="button" class="booking-close" data-booking-close aria-label="Đóng">
+                <i class="fa fa-times"></i>
+            </button>
+        </header>
+
+        <div class="booking-progress" aria-label="Tiến trình đặt lịch">
+            <div class="booking-progress-item active" data-progress-step="1">
+                <span>1</span><strong>Chọn ngày</strong>
+            </div>
+            <i></i>
+            <div class="booking-progress-item" data-progress-step="2">
+                <span>2</span><strong>Chọn giờ</strong>
+            </div>
+            <i></i>
+            <div class="booking-progress-item" data-progress-step="3">
+                <span>3</span><strong>Thông tin</strong>
+            </div>
+            <i></i>
+            <div class="booking-progress-item" data-progress-step="4">
+                <span>4</span><strong>Xác nhận</strong>
+            </div>
+        </div>
+
+        <div class="booking-modal-body">
+            <section class="booking-step active" data-booking-step="1">
+                <h3>Chọn phòng tập</h3>
+                <label class="booking-room-field">
+                    <i class="fa fa-map-marker"></i>
+                    <select data-booking-room>
+                        <option value="">-- Chọn phòng tập --</option>
+                        @foreach (var room in Model.BookableClasses
+                            .GroupBy(item => new { item.RoomId, item.RoomName })
+                            .Select(group => group.Key))
+                        {
+                            <option value="@room.RoomId">@room.RoomName</option>
+                        }
+                    </select>
+                </label>
+                @if (!Model.BookableClasses.Any())
+                {
+                    <p class="booking-form-error show">HLV này hiện chưa có giờ tập nào mở đăng ký.</p>
+                }
+
+                <h3>Loại buổi tập</h3>
+                <div class="booking-packages">
+                    <button type="button" class="booking-package" data-package-name="Buổi lẻ (60 phút)" data-package-price="250000">
+                        <strong>Buổi lẻ</strong>
+                        <span>250,000đ</span>
+                        <small>60 phút</small>
+                    </button>
+                    <button type="button" class="booking-package" data-package-name="Gói 5 buổi" data-package-price="1100000">
+                        <em>Tiết kiệm 12%</em>
+                        <strong>Gói 5 buổi</strong>
+                        <span>1,100,000đ</span>
+                        <small>60 phút/buổi</small>
+                    </button>
+                    <button type="button" class="booking-package" data-package-name="Gói 10 buổi" data-package-price="2000000">
+                        <em>Tiết kiệm 20%</em>
+                        <strong>Gói 10 buổi</strong>
+                        <span>2,000,000đ</span>
+                        <small>60 phút/buổi</small>
+                    </button>
+                </div>
+
+                <h3>Chọn ngày</h3>
+                <div class="booking-calendar">
+                    <div class="booking-calendar-head">
+                        <button type="button" data-calendar-prev aria-label="Tháng trước"><i class="fa fa-angle-left"></i></button>
+                        <strong data-calendar-title></strong>
+                        <button type="button" data-calendar-next aria-label="Tháng sau"><i class="fa fa-angle-right"></i></button>
+                    </div>
+                    <div class="booking-weekdays">
+                        <span>CN</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span>
+                    </div>
+                    <div class="booking-calendar-days" data-calendar-days></div>
+                </div>
+            </section>
+
+            <section class="booking-step" data-booking-step="2">
+                <div class="booking-selection-banner">
+                    <i class="fa fa-calendar"></i>
+                    <span data-date-summary></span>
+                </div>
+                <h3>Chọn giờ tập</h3>
+                <div class="booking-times" data-time-list></div>
+                <div class="booking-time-legend">
+                    <span><i></i> Trống</span>
+                    <span><i class="selected"></i> Đã chọn</span>
+                    <span><i class="booked"></i> Đã đặt</span>
+                </div>
+            </section>
+
+            <section class="booking-step" data-booking-step="3">
+                <div class="booking-selection-banner">
+                    <i class="fa fa-clock-o"></i>
+                    <span data-session-summary></span>
+                </div>
+                <h3>Thông tin học viên</h3>
+                <div class="booking-form">
+                    <label>
+                        <i class="fa fa-user-o"></i>
+                        <input type="text" data-student-name placeholder="Họ và tên *" autocomplete="name" />
+                    </label>
+                    <label>
+                        <i class="fa fa-phone"></i>
+                        <input type="tel" data-student-phone placeholder="Số điện thoại *" autocomplete="tel" />
+                    </label>
+                    <label>
+                        <i class="fa fa-envelope-o"></i>
+                        <input type="email" data-student-email placeholder="Email" autocomplete="email" />
+                    </label>
+                    <label class="booking-note">
+                        <i class="fa fa-comment-o"></i>
+                        <textarea data-student-note placeholder="Ghi chú (mục tiêu, tình trạng sức khỏe...)"></textarea>
+                    </label>
+                    <p class="booking-form-error" data-form-error></p>
+                </div>
+            </section>
+
+            <section class="booking-step" data-booking-step="4">
+                <h3>Xác nhận thông tin</h3>
+                <div class="booking-confirm-table">
+                    <div><span>Huấn luyện viên</span><strong>@Model.Name</strong></div>
+                    <div><span>Chuyên môn</span><strong>@Model.Role</strong></div>
+                    <div><span>Phòng tập</span><strong data-confirm-room></strong></div>
+                    <div><span>Giờ tập</span><strong data-confirm-class></strong></div>
+                    <div><span>Ngày tập</span><strong data-confirm-date></strong></div>
+                    <div><span>Giờ tập</span><strong data-confirm-time></strong></div>
+                    <div><span>Loại gói</span><strong data-confirm-package></strong></div>
+                    <div><span>Chi phí</span><strong data-confirm-price></strong></div>
+                    <div><span>Học viên</span><strong data-confirm-name></strong></div>
+                    <div><span>Liên hệ</span><strong data-confirm-phone></strong></div>
+                </div>
+                <div class="booking-confirm-note">
+                    <i class="fa fa-check-circle-o"></i>
+                    <span>Sau khi xác nhận, HLV sẽ liên hệ với bạn trong vòng 2 giờ để xác nhận lịch tập.</span>
+                </div>
+            </section>
+        </div>
+
+        <footer class="booking-modal-footer">
+            <button type="button" class="booking-back" data-booking-back>
+                <i class="fa fa-angle-left"></i> Quay lại
+            </button>
+            <button type="button" class="booking-next" data-booking-next>
+                <span>Tiếp tục</span> <i class="fa fa-angle-right"></i>
+            </button>
+        </footer>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/trainer-booking.js" asp-append-version="true"></script>
+}

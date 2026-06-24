@@ -1,0 +1,178 @@
+@model doanweb.Models.PublicGymsViewModel
+
+@{
+    ViewData["Title"] = "Danh sách phòng tập";
+    const string bookingButtonText = "Đặt lịch ngay";
+}
+
+<link rel="stylesheet" href="~/css/gyms.css" asp-append-version="true" />
+
+<section class="gym-hero">
+    <div class="container">
+        <div class="gym-hero__content">
+            <span class="gym-eyebrow">Hệ thống phòng tập GymPro</span>
+            <h1>Chọn không gian<br /><strong>tập luyện phù hợp</strong></h1>
+            <p>Danh sách phòng tập và lịch học được cập nhật trực tiếp từ hệ thống quản lý.</p>
+            <div class="gym-hero__stats">
+                <div><strong>@Model.Rooms.Count.ToString("00")</strong><span>Phòng đang sử dụng</span></div>
+                <div><strong>@Model.Rooms.Sum(room => room.Capacity)</strong><span>Tổng sức chứa</span></div>
+                <div><strong>@Model.Rooms.Sum(room => room.UpcomingClassCount)</strong><span>Lịch học sắp tới</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="gym-directory">
+    <div class="container">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="gym-toolbar">
+            <div class="gym-toolbar__heading">
+                <span>Không gian luyện tập</span>
+                <h2>Danh sách phòng tập</h2>
+            </div>
+            <label class="gym-search">
+                <i class="fa fa-search"></i>
+                <input id="gymSearch" type="search" placeholder="Tìm theo tên phòng hoặc loại hình tập..." />
+            </label>
+        </div>
+
+        <div class="gym-results">
+            <p><strong id="gymCount">@Model.Rooms.Count</strong> phòng tập phù hợp</p>
+        </div>
+
+        @if (Model.Rooms.Any())
+        {
+            <div class="gym-grid">
+                @foreach (var room in Model.Rooms)
+                {
+                    var searchText = $"{room.RoomName} {room.Description} {string.Join(" ", room.ClassTypes)}";
+                    var roomReturnUrl = $"/Home/Gyms#gym-room-{room.TrainingRoomId}";
+                    <article class="gym-card" id="gym-room-@room.TrainingRoomId" data-search="@searchText">
+                        <div class="gym-card__image">
+                            <img src="@room.ImageUrl" alt="@room.RoomName" />
+                            <span class="gym-card__status">
+                                <i></i> Đang sử dụng
+                            </span>
+                        </div>
+                        <div class="gym-card__body">
+                            <div class="gym-card__title">
+                                <div>
+                                    <span>Sức chứa @room.Capacity khách</span>
+                                    <h3>@room.RoomName</h3>
+                                </div>
+                            </div>
+                            <p class="gym-address"><i class="fa fa-info-circle"></i> @room.Description</p>
+                            <p class="gym-class-name"><i class="fa fa-calendar"></i> @room.NextClassName</p>
+                            <p class="gym-instructor"><i class="fa fa-user"></i> HLV phụ trách: <strong>@room.InstructorName</strong></p>
+                            <div class="gym-meta">
+                                <span><i class="fa fa-clock-o"></i> @room.ScheduleText</span>
+                                <span><i class="fa fa-calendar-check-o"></i> @room.UpcomingClassCount lịch sắp tới</span>
+                                <span class="gym-slots @(room.AvailableSlots <= 5 ? "gym-slots--low" : "")">
+                                    <i class="fa fa-users"></i> Còn @room.AvailableSlots chỗ
+                                </span>
+                            </div>
+                            <div class="gym-amenities">
+                                @foreach (var classType in room.ClassTypes)
+                                {
+                                    <span>@classType</span>
+                                }
+                            </div>
+                            <div class="gym-card__actions">
+                                <a class="gym-btn gym-btn--primary"
+                                   asp-area=""
+                                   asp-controller="Schedule"
+                                   asp-action="BookRoom"
+                                   asp-route-roomId="@room.TrainingRoomId"
+                                   asp-route-returnUrl="@roomReturnUrl">
+                                    @bookingButtonText
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+
+        <div class="gym-empty @(Model.Rooms.Any() ? "" : "show")" id="gymEmpty">
+            <i class="fa fa-map-o"></i>
+            <h3>Không tìm thấy phòng tập</h3>
+            <p>Hiện chưa có phòng đang sử dụng phù hợp.</p>
+        </div>
+    </div>
+</section>
+
+<section class="gym-packages" id="gymPackages">
+    <div class="container">
+        <div class="gym-packages__heading">
+            <span>Gói hội viên tại phòng tập</span>
+            <h2>Chọn gói tập phù hợp</h2>
+            <p>Các gói dưới đây sử dụng được tại hệ thống phòng tập GymPro.</p>
+        </div>
+
+        <div class="gym-packages__grid">
+            @foreach (var package in Model.Packages)
+            {
+                <article class="gym-package-card">
+                    <h3>@package.PackageName</h3>
+                    <div class="gym-package-card__price">
+                        <strong>@package.Price.ToString("N0")₫</strong>
+                        <span>/ @(Math.Max(1, package.DurationDays / 30)) tháng</span>
+                    </div>
+                    <p>@package.Description</p>
+                    <ul>
+                        @foreach (var feature in (package.Features ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <li><i class="fa fa-check"></i> @feature.Trim()</li>
+                        }
+                    </ul>
+                    <a href="/Packages/Detail/@package.PackageId">Xem chi tiết</a>
+                </article>
+            }
+        </div>
+
+        <div class="gym-packages__more">
+            <a href="/Packages/Offline">Xem tất cả gói tập tại phòng</a>
+        </div>
+    </div>
+</section>
+
+<section class="gym-cta">
+    <div class="container">
+        <div class="gym-cta__inner">
+            <div><span>Bắt đầu ngay hôm nay</span><h2>Trải nghiệm buổi tập đầu tiên</h2></div>
+            <a href="/customer/account/register">Đăng ký trải nghiệm <i class="fa fa-long-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const cards = [...document.querySelectorAll('.gym-card')];
+            const search = document.getElementById('gymSearch');
+            const count = document.getElementById('gymCount');
+            const empty = document.getElementById('gymEmpty');
+            const normalize = value => value.toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            function applySearch() {
+                const keyword = normalize(search.value.trim());
+                let visible = 0;
+                cards.forEach(card => {
+                    const show = !keyword || normalize(card.dataset.search).includes(keyword);
+                    card.hidden = !show;
+                    if (show) visible++;
+                });
+                count.textContent = visible;
+                empty.classList.toggle('show', visible === 0);
+            }
+
+            search.addEventListener('input', applySearch);
+        })();
+    </script>
+}

@@ -1,0 +1,269 @@
+@model doanweb.Models.AdminStaffItemViewModel
+
+@{
+    ViewData["Title"] = "Chi Tiết Nhân Viên / HLV";
+    ViewData["AdminPageTitle"] = "Nhân Viên / HLV";
+
+    var certificates = SplitList(Model.Certificates);
+    var skills = SplitList(Model.Specialty);
+    var schedules = SplitSchedule(Model.ScheduleText);
+    var hasPublicProfile = Model.PositionKind == "trainer";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-staff.css" asp-append-version="true" />
+}
+
+<section class="staff-detail-page">
+    <div class="staff-detail-header">
+        <div>
+            <span class="staff-kicker">GymPro Admin</span>
+            <h1>Chi tiết nhân sự</h1>
+            <p>@Model.StaffCode</p>
+        </div>
+
+        <div class="staff-detail-actions">
+            <a asp-area="Admin" asp-controller="Staff" asp-action="Index" class="staff-back-link">
+                <i class="fa fa-long-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
+
+            @if (hasPublicProfile)
+            {
+                <a asp-area=""
+                   asp-controller="Home"
+                   asp-action="TrainerDetail"
+                   asp-route-id="@Model.StaffMemberId"
+                   class="staff-public-profile-link">
+                    <i class="fa fa-external-link"></i>
+                    <span>Xem ngoài web</span>
+                </a>
+            }
+
+            <a asp-area="Admin"
+               asp-controller="Staff"
+               asp-action="Edit"
+               asp-route-id="@Model.StaffMemberId"
+               class="staff-save-button">
+                <i class="fa fa-pencil"></i>
+                <span>Cập nhật</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="staff-detail-layout">
+        <aside class="staff-detail-profile">
+            <div class="staff-detail-photo">
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.FullName" />
+                }
+                else
+                {
+                    <span>@Model.Initial</span>
+                }
+            </div>
+
+            <div class="staff-detail-name">
+                <h2>@Model.FullName</h2>
+                <span class="staff-status staff-status-@Model.StatusKind">@Model.StatusLabel</span>
+            </div>
+
+            <div class="staff-detail-badges">
+                <span class="staff-position staff-position-@Model.PositionKind">@Model.Position</span>
+                @foreach (var skill in skills)
+                {
+                    <span>@skill</span>
+                }
+            </div>
+
+            <div class="staff-detail-contact">
+                <a href="tel:@Model.PhoneNumber">
+                    <i class="fa fa-phone"></i>
+                    <span>@Model.PhoneNumber</span>
+                </a>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                {
+                    <a href="mailto:@Model.Email">
+                        <i class="fa fa-envelope-o"></i>
+                        <span>@Model.Email</span>
+                    </a>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Location))
+                {
+                    <span>
+                        <i class="fa fa-map-marker"></i>
+                        <span>@Model.Location</span>
+                    </span>
+                }
+            </div>
+        </aside>
+
+        <div class="staff-detail-content">
+            <div class="staff-detail-metrics">
+                <div class="staff-detail-metric">
+                    <span>Lương</span>
+                    <strong>@Model.Salary.ToString("N0")đ</strong>
+                </div>
+                <div class="staff-detail-metric">
+                    <span>Đánh giá</span>
+                    <strong><i class="fa fa-star"></i> @Model.Rating.ToString("0.0")</strong>
+                </div>
+                <div class="staff-detail-metric">
+                    <span>Lớp/tháng</span>
+                    <strong>@Model.MonthlyClasses</strong>
+                </div>
+                <div class="staff-detail-metric">
+                    <span>Kinh nghiệm</span>
+                    <strong>@Model.ExperienceYears năm</strong>
+                </div>
+            </div>
+
+            <section class="staff-detail-section">
+                <div class="staff-detail-section-header">
+                    <i class="fa fa-user-circle-o"></i>
+                    <h2>Hồ sơ đội ngũ</h2>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.Introduction))
+                {
+                    <p class="staff-detail-text">@Model.Introduction</p>
+                }
+                else
+                {
+                    <p class="staff-detail-empty">Chưa có nội dung giới thiệu.</p>
+                }
+            </section>
+
+            <section class="staff-detail-section">
+                <div class="staff-detail-section-header">
+                    <i class="fa fa-compass"></i>
+                    <h2>Triết lý huấn luyện</h2>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.Philosophy))
+                {
+                    <p class="staff-detail-text">@Model.Philosophy</p>
+                }
+                else
+                {
+                    <p class="staff-detail-empty">Chưa có triết lý huấn luyện.</p>
+                }
+            </section>
+
+            <div class="staff-detail-two-columns">
+                <section class="staff-detail-section">
+                    <div class="staff-detail-section-header">
+                        <i class="fa fa-certificate"></i>
+                        <h2>Chứng chỉ</h2>
+                    </div>
+                    @if (certificates.Count > 0)
+                    {
+                        <div class="staff-detail-chip-list">
+                            @foreach (var certificate in certificates)
+                            {
+                                <span>@certificate</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="staff-detail-empty">Chưa cập nhật chứng chỉ.</p>
+                    }
+                </section>
+
+                <section class="staff-detail-section">
+                    <div class="staff-detail-section-header">
+                        <i class="fa fa-calendar-check-o"></i>
+                        <h2>Lịch làm việc</h2>
+                    </div>
+                    @if (schedules.Count > 0)
+                    {
+                        <div class="staff-detail-schedule">
+                            @foreach (var schedule in schedules)
+                            {
+                                <div>
+                                    <span>@schedule.Day</span>
+                                    <strong>@schedule.Time</strong>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="staff-detail-empty">Chưa cập nhật lịch làm việc.</p>
+                    }
+                </section>
+            </div>
+
+            <div class="staff-detail-command-row">
+                <a asp-area="Admin"
+                   asp-controller="Staff"
+                   asp-action="Edit"
+                   asp-route-id="@Model.StaffMemberId"
+                   class="staff-save-button">
+                    <i class="fa fa-pencil"></i>
+                    <span>Cập nhật thông tin</span>
+                </a>
+
+                <form method="post"
+                      asp-area="Admin"
+                      asp-controller="Staff"
+                      asp-action="Delete"
+                      asp-route-id="@Model.StaffMemberId"
+                      onsubmit="return confirm('Xóa nhân viên @Model.FullName?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="staff-detail-delete-button">
+                        <i class="fa fa-trash"></i>
+                        <span>Xóa nhân viên</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@functions {
+    private static List<string> SplitList(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return new List<string>();
+        }
+
+        return value
+            .Split(new[] { ',', '&', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(item => item.Length > 0)
+            .Take(8)
+            .ToList();
+    }
+
+    private static List<ScheduleLine> SplitSchedule(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return new List<ScheduleLine>();
+        }
+
+        return value
+            .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(item =>
+            {
+                var parts = item.Split('|', 2, StringSplitOptions.TrimEntries);
+                return new ScheduleLine
+                {
+                    Day = parts.Length > 0 ? parts[0] : "Đang cập nhật",
+                    Time = parts.Length > 1 ? parts[1] : "Liên hệ"
+                };
+            })
+            .Where(item => item.Day.Length > 0 || item.Time.Length > 0)
+            .Take(8)
+            .ToList();
+    }
+
+    private sealed class ScheduleLine
+    {
+        public string Day { get; init; } = string.Empty;
+        public string Time { get; init; } = string.Empty;
+    }
+}

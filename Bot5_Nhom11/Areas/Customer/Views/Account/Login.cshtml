@@ -1,0 +1,142 @@
+﻿@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<!-- Breadcrumb Begin -->
+<section class="breadcrumb-section set-bg" data-setbg="~/img/breadcrumb-bg.jpg" style="background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('~/img/breadcrumb-bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; background-color: #151515; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb-text">
+                    <h2 style="color: white; font-size: 60px; font-weight: 600; text-transform: uppercase;">Đăng nhập</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb End -->
+
+<!-- Login Section Begin -->
+<section class="pricing-section spad" style="background: #151515; padding: 100px 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5">
+                <div style="background: white; padding: 50px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h2 style="text-align: center; margin-bottom: 30px; color: #111111;">Đăng nhập tài khoản</h2>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                            <strong>Lỗi:</strong>
+                            <ul style="margin-top: 10px;">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <form method="post" action="/customer/account/login">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Hidden input để truyền returnUrl -->
+                        @if (!string.IsNullOrEmpty(ViewData["ReturnUrl"]?.ToString()))
+                        {
+                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                        }
+
+                        <!-- Email -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Email *</label>
+                            <input type="email" name="Email" class="form-control" placeholder="Nhập email của bạn" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                                   value="@Model?.Email" required />
+                            @if (ViewData.ModelState.TryGetValue("Email", out var emailErrors))
+                            {
+                                @foreach (var error in emailErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Mật khẩu -->
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">Mật khẩu *</label>
+                            <input type="password" name="Password" class="form-control" placeholder="Nhập mật khẩu" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required />
+                            @if (ViewData.ModelState.TryGetValue("Password", out var passwordErrors))
+                            {
+                                @foreach (var error in passwordErrors.Errors)
+                                {
+                                    <span style="color: #dc3545; font-size: 12px;">@error.ErrorMessage</span>
+                                }
+                            }
+                        </div>
+
+                        <!-- Ghi nhớ tôi -->
+                        <div class="form-group" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                            <label style="display: flex; align-items: center; color: #666;">
+                                <input type="checkbox" name="RememberMe" style="margin-right: 8px; width: 18px; height: 18px;" />
+                                <span>Ghi nhớ tôi</span>
+                            </label>
+                            <a href="#" style="color: #f36100; text-decoration: none; font-size: 14px;">Quên mật khẩu?</a>
+                        </div>
+
+                        <!-- Nút Đăng nhập -->
+                        <button type="submit" class="primary-btn" style="width: 100%; background: #f36100; color: white; border: none; padding: 15px; border-radius: 5px; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: background 0.3s;">
+                            Đăng nhập
+                        </button>
+
+                        <!-- Link Đăng ký -->
+                        <div style="text-align: center; margin-top: 20px;">
+                            <p style="color: #666;">
+                                Chưa có tài khoản?
+                                <a asp-area="Customer"
+                                   asp-controller="Account"
+                                   asp-action="Register"
+                                   asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                                   style="color: #f36100; text-decoration: none; font-weight: 600;">Đăng ký ngay</a>
+                            </p>
+                        </div>
+
+                        <!-- Hoặc -->
+                        <div style="text-align: center; margin: 25px 0; position: relative;">
+                            <span style="background: white; padding: 0 15px; color: #999;">Hoặc</span>
+                        </div>
+
+                        <!-- Đăng nhập với Facebook -->
+                        <a asp-area="Customer"
+                           asp-controller="Account"
+                           asp-action="LoginWithFacebook"
+                           asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                           style="display: flex; width: 100%; background: #3b5998; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; align-items: center; justify-content: center; gap: 8px; transition: background 0.3s ease;">
+                            <i class="fa fa-facebook" style="font-size: 16px;"></i> Đăng nhập với Facebook
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Login Section End -->
+@section Scripts {
+    <script>
+        // Hiển thị SweetAlert cho lỗi từ TempData
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi Đăng Nhập",
+                text: "@TempData["ErrorMessage"]",
+                confirmButtonColor: "#f36100",
+                confirmButtonText: "Thử lại"
+            });
+            </text>
+        }
+    </script>
+}
